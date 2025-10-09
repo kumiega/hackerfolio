@@ -42,6 +42,33 @@ CREATE TYPE component_type AS ENUM (
 - position INT NOT NULL
 - data JSONB NOT NULL
 
+### 1.6 error tracking
+
+#### 1.6.1 Enums
+```sql
+CREATE TYPE error_severity AS ENUM ('debug','info','warn','error','fatal');
+CREATE TYPE error_source   AS ENUM ('frontend','api','edge','worker','db','other');
+```
+
+#### 1.6.2 app_errors
+- id BIGSERIAL PRIMARY KEY
+- occurred_at TIMESTAMPTZ NOT NULL DEFAULT now()
+- severity error_severity NOT NULL DEFAULT 'error'
+- source error_source NOT NULL DEFAULT 'other'
+- user_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL
+- request_id TEXT
+- session_id TEXT
+- route TEXT
+- endpoint TEXT
+- error_code TEXT
+- message TEXT NOT NULL
+- stack TEXT
+- context JSONB NOT NULL DEFAULT '{}'
+- client_ip INET
+- user_agent TEXT
+- username TEXT
+- portfolio_id UUID REFERENCES portfolios(id) ON DELETE SET NULL
+
 ## 2. Relations
 
 - **user_profiles** 1 — 1 **portfolios** (user_profiles.id = portfolios.user_id)
@@ -54,6 +81,8 @@ CREATE TYPE component_type AS ENUM (
 - B-tree on `sections(portfolio_id)`, `sections(position)`
 - B-tree on `components(section_id)`, `components(position)`
 - GIN on `components(data)`
+- B-tree on `app_errors(occurred_at desc)`, `app_errors(severity)`, `app_errors(source)`, `app_errors(user_id)`, `app_errors(request_id)`, `app_errors(portfolio_id)`
+- GIN on `app_errors(context)`
 
 ## 4. RLS Policies
 
@@ -63,6 +92,7 @@ ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portfolios ENABLE ROW LEVEL SECURITY;
 ALTER TABLE sections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE components ENABLE ROW LEVEL SECURITY;
+ALTER TABLE app_errors ENABLE ROW LEVEL SECURITY;
 ```
 
 ### 4.2 Policies
@@ -120,8 +150,24 @@ CREATE POLICY component_owner ON components
   );
 ```
 
+#### app_errors
+```sql
+-- Insert-only from anon/auth to allow client and API logging
+CREATE POLICY app_errors_insert_anon ON app_errors FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY app_errors_insert_authenticated ON app_errors FOR INSERT TO authenticated WITH CHECK (true);
+
+-- No read/update/delete for anon/auth (service role only via bypass RLS)
+CREATE POLICY app_errors_select_anon ON app_errors FOR SELECT TO anon USING (false);
+CREATE POLICY app_errors_select_authenticated ON app_errors FOR SELECT TO authenticated USING (false);
+CREATE POLICY app_errors_update_any ON app_errors FOR UPDATE TO authenticated USING (false) WITH CHECK (false);
+CREATE POLICY app_errors_delete_any ON app_errors FOR DELETE TO authenticated USING (false);
+```
+
 ## 5. Additional Notes
 
 - Limits on max sections (10) and max components (15) per portfolio to be enforced at application level or via additional database triggers/policies as needed.
 - JSONB `data` field can store component-specific attributes; structure validation to occur at application or via JSON schema integration.
 - Consider partitioning or auditing in future iterations for scalability.
+- Error logging helper RPC available:
+  - `public.log_app_error(severity, source, message, error_code, route, endpoint, request_id, session_id, stack, context, client_ip, user_agent, portfolio_id)`
+  - Cleanup utility: `public.app_errors_cleanup(retain_days int)`
