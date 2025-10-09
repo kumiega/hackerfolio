@@ -28,8 +28,7 @@ CREATE TYPE component_type AS ENUM (
   'project_card',
   'tech_list',
   'social_links',
-  'link_list',
-  'ordered_list',
+  'list',
   'gallery',
   'bio'
 );
