@@ -420,8 +420,30 @@ Summarized types for reference; actual responses follow examples above.
 - Payload limits: 256 KB JSON by default; images uploaded via separate object store (future)
 - Internationalization: content in components stored as UTF-8; API messages in English
 
-## 9. Future Extensions (Post-MVP)
-- Admin analytics over `app_errors`
-- Portfolio templates and theming
-- Asset upload endpoints with signed URLs
-- Custom domain support
+
+## 9. TODO List
+- [x] /api/v1/auth/session
+- [x] /api/v1/auth/username-availability
+- [ ] /api/v1/auth/claim-username
+- [ ] /api/v1/portfolios/me
+- [ ] /api/v1/portfolios
+- [ ] /api/v1/portfolios/:id
+- [ ] /api/v1/portfolios/:id/publish
+- [ ] /api/v1/portfolios/:id/unpublish
+- [ ] /api/v1/portfolios/:portfolioId/sections
+- [ ] /api/v1/portfolios/:portfolioId/sections
+- [ ] /api/v1/sections/:id
+- [ ] /api/v1/sections/:id/reorder
+- [ ] /api/v1/sections/:id
+- [ ] /api/v1/sections/:sectionId/components
+- [ ] /api/v1/sections/:sectionId/components
+- [ ] /api/v1/components/:id
+- [ ] /api/v1/components/:id/reorder
+- [ ] /api/v1/components/:id
+- [ ] /api/v1/imports/github/repos
+- [ ] /api/v1/imports/github/generate-project-cards
+- [ ] /api/v1/imports/linkedin/parse
+- [ ] /api/v1/public/portfolios/:username
+- [ ] /api/v1/errors
+- [ ] /api/v1/health
+- [ ] /api/v1/version

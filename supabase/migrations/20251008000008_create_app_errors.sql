@@ -92,9 +92,9 @@ create index if not exists app_errors_context_gin_idx on public.app_errors using
 
 -- Helper function to log errors safely via RPC
 create or replace function public.log_app_error(
+  message_in text,
   severity_in public.error_severity default 'error',
   source_in public.error_source default 'other',
-  message_in text,
   error_code_in text default null,
   route_in text default null,
   endpoint_in text default null,
@@ -140,8 +140,8 @@ begin
 end;
 $$;
 
-revoke all on function public.log_app_error(public.error_severity, public.error_source, text, text, text, text, text, text, text, jsonb, inet, text, uuid) from public;
-grant execute on function public.log_app_error(public.error_severity, public.error_source, text, text, text, text, text, text, text, jsonb, inet, text, uuid) to anon, authenticated;
+revoke all on function public.log_app_error(text, public.error_severity, public.error_source, text, text, text, text, text, text, jsonb, inet, text, uuid) from public;
+grant execute on function public.log_app_error(text, public.error_severity, public.error_source, text, text, text, text, text, text, jsonb, inet, text, uuid) to anon, authenticated;
 
 -- Cleanup routine for retention
 create or replace function public.app_errors_cleanup(retain_days int default 30)
