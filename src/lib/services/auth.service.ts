@@ -1,18 +1,6 @@
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { AuthSessionDto, UserProfileDto } from "@/types";
-
-/**
- * Custom error class for authentication errors
- */
-class AuthError extends Error {
-  userId?: string;
-
-  constructor(code: string, userId?: string) {
-    super(code);
-    this.name = code;
-    this.userId = userId;
-  }
-}
+import { AppError } from "@/lib/error-handler";
 
 /**
  * Service for authentication-related operations
@@ -36,7 +24,7 @@ export class AuthService {
     } = await supabase.auth.getUser();
 
     if (authError || !user || !user.email) {
-      throw new AuthError("UNAUTHENTICATED");
+      throw new AppError("UNAUTHENTICATED");
     }
 
     // Step 2: Fetch user profile from database
@@ -48,7 +36,7 @@ export class AuthService {
       .single();
 
     if (profileError || !profile) {
-      throw new AuthError("PROFILE_NOT_FOUND", user.id);
+      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
     }
 
     // Step 3: Build and return DTO
@@ -113,7 +101,7 @@ export class AuthService {
     // Step 1: Validate username format
     const USERNAME_REGEX = /^[a-z0-9-]{3,30}$/;
     if (!USERNAME_REGEX.test(username)) {
-      throw new AuthError("INVALID_USERNAME_FORMAT");
+      throw new AppError("INVALID_USERNAME_FORMAT");
     }
 
     // Step 2: Get authenticated user and their current profile
@@ -123,7 +111,7 @@ export class AuthService {
     } = await supabase.auth.getUser();
 
     if (authError || !user || !user.email) {
-      throw new AuthError("UNAUTHENTICATED");
+      throw new AppError("UNAUTHENTICATED");
     }
 
     const { data: profile, error: profileError } = await supabase
@@ -133,12 +121,12 @@ export class AuthService {
       .single();
 
     if (profileError || !profile) {
-      throw new AuthError("PROFILE_NOT_FOUND", user.id);
+      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
     }
 
     // Step 3: Check if user already has a username set
     if (profile.username) {
-      throw new AuthError("USERNAME_ALREADY_SET", user.id);
+      throw new AppError("USERNAME_ALREADY_SET", undefined, { userId: user.id });
     }
 
     // Step 4: Check username availability (case-insensitive)
@@ -153,7 +141,7 @@ export class AuthService {
     }
 
     if (existingUsernames && existingUsernames.length > 0) {
-      throw new AuthError("USERNAME_TAKEN");
+      throw new AppError("USERNAME_TAKEN");
     }
 
     // Step 5: Update user profile with new username

@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
 import { AuthService } from "@/lib/services/auth.service";
-import { logError } from "@/lib/error-utils";
-import type { ApiSuccessResponse, ApiErrorResponse, UserProfileDto, ClaimUsernameCommand } from "@/types";
+import { handleApiError, createErrorResponse } from "@/lib/error-handler";
+import type { ApiSuccessResponse, UserProfileDto, ClaimUsernameCommand } from "@/types";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -47,25 +47,14 @@ export const POST: APIRoute = async (context) => {
       requestBody = ClaimUsernameSchema.parse(rawBody);
     } catch (parseError) {
       // Handle both JSON parsing errors and Zod validation errors
-      let errorMessage = "Request body must be valid JSON";
-      let errorCode = "INVALID_JSON";
-
       if (parseError instanceof z.ZodError) {
-        errorMessage = parseError.issues[0]?.message || "Invalid request data";
-        errorCode = "INVALID_USERNAME_FORMAT";
-      }
-
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: errorCode,
-          message: errorMessage,
+        return createErrorResponse(
+          "INVALID_USERNAME_FORMAT",
           requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
+          parseError.issues[0]?.message || "Invalid request data"
+        );
+      }
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Request body must be valid JSON");
     }
 
     // Step 2: Claim username via AuthService
@@ -82,102 +71,12 @@ export const POST: APIRoute = async (context) => {
         "Content-Type": "application/json",
       },
     });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // Handle specific AuthError types with appropriate HTTP status codes
-    if (error.name === "UNAUTHENTICATED") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "UNAUTHENTICATED",
-          message: "Authentication required",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.name === "INVALID_USERNAME_FORMAT") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "INVALID_USERNAME_FORMAT",
-          message: "Username must be 3-30 characters, lowercase letters, numbers, and hyphens only",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.name === "USERNAME_ALREADY_SET") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "USERNAME_ALREADY_SET",
-          message: "Username has already been set for this account",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 409,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.name === "USERNAME_TAKEN") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "USERNAME_TAKEN",
-          message: "This username is already taken",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 409,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (error.name === "PROFILE_NOT_FOUND") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "PROFILE_NOT_FOUND",
-          message: "User profile not found",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle unexpected errors (500)
-    await logError(supabase, {
-      message: error.message || "Unexpected error in claim username endpoint",
-      severity: "error",
-      source: "api",
-      error_code: "INTERNAL_ERROR",
+  } catch (error) {
+    return handleApiError(error, {
+      supabase,
+      requestId,
       endpoint: "POST /api/v1/auth/claim-username",
-      route: "/api/v1/auth/claim-username",
-      request_id: requestId,
-      stack: error.stack,
-      context: {},
-    });
-
-    const errorResponse: ApiErrorResponse = {
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "An unexpected error occurred",
-        requestId,
-      },
-    };
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+      route: request.url,
     });
   }
 };

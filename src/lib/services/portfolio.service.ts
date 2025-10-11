@@ -1,19 +1,7 @@
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { PortfolioDto, CreatePortfolioCommand, UpdatePortfolioCommand, PublishStatusDto } from "@/types";
 import { ERROR_CODES } from "@/lib/error-constants";
-
-/**
- * Custom error class for portfolio-related errors
- */
-class PortfolioError extends Error {
-  userId?: string;
-
-  constructor(code: string, userId?: string) {
-    super(code);
-    this.name = code;
-    this.userId = userId;
-  }
-}
+import { AppError } from "@/lib/error-handler";
 
 /**
  * Service for portfolio-related operations
@@ -44,10 +32,10 @@ export class PortfolioService {
         return null;
       }
       // For other errors, throw
-      const dbError = new PortfolioError(ERROR_CODES.DATABASE_ERROR, userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dbError as any).cause = error;
-      throw dbError;
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: error,
+      });
     }
 
     // Step 3: Return portfolio data
@@ -72,10 +60,10 @@ export class PortfolioService {
 
     // Step 2: Handle database errors
     if (error) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dbError as any).cause = error;
-      throw dbError;
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: error,
+      });
     }
 
     // Step 3: Return existence status
@@ -109,10 +97,10 @@ export class PortfolioService {
 
     // Step 2: Handle database errors
     if (error) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dbError as any).cause = error;
-      throw dbError;
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: error,
+      });
     }
 
     // Step 3: Return created portfolio data
@@ -153,13 +141,13 @@ export class PortfolioService {
     if (error) {
       // If no row found, portfolio doesn't exist or user doesn't own it
       if (error.code === "PGRST116") {
-        throw new PortfolioError("ERROR_CODES.PORTFOLIO_NOT_FOUND", userId);
+        throw new AppError(ERROR_CODES.PORTFOLIO_NOT_FOUND, undefined, { userId });
       }
       // For other errors, throw database error
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (dbError as any).cause = error;
-      throw dbError;
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: error,
+      });
     }
 
     // Step 3: Return updated portfolio data
@@ -192,9 +180,9 @@ export class PortfolioService {
 
     if (portfolioError) {
       if (portfolioError.code === "PGRST116") {
-        throw new PortfolioError("ERROR_CODES.PORTFOLIO_NOT_FOUND", userId);
+        throw new AppError(ERROR_CODES.PORTFOLIO_NOT_FOUND, undefined, { userId });
       }
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = portfolioError;
       throw dbError;
@@ -215,14 +203,14 @@ export class PortfolioService {
       .eq("portfolio_id", portfolioId);
 
     if (sectionError) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = sectionError;
       throw dbError;
     }
 
     if ((sectionCount || 0) < 1) {
-      throw new PortfolioError("ERROR_CODES.UNMET_REQUIREMENTS", userId);
+      throw new AppError(ERROR_CODES.UNMET_REQUIREMENTS, undefined, { userId });
     }
 
     // Step 4: Validate requirements - check for components across all sections
@@ -232,7 +220,7 @@ export class PortfolioService {
       .eq("portfolio_id", portfolioId);
 
     if (sectionsDataError) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = sectionsDataError;
       throw dbError;
@@ -246,14 +234,14 @@ export class PortfolioService {
       .in("section_id", sectionIds);
 
     if (componentError) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = componentError;
       throw dbError;
     }
 
     if ((componentCount || 0) < 1) {
-      throw new PortfolioError("ERROR_CODES.UNMET_REQUIREMENTS", userId);
+      throw new AppError(ERROR_CODES.UNMET_REQUIREMENTS, undefined, { userId });
     }
 
     // Step 5: Update portfolio publication status
@@ -269,7 +257,7 @@ export class PortfolioService {
       .single();
 
     if (updateError) {
-      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = updateError;
       throw dbError;

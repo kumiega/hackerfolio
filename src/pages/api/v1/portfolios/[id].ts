@@ -1,9 +1,9 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, ApiErrorResponse, PortfolioDto, UpdatePortfolioCommand } from "@/types";
+import type { ApiSuccessResponse, PortfolioDto, UpdatePortfolioCommand, AuthSessionDto } from "@/types";
 import { z } from "zod";
 import { PortfolioService } from "@/lib/services/portfolio.service";
 import { AuthService } from "@/lib/services/auth.service";
-import { logError } from "@/lib/error-utils";
+import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -36,24 +36,15 @@ export const PATCH: APIRoute = async (context) => {
   const supabase = locals.supabase;
   const requestId = locals.requestId || crypto.randomUUID();
   const portfolioId = params.id;
+  let authenticatedUser: AuthSessionDto | null = null;
 
   try {
     // Step 1: Authentication check
-    const authenticatedUser = await AuthService.getCurrentSession(supabase);
+    authenticatedUser = await AuthService.getCurrentSession(supabase);
 
     // Step 2: Validate portfolio ID parameter
     if (!portfolioId || typeof portfolioId !== "string") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid portfolio ID",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid portfolio ID");
     }
 
     // Step 3: Parse and validate request body
@@ -61,33 +52,12 @@ export const PATCH: APIRoute = async (context) => {
     try {
       requestBody = await request.json();
     } catch {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid JSON in request body",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid JSON in request body");
     }
 
     const validationResult = updatePortfolioSchema.safeParse(requestBody);
     if (!validationResult.success) {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: validationResult.error.format(),
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid input data", validationResult.error.format());
     }
 
     const command: UpdatePortfolioCommand = validationResult.data;
@@ -111,125 +81,14 @@ export const PATCH: APIRoute = async (context) => {
         "Content-Type": "application/json",
       },
     });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // Handle authentication errors (401)
-    if (error.message === "UNAUTHENTICATED" || error.name === "UNAUTHENTICATED") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "UNAUTHORIZED",
-          message: "Authentication required",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle profile not found errors (401)
-    if (error.message === "PROFILE_NOT_FOUND" || error.name === "PROFILE_NOT_FOUND") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "UNAUTHORIZED",
-          message: "User profile not found",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle portfolio not found error (404)
-    if (error.message === "PORTFOLIO_NOT_FOUND" || error.name === "PORTFOLIO_NOT_FOUND") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "PORTFOLIO_NOT_FOUND",
-          message: "Portfolio not found or access denied",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle validation errors (422)
-    if (error.message === "VALIDATION_ERROR" || error.name === "VALIDATION_ERROR") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.details,
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle database errors (500)
-    if (error.message === "DATABASE_ERROR" || error.name === "DATABASE_ERROR") {
-      await logError(supabase, {
-        message: "Database error while updating portfolio",
-        severity: "error",
-        source: "api",
-        error_code: "DATABASE_ERROR",
-        endpoint: `PATCH /api/v1/portfolios/${portfolioId}`,
-        route: request.url,
-        request_id: requestId,
-        stack: error.stack,
-        context: {
-          user_id: error.userId,
-          portfolio_id: portfolioId,
-        },
-      });
-
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "Database error occurred",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Handle unexpected errors (500)
-    await logError(supabase, {
-      message: error.message || "Unexpected error in portfolios update endpoint",
-      severity: "error",
-      source: "api",
-      error_code: "INTERNAL_ERROR",
+  } catch (error) {
+    return handleApiError(error, {
+      supabase,
+      requestId,
       endpoint: `PATCH /api/v1/portfolios/${portfolioId}`,
       route: request.url,
-      request_id: requestId,
-      stack: error.stack,
-      context: {
-        portfolio_id: portfolioId,
-      },
-    });
-
-    const errorResponse: ApiErrorResponse = {
-      error: {
-        code: "INTERNAL_ERROR",
-        message: "An unexpected error occurred",
-        requestId,
-      },
-    };
-    return new Response(JSON.stringify(errorResponse), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
+      portfolioId,
+      userId: authenticatedUser?.user?.id,
     });
   }
 };
