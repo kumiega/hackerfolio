@@ -151,6 +151,28 @@ export const ERROR_MAPPINGS: Record<string, ErrorMapping> = {
     isUserError: true,
   },
 
+  // GitHub integration errors
+  GITHUB_TOKEN_INVALID: {
+    statusCode: 401,
+    defaultMessage: "Invalid or expired GitHub access token",
+    isUserError: true,
+  },
+  GITHUB_TOKEN_INSUFFICIENT: {
+    statusCode: 403,
+    defaultMessage: "GitHub access token lacks required permissions",
+    isUserError: true,
+  },
+  GITHUB_RATE_LIMITED: {
+    statusCode: 429,
+    defaultMessage: "GitHub API rate limit exceeded. Please try again later",
+    isUserError: false,
+  },
+  GITHUB_API_ERROR: {
+    statusCode: 500,
+    defaultMessage: "Failed to retrieve repositories from GitHub",
+    isUserError: false,
+  },
+
   // Generic errors
   DATABASE_ERROR: {
     statusCode: 500,
@@ -278,6 +300,10 @@ function extractErrorCode(error: unknown): string {
     if (errorIdentifier.includes("USERNAME_ALREADY_SET")) return "USERNAME_ALREADY_SET";
     if (errorIdentifier.includes("USERNAME_TAKEN")) return "USERNAME_TAKEN";
     if (errorIdentifier.includes("INVALID_JSON")) return "INVALID_JSON";
+    if (errorIdentifier.includes("GITHUB_TOKEN_INVALID")) return "GITHUB_TOKEN_INVALID";
+    if (errorIdentifier.includes("GITHUB_TOKEN_INSUFFICIENT")) return "GITHUB_TOKEN_INSUFFICIENT";
+    if (errorIdentifier.includes("GITHUB_RATE_LIMITED")) return "GITHUB_RATE_LIMITED";
+    if (errorIdentifier.includes("GITHUB_API_ERROR")) return "GITHUB_API_ERROR";
   }
 
   // Default to internal error for unknown errors
