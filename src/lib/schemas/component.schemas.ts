@@ -147,4 +147,32 @@ export type SectionId = z.infer<typeof sectionIdSchema>;
 export type ReorderCommand = z.infer<typeof reorderCommandSchema>;
 export type CreateComponentCommand = z.infer<typeof createComponentCommandSchema>;
 export type UpdateComponentCommand = z.infer<typeof updateComponentCommandSchema>;
+/**
+ * Schema for validating GitHub repository URLs
+ */
+export const githubRepoUrlSchema = z
+  .string()
+  .url()
+  .refine((url) => {
+    try {
+      const parsedUrl = new URL(url);
+      return parsedUrl.hostname === "github.com" && /^\/[^\/]+\/[^\/]+\/?$/.test(parsedUrl.pathname);
+    } catch {
+      return false;
+    }
+  }, "URL must be a valid GitHub repository URL (e.g., https://github.com/user/repo)");
+
+/**
+ * Schema for validating generate project cards command
+ */
+export const generateProjectCardsCommandSchema = z.object({
+  section_id: sectionIdSchema,
+  repo_urls: z
+    .array(githubRepoUrlSchema)
+    .min(1, "At least one repository URL is required")
+    .max(10, "Maximum 10 repository URLs allowed"),
+  limit: z.number().int().min(1).max(10).optional().default(10),
+});
+
 export type ComponentListQuery = z.infer<typeof componentListQuerySchema>;
+export type GenerateProjectCardsCommand = z.infer<typeof generateProjectCardsCommandSchema>;

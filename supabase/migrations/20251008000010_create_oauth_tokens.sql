@@ -45,4 +45,4 @@ CREATE INDEX idx_oauth_tokens_expires_at ON oauth_tokens(expires_at) WHERE expir
 CREATE TRIGGER update_oauth_tokens_updated_at
   BEFORE UPDATE ON oauth_tokens
   FOR EACH ROW
-  EXECUTE FUNCTION trigger_set_timestamp();
+  EXECUTE FUNCTION update_updated_at_column();
