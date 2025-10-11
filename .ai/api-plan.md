@@ -437,7 +437,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] DELETE /api/v1/sections/:id
 - [x] GET /api/v1/sections/:sectionId/components
 - [x] POST /api/v1/sections/:sectionId/components
-- [ ] PATCH /api/v1/components/:id
+- [x] PATCH /api/v1/components/:id
 - [x] POST /api/v1/components/:id/reorder
 - [x] DELETE /api/v1/components/:id
 - [ ] GET /api/v1/imports/github/repos

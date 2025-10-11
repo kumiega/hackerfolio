@@ -27,7 +27,7 @@ export const createSectionCommandSchema = z.object({
  * Schema for validating section update command
  */
 export const updateSectionCommandSchema = z.object({
-  name: z.string().min(1).max(100).trim().optional(),
+  name: z.string().min(1).max(150).trim().optional(),
   visible: z.boolean().optional(),
 });
 
