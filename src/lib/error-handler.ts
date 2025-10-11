@@ -94,6 +94,28 @@ export const ERROR_MAPPINGS: Record<string, ErrorMapping> = {
     defaultMessage: "Section not found or access denied",
     isUserError: true,
   },
+  SECTION_LIMIT_REACHED: {
+    statusCode: 400,
+    defaultMessage: "Maximum of 10 sections allowed per portfolio",
+    isUserError: true,
+  },
+
+  // Component errors
+  INVALID_COMPONENT_ID: {
+    statusCode: 400,
+    defaultMessage: "Component ID is required and must be a valid UUID",
+    isUserError: true,
+  },
+  COMPONENT_NOT_FOUND: {
+    statusCode: 404,
+    defaultMessage: "Component not found or access denied",
+    isUserError: true,
+  },
+  COMPONENT_LIMIT_REACHED: {
+    statusCode: 400,
+    defaultMessage: "Maximum of 15 components allowed per section",
+    isUserError: true,
+  },
 
   // Validation errors
   VALIDATION_ERROR: {
