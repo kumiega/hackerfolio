@@ -1,9 +1,13 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, ComponentDto, AuthSessionDto } from "@/types";
+import type { ApiSuccessResponse, ComponentDto, AuthSessionDto, CreateComponentCommand } from "@/types";
 import { ComponentService } from "@/lib/services/component.service";
 import { AuthService } from "@/lib/services/auth.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
-import { sectionIdSchema, componentListQuerySchema } from "@/lib/schemas/component.schemas";
+import {
+  sectionIdSchema,
+  componentListQuerySchema,
+  createComponentCommandSchema,
+} from "@/lib/schemas/component.schemas";
 
 export const prerender = false;
 
@@ -63,7 +67,12 @@ export const GET: APIRoute = async (context) => {
     });
 
     if (!queryValidation.success) {
-      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid query parameters", queryValidation.error.format());
+      return createErrorResponse(
+        "VALIDATION_ERROR",
+        requestId,
+        "Invalid query parameters",
+        queryValidation.error.format()
+      );
     }
 
     const validatedQuery = queryValidation.data;
@@ -101,6 +110,101 @@ export const GET: APIRoute = async (context) => {
       supabase,
       requestId,
       endpoint: `GET /api/v1/sections/${sectionId}/components`,
+      route: request.url,
+      userId: authenticatedUser?.user?.id,
+    });
+  }
+};
+
+/**
+ * POST /api/v1/sections/[sectionId]/components
+ *
+ * Creates a new component within a specific section. This endpoint enforces a global portfolio-level
+ * limit of 15 components total across all sections, ensuring portfolio size remains manageable.
+ * The endpoint supports 8 different component types with type-specific data validation requirements.
+ *
+ * The component is automatically assigned the next available position within the section.
+ * Ownership is enforced through Row Level Security policies ensuring users can only create
+ * components in sections they own.
+ *
+ * Request Body:
+ * - type (ComponentType): The type of component to create
+ * - data (ComponentData): Type-specific component data matching the component type
+ *
+ * @param params.id - Section ID (UUID format)
+ * @param request.body - Component creation data with type and data fields
+ * @returns 201 - Created component data with assigned ID and position
+ * @returns 400 - Invalid section ID format or request body
+ * @returns 401 - User not authenticated
+ * @returns 403 - User doesn't own the section (RLS violation)
+ * @returns 404 - Section doesn't exist or access denied
+ * @returns 409 - Portfolio component limit reached (15 total components)
+ * @returns 422 - Invalid component type or data validation failed
+ * @returns 500 - Internal server error
+ */
+export const POST: APIRoute = async (context) => {
+  const { locals, request, params } = context;
+  const supabase = locals.supabase;
+  const requestId = locals.requestId || crypto.randomUUID();
+  const sectionId = params.id;
+  let authenticatedUser: AuthSessionDto | null = null;
+
+  try {
+    // Step 1: Authentication check
+    authenticatedUser = await AuthService.getCurrentSession(supabase);
+    if (!authenticatedUser) {
+      return createErrorResponse("UNAUTHORIZED", requestId, "Authentication required");
+    }
+
+    // Step 2: Validate section ID parameter
+    if (!sectionId || typeof sectionId !== "string") {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Section ID is required");
+    }
+
+    const sectionIdValidation = sectionIdSchema.safeParse(sectionId);
+    if (!sectionIdValidation.success) {
+      return createErrorResponse("INVALID_SECTION_ID", requestId, "Invalid section ID format");
+    }
+
+    // Step 3: Parse and validate request body
+    let requestBody: unknown;
+    try {
+      requestBody = await request.json();
+    } catch {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid JSON in request body");
+    }
+
+    const bodyValidation = createComponentCommandSchema.safeParse(requestBody);
+    if (!bodyValidation.success) {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid request body", bodyValidation.error.format());
+    }
+
+    const validatedCommand: CreateComponentCommand = bodyValidation.data;
+
+    // Step 4: Create component via service
+    const createdComponent = await ComponentService.createComponent(
+      supabase,
+      sectionId,
+      authenticatedUser.user.id,
+      validatedCommand
+    );
+
+    // Step 5: Return success response with created component
+    const response: ApiSuccessResponse<ComponentDto> = {
+      data: createdComponent,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    return handleApiError(error, {
+      supabase,
+      requestId,
+      endpoint: `POST /api/v1/sections/${sectionId}/components`,
       route: request.url,
       userId: authenticatedUser?.user?.id,
     });

@@ -1,11 +1,11 @@
 // Shared types for backend and frontend (Entities, DTOs)
-import type { Tables, TablesInsert, TablesUpdate, Enums } from './db/database.types';
+import type { Tables, TablesInsert, TablesUpdate, Enums } from "./db/database.types";
 
 // ============================================================================
 // Enums (mirroring database enums)
 // ============================================================================
 
-export type ComponentType = Enums<'component_type'>;
+export type ComponentType = Enums<"component_type">;
 
 // ============================================================================
 // Component Data Types (type-specific data structures)
@@ -30,24 +30,24 @@ export interface SocialLinksComponentData {
   github?: string;
   linkedin?: string;
   x?: string;
-  website?: Array<{
+  website?: {
     name: string;
     url: string;
-  }>;
+  }[];
 }
 
 export interface LinkListComponentData {
-  items: Array<{
+  items: {
     label: string; // <= 80 chars
     url: string;
-  }>;
+  }[];
 }
 
 export interface GalleryComponentData {
-  images: Array<{
+  images: {
     url: string;
     alt: string; // <= 120 chars
-  }>;
+  }[];
   maxImageSizeMB?: number; // default 2
 }
 
@@ -57,10 +57,10 @@ export interface BioComponentData {
 }
 
 export interface OrderedListComponentData {
-  items: Array<{
+  items: {
     label: string; // <= 80 chars
     value?: string;
-  }>;
+  }[];
 }
 
 // Union type for component data based on component type
@@ -95,12 +95,12 @@ export interface UsernameAvailabilityDto {
   available: boolean;
 }
 
-export type UserProfileDto = Pick<Tables<'user_profiles'>, 'id' | 'username'>;
+export type UserProfileDto = Pick<Tables<"user_profiles">, "id" | "username">;
 
 // Portfolio endpoints
 export type PortfolioDto = Pick<
-  Tables<'portfolios'>,
-  'id' | 'user_id' | 'is_published' | 'published_at' | 'title' | 'description' | 'created_at'
+  Tables<"portfolios">,
+  "id" | "user_id" | "is_published" | "published_at" | "title" | "description" | "created_at"
 >;
 
 export interface PublishStatusDto {
@@ -109,16 +109,10 @@ export interface PublishStatusDto {
 }
 
 // Section endpoints
-export type SectionDto = Omit<
-  Tables<'sections'>,
-  'portfolio_id' | 'created_at' | 'updated_at'
->;
+export type SectionDto = Omit<Tables<"sections">, "portfolio_id" | "created_at" | "updated_at">;
 
 // Component endpoints
-export type ComponentDto = Omit<
-  Tables<'components'>,
-  'section_id' | 'created_at' | 'updated_at'
->;
+export type ComponentDto = Omit<Tables<"components">, "section_id" | "created_at" | "updated_at">;
 
 // Import endpoints - GitHub
 export interface GitHubRepoDto {
@@ -138,10 +132,10 @@ export interface GenerateProjectCardsResultDto {
 export interface LinkedInProfile {
   name: string;
   headline: string;
-  experience: Array<{
+  experience: {
     title: string;
     company: string;
-  }>;
+  }[];
 }
 
 export interface LinkedInParseResultDto {
@@ -156,7 +150,7 @@ export interface PublicSectionDto extends SectionDto {
 
 export interface PublicPortfolioDto {
   username: string;
-  portfolio: Pick<PortfolioDto, 'title' | 'description' | 'published_at'>;
+  portfolio: Pick<PortfolioDto, "title" | "description" | "published_at">;
   sections: PublicSectionDto[];
 }
 
@@ -186,24 +180,14 @@ export interface ClaimUsernameCommand {
 }
 
 // Portfolio commands
-export type CreatePortfolioCommand = Pick<
-  TablesInsert<'portfolios'>,
-  'title' | 'description'
->;
+export type CreatePortfolioCommand = Pick<TablesInsert<"portfolios">, "title" | "description">;
 
-export type UpdatePortfolioCommand = Partial<
-  Pick<TablesUpdate<'portfolios'>, 'title' | 'description'>
->;
+export type UpdatePortfolioCommand = Partial<Pick<TablesUpdate<"portfolios">, "title" | "description">>;
 
 // Section commands
-export type CreateSectionCommand = Pick<
-  TablesInsert<'sections'>,
-  'name' | 'visible'
->;
+export type CreateSectionCommand = Pick<TablesInsert<"sections">, "name" | "visible">;
 
-export type UpdateSectionCommand = Partial<
-  Pick<TablesUpdate<'sections'>, 'name' | 'visible'>
->;
+export type UpdateSectionCommand = Partial<Pick<TablesUpdate<"sections">, "name" | "visible">>;
 
 export interface ReorderCommand {
   position: number;
@@ -235,8 +219,8 @@ export interface LinkedInParseCommand {
 
 // Error intake command
 export interface ErrorIntakeCommand {
-  severity: 'debug' | 'info' | 'warn' | 'error' | 'fatal';
-  source: 'frontend' | 'api' | 'edge' | 'worker' | 'db' | 'other';
+  severity: "debug" | "info" | "warn" | "error" | "fatal";
+  source: "frontend" | "api" | "edge" | "worker" | "db" | "other";
   message: string;
   error_code?: string;
   route?: string;
@@ -244,7 +228,7 @@ export interface ErrorIntakeCommand {
   request_id?: string;
   session_id?: string;
   stack?: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   portfolio_id?: string;
 }
 
@@ -252,7 +236,7 @@ export interface ErrorIntakeCommand {
 // API Response Envelope Types
 // ============================================================================
 
-export interface ApiSuccessResponse<T = any> {
+export interface ApiSuccessResponse<T = unknown> {
   data: T;
   meta?: {
     page?: number;
@@ -266,12 +250,12 @@ export interface ApiErrorResponse {
   error: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
     requestId: string;
   };
 }
 
-export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 // ============================================================================
 // Pagination and Filtering Types
@@ -284,7 +268,7 @@ export interface PaginationQuery {
 
 export interface SortingQuery {
   sort?: string;
-  order?: 'asc' | 'desc';
+  order?: "asc" | "desc";
 }
 
 export interface ComponentListQuery extends PaginationQuery, SortingQuery {
@@ -299,16 +283,15 @@ export interface SectionListQuery extends PaginationQuery, SortingQuery {}
 // ============================================================================
 
 // Type guard for component data based on type
-export type ComponentDataMap = {
+export interface ComponentDataMap {
   text: TextComponentData;
   project_card: ProjectCardComponentData;
   tech_list: TechListComponentData;
   social_links: SocialLinksComponentData;
-  link_list: LinkListComponentData;
-  ordered_list: OrderedListComponentData;
+  list: LinkListComponentData | OrderedListComponentData;
   gallery: GalleryComponentData;
   bio: BioComponentData;
-};
+}
 
 // Extract component data type by component type
 export type ComponentDataByType<T extends ComponentType> = ComponentDataMap[T];

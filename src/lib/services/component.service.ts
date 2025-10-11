@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { ComponentDto, CreateComponentCommand, UpdateComponentCommand, ReorderCommand, ComponentListQuery } from "@/types";
+import type { Json } from "@/db/database.types";
+import type {
+  ComponentDto,
+  CreateComponentCommand,
+  UpdateComponentCommand,
+  ReorderCommand,
+  ComponentListQuery,
+} from "@/types";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { AppError } from "@/lib/error-handler";
 
@@ -36,7 +43,7 @@ export class ComponentService {
       if (fetchError.code === "PGRST116") {
         throw new AppError(ERROR_CODES.COMPONENT_NOT_FOUND, undefined, {
           userId,
-          details: { componentId }
+          details: { componentId },
         });
       }
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
@@ -202,7 +209,7 @@ export class ComponentService {
    * @param userId - ID of the user making the request (for ownership verification)
    * @param command - Component creation command with type and data
    * @returns Promise<ComponentDto> - Created component data
-   * @throws AppError with code 'COMPONENT_LIMIT_REACHED' if section already has 15 components
+   * @throws AppError with code 'COMPONENT_LIMIT_REACHED' if portfolio already has 15 components
    * @throws AppError with code 'DATABASE_ERROR' if database insertion fails
    */
   static async createComponent(
@@ -211,29 +218,59 @@ export class ComponentService {
     userId: string,
     command: CreateComponentCommand
   ): Promise<ComponentDto> {
-    // Step 1: Check component count limit (maximum 15 components per section)
+    // Step 1: Get portfolio ID for the section
+    const { data: sectionData, error: sectionError } = await supabase
+      .from("sections")
+      .select("portfolio_id")
+      .eq("id", sectionId)
+      .single();
+
+    if (sectionError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: sectionError,
+      });
+    }
+
+    // Step 2: Get all section IDs for the portfolio
+    const { data: sectionIds, error: sectionsError } = await supabase
+      .from("sections")
+      .select("id")
+      .eq("portfolio_id", sectionData.portfolio_id);
+
+    if (sectionsError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        portfolioId: sectionData.portfolio_id,
+        cause: sectionsError,
+      });
+    }
+
+    const sectionIdArray = sectionIds?.map((s) => s.id) || [];
+
+    // Step 3: Check component count limit (maximum 15 components per portfolio)
     const { count: componentCount, error: countError } = await supabase
       .from("components")
       .select("*", { count: "exact", head: true })
-      .eq("section_id", sectionId);
+      .in("section_id", sectionIdArray);
 
     if (countError) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
         userId,
-        sectionId,
+        portfolioId: sectionData.portfolio_id,
         cause: countError,
       });
     }
 
     if ((componentCount || 0) >= 15) {
-      throw new AppError(ERROR_CODES.COMPONENT_LIMIT_REACHED, "Maximum of 15 components allowed per section", {
+      throw new AppError(ERROR_CODES.COMPONENT_LIMIT_REACHED, "Maximum of 15 components allowed per portfolio", {
         userId,
-        sectionId,
+        portfolioId: sectionData.portfolio_id,
         details: { currentCount: componentCount },
       });
     }
 
-    // Step 2: Get the current maximum position for ordering
+    // Step 3: Get the current maximum position for ordering
     const { data: maxPositionData, error: maxPosError } = await supabase
       .from("components")
       .select("position")
@@ -244,35 +281,34 @@ export class ComponentService {
     if (maxPosError) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
         userId,
-        sectionId,
         cause: maxPosError,
       });
     }
 
     const nextPosition = (maxPositionData?.[0]?.position || 0) + 1;
 
-    // Step 3: Insert new component record
+    // Step 4: Insert new component record
     const { data: component, error } = await supabase
       .from("components")
       .insert({
         section_id: sectionId,
         type: command.type,
-        data: command.data,
+        data: command.data as Json,
         position: nextPosition,
       })
       .select("id, type, position, data")
       .single();
 
-    // Step 4: Handle database errors
+    // Step 5: Handle database errors
     if (error) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
         userId,
-        sectionId,
+        portfolioId: sectionData.portfolio_id,
         cause: error,
       });
     }
 
-    // Step 5: Return created component data
+    // Step 6: Return created component data
     return component;
   }
 
@@ -298,7 +334,7 @@ export class ComponentService {
     const { data: component, error } = await supabase
       .from("components")
       .update({
-        data: command.data,
+        data: command.data as Json,
       })
       .eq("id", componentId)
       .select("id, type, position, data")
@@ -310,7 +346,7 @@ export class ComponentService {
       if (error.code === "PGRST116") {
         throw new AppError(ERROR_CODES.COMPONENT_NOT_FOUND, undefined, {
           userId,
-          details: { componentId }
+          details: { componentId },
         });
       }
       // For other errors, throw database error
@@ -335,11 +371,7 @@ export class ComponentService {
    * @throws AppError with code 'COMPONENT_NOT_FOUND' if component doesn't exist or user doesn't own it
    * @throws AppError with code 'DATABASE_ERROR' if database operations fail
    */
-  static async deleteComponent(
-    supabase: SupabaseClient,
-    componentId: string,
-    userId: string
-  ): Promise<void> {
+  static async deleteComponent(supabase: SupabaseClient, componentId: string, userId: string): Promise<void> {
     // Step 1: Get component details to determine section and position
     const { data: componentToDelete, error: fetchError } = await supabase
       .from("components")
@@ -351,7 +383,7 @@ export class ComponentService {
       if (fetchError.code === "PGRST116") {
         throw new AppError(ERROR_CODES.COMPONENT_NOT_FOUND, undefined, {
           userId,
-          details: { componentId }
+          details: { componentId },
         });
       }
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
@@ -362,10 +394,7 @@ export class ComponentService {
     }
 
     // Step 2: Delete the component
-    const { error: deleteError } = await supabase
-      .from("components")
-      .delete()
-      .eq("id", componentId);
+    const { error: deleteError } = await supabase.from("components").delete().eq("id", componentId);
 
     if (deleteError) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
@@ -466,8 +495,10 @@ export class ComponentService {
     componentsQuery = componentsQuery.order(sortColumn, { ascending: query.order === "asc" });
 
     // Step 4: Apply pagination
-    const offset = (query.page - 1) * query.per_page;
-    componentsQuery = componentsQuery.range(offset, offset + query.per_page - 1);
+    const page = query.page || 1;
+    const perPage = query.per_page || 20;
+    const offset = (page - 1) * perPage;
+    componentsQuery = componentsQuery.range(offset, offset + perPage - 1);
 
     // Step 5: Execute query
     const { data: components, error: fetchError, count } = await componentsQuery;
