@@ -427,7 +427,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] /api/v1/auth/claim-username
 - [x] /api/v1/portfolios/me
 - [x] /api/v1/portfolios
-- [ ] /api/v1/portfolios/:id
+- [x] /api/v1/portfolios/:id
 - [ ] /api/v1/portfolios/:id/publish
 - [ ] /api/v1/portfolios/:id/unpublish
 - [ ] /api/v1/portfolios/:portfolioId/sections

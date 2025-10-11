@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { PortfolioDto, CreatePortfolioCommand } from "@/types";
+import type { PortfolioDto, CreatePortfolioCommand, UpdatePortfolioCommand } from "@/types";
 
 /**
  * Custom error class for portfolio-related errors
@@ -115,6 +115,53 @@ export class PortfolioService {
     }
 
     // Step 3: Return created portfolio data
+    return portfolio;
+  }
+
+  /**
+   * Updates an existing portfolio for a specific user
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param portfolioId - ID of the portfolio to update
+   * @param userId - ID of the user making the update (for ownership verification)
+   * @param command - Portfolio update command with title and/or description
+   * @returns Promise<PortfolioDto> - Updated portfolio data
+   * @throws PortfolioError with code 'PORTFOLIO_NOT_FOUND' if portfolio doesn't exist or user doesn't own it
+   * @throws PortfolioError with code 'DATABASE_ERROR' if database update fails
+   */
+  static async updatePortfolio(
+    supabase: SupabaseClient,
+    portfolioId: string,
+    userId: string,
+    command: UpdatePortfolioCommand
+  ): Promise<PortfolioDto> {
+    // Step 1: Update portfolio record with ownership verification
+    // RLS policy ensures user can only update their own portfolio
+    const { data: portfolio, error } = await supabase
+      .from("portfolios")
+      .update({
+        title: command.title,
+        description: command.description,
+      })
+      .eq("id", portfolioId)
+      .eq("user_id", userId) // Additional ownership verification
+      .select("id, user_id, is_published, published_at, title, description, created_at")
+      .single();
+
+    // Step 2: Handle database errors
+    if (error) {
+      // If no row found, portfolio doesn't exist or user doesn't own it
+      if (error.code === "PGRST116") {
+        throw new PortfolioError("PORTFOLIO_NOT_FOUND", userId);
+      }
+      // For other errors, throw database error
+      const dbError = new PortfolioError("DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = error;
+      throw dbError;
+    }
+
+    // Step 3: Return updated portfolio data
     return portfolio;
   }
 }
