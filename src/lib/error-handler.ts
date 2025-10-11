@@ -83,6 +83,18 @@ export const ERROR_MAPPINGS: Record<string, ErrorMapping> = {
     isUserError: true,
   },
 
+  // Section errors
+  INVALID_SECTION_ID: {
+    statusCode: 400,
+    defaultMessage: "Section ID is required and must be a valid UUID",
+    isUserError: true,
+  },
+  SECTION_NOT_FOUND: {
+    statusCode: 404,
+    defaultMessage: "Section not found or access denied",
+    isUserError: true,
+  },
+
   // Validation errors
   VALIDATION_ERROR: {
     statusCode: 422,
