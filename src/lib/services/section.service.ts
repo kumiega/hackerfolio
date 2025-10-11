@@ -290,8 +290,9 @@ export class SectionService {
    * @param sectionId - ID of the section to reorder
    * @param userId - ID of the user making the request (for ownership verification)
    * @param command - Reorder command with new position
-   * @returns Promise<SectionDto[]> - Updated sections with new positions
+   * @returns Promise<SectionDto> - Updated section with new position
    * @throws AppError with code 'SECTION_NOT_FOUND' if section doesn't exist or user doesn't own it
+   * @throws AppError with code 'VALIDATION_ERROR' if position is out of bounds
    * @throws AppError with code 'DATABASE_ERROR' if database operations fail
    */
   static async reorderSection(
@@ -299,7 +300,7 @@ export class SectionService {
     sectionId: string,
     userId: string,
     command: ReorderCommand
-  ): Promise<SectionDto[]> {
+  ): Promise<SectionDto> {
     // Step 1: Get section details
     const { data: section, error: fetchError } = await supabase
       .from("sections")
@@ -318,30 +319,52 @@ export class SectionService {
       });
     }
 
-    // Step 2: Get current position and validate new position
-    const currentPosition = section.position;
+    // Step 2: Validate new position is within portfolio bounds (0 to section count - 1)
+    const { count: sectionCount, error: countError } = await supabase
+      .from("sections")
+      .select("*", { count: "exact", head: true })
+      .eq("portfolio_id", section.portfolio_id);
+
+    if (countError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        details: { sectionId, portfolioId: section.portfolio_id },
+        cause: countError,
+      });
+    }
+
+    const maxPosition = (sectionCount || 1) - 1;
     const newPosition = command.position;
+    if (newPosition < 0 || newPosition > maxPosition) {
+      throw new AppError(ERROR_CODES.VALIDATION_ERROR, `Position must be between 0 and ${maxPosition}`, {
+        userId,
+        details: { sectionId, newPosition, maxPosition },
+      });
+    }
+
+    // Step 3: Get current position and check if change is needed
+    const currentPosition = section.position;
 
     if (currentPosition === newPosition) {
-      // No change needed, return current sections
-      const { data: currentSections, error: listError } = await supabase
+      // No change needed, return current section
+      const { data: currentSection, error: fetchCurrentError } = await supabase
         .from("sections")
         .select("id, name, position, visible")
-        .eq("portfolio_id", section.portfolio_id)
-        .order("position");
+        .eq("id", sectionId)
+        .single();
 
-      if (listError) {
+      if (fetchCurrentError) {
         throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
           userId,
           details: { sectionId },
-          cause: listError,
+          cause: fetchCurrentError,
         });
       }
 
-      return currentSections || [];
+      return currentSection;
     }
 
-    // Step 3: Handle reordering logic
+    // Step 4: Handle reordering logic
     if (newPosition < currentPosition) {
       // Moving up: increment positions between new and current position
       const { data: sectionsToShift, error: fetchShiftError } = await supabase
@@ -412,7 +435,7 @@ export class SectionService {
       }
     }
 
-    // Step 4: Update the target section's position
+    // Step 5: Update the target section's position
     const { error: updateError } = await supabase
       .from("sections")
       .update({ position: newPosition })
@@ -426,21 +449,21 @@ export class SectionService {
       });
     }
 
-    // Step 5: Return updated sections
-    const { data: updatedSections, error: listError } = await supabase
+    // Step 6: Return updated section
+    const { data: updatedSection, error: fetchUpdatedError } = await supabase
       .from("sections")
       .select("id, name, position, visible")
-      .eq("portfolio_id", section.portfolio_id)
-      .order("position");
+      .eq("id", sectionId)
+      .single();
 
-    if (listError) {
+    if (fetchUpdatedError) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
         userId,
         details: { sectionId },
-        cause: listError,
+        cause: fetchUpdatedError,
       });
     }
 
-    return updatedSections || [];
+    return updatedSection;
   }
 }
