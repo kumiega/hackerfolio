@@ -431,7 +431,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] POST /api/v1/portfolios/:id/publish
 - [x] POST /api/v1/portfolios/:id/unpublish
 - [x] GET /api/v1/portfolios/:portfolioId/sections
-- [ ] POST /api/v1/portfolios/:portfolioId/sections
+- [x] POST /api/v1/portfolios/:portfolioId/sections
 - [x] PATCH /api/v1/sections/:id
 - [ ] POST /api/v1/sections/:id/reorder
 - [ ] DELETE /api/v1/sections/:id

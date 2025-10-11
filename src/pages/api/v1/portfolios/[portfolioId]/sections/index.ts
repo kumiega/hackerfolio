@@ -1,10 +1,10 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, SectionDto, AuthSessionDto } from "@/types";
+import type { ApiSuccessResponse, SectionDto, AuthSessionDto, CreateSectionCommand } from "@/types";
 import type { SectionListQuery } from "@/lib/schemas/section.schemas";
 import { SectionService } from "@/lib/services/section.service";
 import { AuthService } from "@/lib/services/auth.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
-import { sectionListQuerySchema, portfolioIdSchema } from "@/lib/schemas/section.schemas";
+import { sectionListQuerySchema, portfolioIdSchema, createSectionCommandSchema } from "@/lib/schemas/section.schemas";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -100,6 +100,92 @@ export const GET: APIRoute = async (context) => {
       supabase,
       requestId,
       endpoint: `GET /api/v1/portfolios/${portfolioId}/sections`,
+      route: request.url,
+      portfolioId,
+      userId: authenticatedUser?.user?.id,
+    });
+  }
+};
+
+/**
+ * POST /api/v1/portfolios/[portfolioId]/sections
+ *
+ * Creates a new section for a specific portfolio. This endpoint requires user authentication
+ * and ensures that only the portfolio owner can create sections. The endpoint enforces a
+ * maximum limit of 10 sections per portfolio and automatically assigns the next position.
+ *
+ * @param portfolioId - UUID of the portfolio to add the section to (path parameter)
+ * @param request.body.name - Section name (1-150 characters, trimmed)
+ * @param request.body.visible - Section visibility (boolean, optional, default: true)
+ * @returns 201 - Created section data
+ * @returns 400 - Invalid portfolioId format or invalid request body
+ * @returns 401 - User not authenticated
+ * @returns 403 - User is not the portfolio owner (enforced by RLS)
+ * @returns 404 - Portfolio not found
+ * @returns 409 - Section limit reached (maximum 10 sections per portfolio)
+ * @returns 422 - Invalid request body (validation errors)
+ * @returns 500 - Internal server error
+ */
+export const POST: APIRoute = async (context) => {
+  const { locals, request, params } = context;
+  const supabase = locals.supabase;
+  const requestId = locals.requestId || crypto.randomUUID();
+  const portfolioId = params.portfolioId;
+  let authenticatedUser: AuthSessionDto | null = null;
+
+  try {
+    // Step 1: Authentication check
+    authenticatedUser = await AuthService.getCurrentSession(supabase);
+
+    // Step 2: Validate portfolio ID parameter
+    if (!portfolioId || typeof portfolioId !== "string") {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Portfolio ID is required");
+    }
+
+    const portfolioIdValidation = portfolioIdSchema.safeParse(portfolioId);
+    if (!portfolioIdValidation.success) {
+      return createErrorResponse("INVALID_PORTFOLIO_ID", requestId, "Invalid portfolio ID format");
+    }
+
+    // Step 3: Parse and validate request body
+    let requestBody: unknown;
+    try {
+      requestBody = await request.json();
+    } catch {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid JSON in request body");
+    }
+
+    const bodyValidation = createSectionCommandSchema.safeParse(requestBody);
+    if (!bodyValidation.success) {
+      return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid request body", bodyValidation.error.format());
+    }
+
+    const command: CreateSectionCommand = bodyValidation.data;
+
+    // Step 4: Create section via service
+    const createdSection = await SectionService.createSection(
+      supabase,
+      portfolioId,
+      authenticatedUser.user.id,
+      command
+    );
+
+    // Step 5: Return success response with created section data
+    const response: ApiSuccessResponse<SectionDto> = {
+      data: createdSection,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (error) {
+    return handleApiError(error, {
+      supabase,
+      requestId,
+      endpoint: `POST /api/v1/portfolios/${portfolioId}/sections`,
       route: request.url,
       portfolioId,
       userId: authenticatedUser?.user?.id,
