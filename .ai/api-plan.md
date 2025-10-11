@@ -425,8 +425,8 @@ Summarized types for reference; actual responses follow examples above.
 - [x] /api/v1/auth/session
 - [x] /api/v1/auth/username-availability
 - [x] /api/v1/auth/claim-username
-- [ ] /api/v1/portfolios/me
-- [ ] /api/v1/portfolios
+- [x] /api/v1/portfolios/me
+- [x] /api/v1/portfolios
 - [ ] /api/v1/portfolios/:id
 - [ ] /api/v1/portfolios/:id/publish
 - [ ] /api/v1/portfolios/:id/unpublish
