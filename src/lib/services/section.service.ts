@@ -224,10 +224,11 @@ export class SectionService {
    * @param userId - ID of the user making the request (for ownership verification)
    * @returns Promise<void>
    * @throws AppError with code 'SECTION_NOT_FOUND' if section doesn't exist or user doesn't own it
+   * @throws AppError with code 'CANNOT_DELETE_LAST_REQUIRED' if attempting to delete last section of unpublished portfolio
    * @throws AppError with code 'DATABASE_ERROR' if database operations fail
    */
   static async deleteSection(supabase: SupabaseClient, sectionId: string, userId: string): Promise<void> {
-    // Step 1: Get section details to determine portfolio and position
+    // Step 1: Get section details with portfolio information
     const { data: sectionToDelete, error: fetchError } = await supabase
       .from("sections")
       .select("portfolio_id, position")
@@ -245,8 +246,51 @@ export class SectionService {
       });
     }
 
-    // Step 2: Delete the section
-    const { error: deleteError } = await supabase.from("sections").delete().eq("id", sectionId);
+    // Step 2: Check portfolio publish status and section count for unpublished portfolios
+    const { data: portfolio, error: portfolioError } = await supabase
+      .from("portfolios")
+      .select("is_published")
+      .eq("id", sectionToDelete.portfolio_id)
+      .eq("user_id", userId)
+      .single();
+
+    if (portfolioError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        details: { sectionId, portfolioId: sectionToDelete.portfolio_id },
+        cause: portfolioError,
+      });
+    }
+
+    // Step 3: If portfolio is not published, ensure at least 1 section will remain
+    if (!portfolio.is_published) {
+      const { count: sectionCount, error: countError } = await supabase
+        .from("sections")
+        .select("*", { count: "exact", head: true })
+        .eq("portfolio_id", sectionToDelete.portfolio_id);
+
+      if (countError) {
+        throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+          userId,
+          details: { sectionId, portfolioId: sectionToDelete.portfolio_id },
+          cause: countError,
+        });
+      }
+
+      if ((sectionCount || 0) <= 1) {
+        throw new AppError(ERROR_CODES.CANNOT_DELETE_LAST_REQUIRED,
+          "Cannot delete the last section of an unpublished portfolio", {
+          userId,
+          details: { sectionId, portfolioId: sectionToDelete.portfolio_id, sectionCount },
+        });
+      }
+    }
+
+    // Step 4: Delete the section
+    const { error: deleteError } = await supabase
+      .from("sections")
+      .delete()
+      .eq("id", sectionId);
 
     if (deleteError) {
       throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
@@ -256,8 +300,7 @@ export class SectionService {
       });
     }
 
-    // Step 3: Reorder remaining sections by decrementing positions greater than deleted position
-    // First get all sections that need to be reordered
+    // Step 5: Reorder remaining sections by decrementing positions greater than deleted position
     const { data: sectionsToReorder, error: fetchReorderError } = await supabase
       .from("sections")
       .select("id, position")

@@ -99,6 +99,11 @@ export const ERROR_MAPPINGS: Record<string, ErrorMapping> = {
     defaultMessage: "Maximum of 10 sections allowed per portfolio",
     isUserError: true,
   },
+  CANNOT_DELETE_LAST_REQUIRED: {
+    statusCode: 409,
+    defaultMessage: "Cannot delete the last section of an unpublished portfolio",
+    isUserError: true,
+  },
 
   // Component errors
   INVALID_COMPONENT_ID: {

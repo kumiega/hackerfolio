@@ -433,8 +433,8 @@ Summarized types for reference; actual responses follow examples above.
 - [x] GET /api/v1/portfolios/:portfolioId/sections
 - [x] POST /api/v1/portfolios/:portfolioId/sections
 - [x] PATCH /api/v1/sections/:id
-- [ ] POST /api/v1/sections/:id/reorder
-- [ ] DELETE /api/v1/sections/:id
+- [x] POST /api/v1/sections/:id/reorder
+- [x] DELETE /api/v1/sections/:id
 - [ ] GET /api/v1/sections/:sectionId/components
 - [ ] POST /api/v1/sections/:sectionId/components
 - [ ] PATCH /api/v1/components/:id
