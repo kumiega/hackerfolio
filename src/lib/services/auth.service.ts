@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { AuthSessionDto } from "@/types";
+import type { AuthSessionDto, UserProfileDto } from "@/types";
 
 /**
  * Custom error class for authentication errors
@@ -91,5 +91,84 @@ export class AuthService {
     return {
       available: !data || data.length === 0,
     };
+  }
+
+  /**
+   * Claims a username for the authenticated user
+   *
+   * This operation is one-time only - once a username is set, it cannot be changed.
+   * The method performs comprehensive validation and ensures username uniqueness.
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param username - Username to claim (must match ^[a-z0-9-]{3,30}$ pattern)
+   * @returns Promise<UserProfileDto> - Updated user profile with the claimed username
+   * @throws AuthError with code 'UNAUTHENTICATED' if user is not authenticated
+   * @throws AuthError with code 'PROFILE_NOT_FOUND' if user profile doesn't exist
+   * @throws AuthError with code 'INVALID_USERNAME_FORMAT' if username doesn't match pattern
+   * @throws AuthError with code 'USERNAME_ALREADY_SET' if user already has a username
+   * @throws AuthError with code 'USERNAME_TAKEN' if username is already taken by another user
+   * @throws Error for database operation failures
+   */
+  static async claimUsername(supabase: SupabaseClient, username: string): Promise<UserProfileDto> {
+    // Step 1: Validate username format
+    const USERNAME_REGEX = /^[a-z0-9-]{3,30}$/;
+    if (!USERNAME_REGEX.test(username)) {
+      throw new AuthError("INVALID_USERNAME_FORMAT");
+    }
+
+    // Step 2: Get authenticated user and their current profile
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user || !user.email) {
+      throw new AuthError("UNAUTHENTICATED");
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("user_profiles")
+      .select("id, username, created_at")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new AuthError("PROFILE_NOT_FOUND", user.id);
+    }
+
+    // Step 3: Check if user already has a username set
+    if (profile.username) {
+      throw new AuthError("USERNAME_ALREADY_SET", user.id);
+    }
+
+    // Step 4: Check username availability (case-insensitive)
+    const { data: existingUsernames, error: availabilityError } = await supabase
+      .from("user_profiles")
+      .select("username")
+      .ilike("username", username)
+      .limit(1);
+
+    if (availabilityError) {
+      throw new Error(`Database error while checking username availability: ${availabilityError.message}`);
+    }
+
+    if (existingUsernames && existingUsernames.length > 0) {
+      throw new AuthError("USERNAME_TAKEN");
+    }
+
+    // Step 5: Update user profile with new username
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from("user_profiles")
+      .update({ username })
+      .eq("id", user.id)
+      .select("id, username")
+      .single();
+
+    if (updateError || !updatedProfile) {
+      throw new Error(`Failed to update user profile with username: ${updateError?.message || "Unknown error"}`);
+    }
+
+    // Step 6: Return updated profile data
+    return updatedProfile;
   }
 }
