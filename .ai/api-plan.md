@@ -422,28 +422,28 @@ Summarized types for reference; actual responses follow examples above.
 
 
 ## 9. TODO List
-- [x] /api/v1/auth/session
-- [x] /api/v1/auth/username-availability
-- [x] /api/v1/auth/claim-username
-- [x] /api/v1/portfolios/me
-- [x] /api/v1/portfolios
-- [x] /api/v1/portfolios/:id
-- [x] /api/v1/portfolios/:id/publish
-- [x] /api/v1/portfolios/:id/unpublish
-- [x] /api/v1/portfolios/:portfolioId/sections
-- [x] /api/v1/portfolios/:portfolioId/sections
-- [x] /api/v1/sections/:id
-- [x] /api/v1/sections/:id/reorder
-- [x] /api/v1/sections/:id
-- [ ] /api/v1/sections/:sectionId/components
-- [ ] /api/v1/sections/:sectionId/components
-- [x] /api/v1/components/:id
-- [ ] /api/v1/components/:id/reorder
-- [ ] /api/v1/components/:id
-- [ ] /api/v1/imports/github/repos
-- [ ] /api/v1/imports/github/generate-project-cards
-- [ ] /api/v1/imports/linkedin/parse
-- [ ] /api/v1/public/portfolios/:username
-- [ ] /api/v1/errors
-- [ ] /api/v1/health
-- [ ] /api/v1/version
+- [x] GET /api/v1/auth/session
+- [x] GET /api/v1/auth/username-availability
+- [x] POST /api/v1/auth/claim-username
+- [x] GET /api/v1/portfolios/me
+- [x] POST /api/v1/portfolios
+- [x] PATCH /api/v1/portfolios/:id
+- [x] POST /api/v1/portfolios/:id/publish
+- [x] POST /api/v1/portfolios/:id/unpublish
+- [x] GET /api/v1/portfolios/:portfolioId/sections
+- [ ] POST /api/v1/portfolios/:portfolioId/sections
+- [x] PATCH /api/v1/sections/:id
+- [ ] POST /api/v1/sections/:id/reorder
+- [ ] DELETE /api/v1/sections/:id
+- [ ] GET /api/v1/sections/:sectionId/components
+- [ ] POST /api/v1/sections/:sectionId/components
+- [ ] PATCH /api/v1/components/:id
+- [x] POST /api/v1/components/:id/reorder
+- [x] DELETE /api/v1/components/:id
+- [ ] GET /api/v1/imports/github/repos
+- [ ] POST /api/v1/imports/github/generate-project-cards
+- [ ] POST /api/v1/imports/linkedin/parse
+- [ ] GET /api/v1/public/portfolios/:username
+- [ ] POST /api/v1/errors
+- [ ] GET /api/v1/health
+- [ ] GET /api/v1/version
