@@ -432,7 +432,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] /api/v1/portfolios/:id/unpublish
 - [x] /api/v1/portfolios/:portfolioId/sections
 - [x] /api/v1/portfolios/:portfolioId/sections
-- [ ] /api/v1/sections/:id
+- [x] /api/v1/sections/:id
 - [ ] /api/v1/sections/:id/reorder
 - [ ] /api/v1/sections/:id
 - [ ] /api/v1/sections/:sectionId/components
