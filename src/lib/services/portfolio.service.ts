@@ -266,4 +266,68 @@ export class PortfolioService {
     // Step 6: Return updated publication status
     return updatedPortfolio;
   }
+
+  /**
+   * Unpublishes a portfolio by setting is_published to false and clearing published_at
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param portfolioId - ID of the portfolio to unpublish
+   * @param userId - ID of the user making the request (for ownership verification)
+   * @returns Promise<PublishStatusDto> - Updated publication status
+   * @throws PortfolioError with code 'PORTFOLIO_NOT_FOUND' if portfolio doesn't exist or user doesn't own it
+   * @throws PortfolioError with code 'DATABASE_ERROR' if database operations fail
+   */
+  static async unpublishPortfolio(
+    supabase: SupabaseClient,
+    portfolioId: string,
+    userId: string
+  ): Promise<PublishStatusDto> {
+    // Step 1: Validate portfolio ownership and check current status
+    const { data: portfolio, error: portfolioError } = await supabase
+      .from("portfolios")
+      .select("id, user_id, is_published, published_at")
+      .eq("id", portfolioId)
+      .eq("user_id", userId)
+      .single();
+
+    if (portfolioError) {
+      if (portfolioError.code === "PGRST116") {
+        throw new AppError(ERROR_CODES.PORTFOLIO_NOT_FOUND, undefined, { userId });
+      }
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = portfolioError;
+      throw dbError;
+    }
+
+    // Step 2: Check if portfolio already unpublished
+    if (!portfolio.is_published) {
+      return {
+        is_published: false,
+        published_at: null,
+      };
+    }
+
+    // Step 3: Update portfolio publication status
+    const { data: updatedPortfolio, error: updateError } = await supabase
+      .from("portfolios")
+      .update({
+        is_published: false,
+        published_at: null,
+      })
+      .eq("id", portfolioId)
+      .eq("user_id", userId)
+      .select("is_published, published_at")
+      .single();
+
+    if (updateError) {
+      const dbError = new AppError(ERROR_CODES.DATABASE_ERROR, userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = updateError;
+      throw dbError;
+    }
+
+    // Step 4: Return updated publication status
+    return updatedPortfolio;
+  }
 }
