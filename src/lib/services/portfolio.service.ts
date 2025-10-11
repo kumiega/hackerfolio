@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { PortfolioDto, CreatePortfolioCommand, UpdatePortfolioCommand } from "@/types";
+import type { PortfolioDto, CreatePortfolioCommand, UpdatePortfolioCommand, PublishStatusDto } from "@/types";
+import { ERROR_CODES } from "@/lib/error-constants";
 
 /**
  * Custom error class for portfolio-related errors
@@ -43,7 +44,7 @@ export class PortfolioService {
         return null;
       }
       // For other errors, throw
-      const dbError = new PortfolioError("DATABASE_ERROR", userId);
+      const dbError = new PortfolioError(ERROR_CODES.DATABASE_ERROR, userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = error;
       throw dbError;
@@ -71,7 +72,7 @@ export class PortfolioService {
 
     // Step 2: Handle database errors
     if (error) {
-      const dbError = new PortfolioError("DATABASE_ERROR", userId);
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = error;
       throw dbError;
@@ -108,7 +109,7 @@ export class PortfolioService {
 
     // Step 2: Handle database errors
     if (error) {
-      const dbError = new PortfolioError("DATABASE_ERROR", userId);
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = error;
       throw dbError;
@@ -152,10 +153,10 @@ export class PortfolioService {
     if (error) {
       // If no row found, portfolio doesn't exist or user doesn't own it
       if (error.code === "PGRST116") {
-        throw new PortfolioError("PORTFOLIO_NOT_FOUND", userId);
+        throw new PortfolioError("ERROR_CODES.PORTFOLIO_NOT_FOUND", userId);
       }
       // For other errors, throw database error
-      const dbError = new PortfolioError("DATABASE_ERROR", userId);
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (dbError as any).cause = error;
       throw dbError;
@@ -163,5 +164,118 @@ export class PortfolioService {
 
     // Step 3: Return updated portfolio data
     return portfolio;
+  }
+
+  /**
+   * Publishes a portfolio if it meets the minimum requirements
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param portfolioId - ID of the portfolio to publish
+   * @param userId - ID of the user making the request (for ownership verification)
+   * @returns Promise<PublishStatusDto> - Updated publication status
+   * @throws PortfolioError with code 'PORTFOLIO_NOT_FOUND' if portfolio doesn't exist or user doesn't own it
+   * @throws PortfolioError with code 'UNMET_REQUIREMENTS' if portfolio doesn't have required sections/components
+   * @throws PortfolioError with code 'DATABASE_ERROR' if database operations fail
+   */
+  static async publishPortfolio(
+    supabase: SupabaseClient,
+    portfolioId: string,
+    userId: string
+  ): Promise<PublishStatusDto> {
+    // Step 1: Validate portfolio ownership and check current status
+    const { data: portfolio, error: portfolioError } = await supabase
+      .from("portfolios")
+      .select("id, user_id, is_published, published_at")
+      .eq("id", portfolioId)
+      .eq("user_id", userId)
+      .single();
+
+    if (portfolioError) {
+      if (portfolioError.code === "PGRST116") {
+        throw new PortfolioError("ERROR_CODES.PORTFOLIO_NOT_FOUND", userId);
+      }
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = portfolioError;
+      throw dbError;
+    }
+
+    // Step 2: Check if portfolio already published
+    if (portfolio.is_published) {
+      return {
+        is_published: true,
+        published_at: portfolio.published_at,
+      };
+    }
+
+    // Step 3: Validate requirements - check for sections
+    const { count: sectionCount, error: sectionError } = await supabase
+      .from("sections")
+      .select("*", { count: "exact", head: true })
+      .eq("portfolio_id", portfolioId);
+
+    if (sectionError) {
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = sectionError;
+      throw dbError;
+    }
+
+    if ((sectionCount || 0) < 1) {
+      throw new PortfolioError("ERROR_CODES.UNMET_REQUIREMENTS", userId);
+    }
+
+    // Step 4: Validate requirements - check for components across all sections
+    const { data: sectionsData, error: sectionsDataError } = await supabase
+      .from("sections")
+      .select("id")
+      .eq("portfolio_id", portfolioId);
+
+    if (sectionsDataError) {
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = sectionsDataError;
+      throw dbError;
+    }
+
+    const sectionIds = sectionsData?.map((s) => s.id) || [];
+
+    const { count: componentCount, error: componentError } = await supabase
+      .from("components")
+      .select("*", { count: "exact", head: true })
+      .in("section_id", sectionIds);
+
+    if (componentError) {
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = componentError;
+      throw dbError;
+    }
+
+    if ((componentCount || 0) < 1) {
+      throw new PortfolioError("ERROR_CODES.UNMET_REQUIREMENTS", userId);
+    }
+
+    // Step 5: Update portfolio publication status
+    const { data: updatedPortfolio, error: updateError } = await supabase
+      .from("portfolios")
+      .update({
+        is_published: true,
+        published_at: new Date().toISOString(),
+      })
+      .eq("id", portfolioId)
+      .eq("user_id", userId)
+      .select("is_published, published_at")
+      .single();
+
+    if (updateError) {
+      const dbError = new PortfolioError("ERROR_CODES.DATABASE_ERROR", userId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (dbError as any).cause = updateError;
+      throw dbError;
+    }
+
+    // Step 6: Return updated publication status
+    return updatedPortfolio;
   }
 }

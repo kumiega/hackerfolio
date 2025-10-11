@@ -428,7 +428,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] /api/v1/portfolios/me
 - [x] /api/v1/portfolios
 - [x] /api/v1/portfolios/:id
-- [ ] /api/v1/portfolios/:id/publish
+- [x] /api/v1/portfolios/:id/publish
 - [ ] /api/v1/portfolios/:id/unpublish
 - [ ] /api/v1/portfolios/:portfolioId/sections
 - [ ] /api/v1/portfolios/:portfolioId/sections
