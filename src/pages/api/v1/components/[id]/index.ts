@@ -45,11 +45,7 @@ export const DELETE: APIRoute = async (context) => {
     }
 
     // Step 3: Execute deletion logic
-    await ComponentService.deleteComponent(
-      supabase,
-      componentId,
-      authenticatedUser.user.id
-    );
+    await ComponentService.deleteComponent(supabase, componentId, authenticatedUser.user.id);
 
     // Step 4: Return success response (204 No Content)
     return new Response(null, {
