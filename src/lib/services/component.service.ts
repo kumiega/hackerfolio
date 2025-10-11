@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { ComponentDto, CreateComponentCommand, UpdateComponentCommand, ReorderCommand } from "@/types";
+import type { ComponentDto, CreateComponentCommand, UpdateComponentCommand, ReorderCommand, ComponentListQuery } from "@/types";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { AppError } from "@/lib/error-handler";
 
@@ -400,5 +400,90 @@ export class ComponentService {
         }
       }
     }
+  }
+
+  /**
+   * Lists components for a specific section with filtering, sorting, and pagination
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param sectionId - ID of the section to list components from
+   * @param userId - ID of the user making the request (for ownership verification)
+   * @param query - Query parameters for filtering, sorting, and pagination
+   * @returns Promise<{ components: ComponentDto[]; total: number }> - Components array and total count
+   * @throws AppError with code 'SECTION_NOT_FOUND' if section doesn't exist or user doesn't own it
+   * @throws AppError with code 'DATABASE_ERROR' if database operations fail
+   */
+  static async listComponents(
+    supabase: SupabaseClient,
+    sectionId: string,
+    userId: string,
+    query: ComponentListQuery
+  ): Promise<{ components: ComponentDto[]; total: number }> {
+    // Step 1: Verify section exists and user owns it (RLS will handle ownership)
+    const { count: sectionCount, error: sectionError } = await supabase
+      .from("sections")
+      .select("*", { count: "exact", head: true })
+      .eq("id", sectionId);
+
+    if (sectionError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        details: { sectionId },
+        cause: sectionError,
+      });
+    }
+
+    if (!sectionCount || sectionCount === 0) {
+      throw new AppError(ERROR_CODES.SECTION_NOT_FOUND, undefined, {
+        userId,
+        details: { sectionId },
+      });
+    }
+
+    // Step 2: Build query with filtering
+    let componentsQuery = supabase
+      .from("components")
+      .select("id, type, position, data", { count: "exact" })
+      .eq("section_id", sectionId);
+
+    // Apply type filter if specified
+    if (query.type) {
+      componentsQuery = componentsQuery.eq("type", query.type);
+    }
+
+    // Apply search filter if specified (search within JSONB data)
+    if (query.q && query.q.trim()) {
+      // Use PostgreSQL's text search capabilities on JSONB data
+      // This searches for the query string within any text fields in the JSONB data
+      componentsQuery = componentsQuery.textSearch("data", query.q.trim(), {
+        type: "websearch",
+        config: "english",
+      });
+    }
+
+    // Step 3: Apply sorting
+    const sortColumn = query.sort === "created_at" ? "created_at" : "position";
+    componentsQuery = componentsQuery.order(sortColumn, { ascending: query.order === "asc" });
+
+    // Step 4: Apply pagination
+    const offset = (query.page - 1) * query.per_page;
+    componentsQuery = componentsQuery.range(offset, offset + query.per_page - 1);
+
+    // Step 5: Execute query
+    const { data: components, error: fetchError, count } = await componentsQuery;
+
+    if (fetchError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        details: { sectionId, query },
+        cause: fetchError,
+      });
+    }
+
+    // Step 6: Return paginated results with total count
+    return {
+      components: components || [],
+      total: count || 0,
+    };
   }
 }
