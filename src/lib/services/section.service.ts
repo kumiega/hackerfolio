@@ -95,6 +95,7 @@ export class SectionService {
    * @param userId - ID of the user making the request (for ownership verification)
    * @param command - Section creation command with name and visibility
    * @returns Promise<SectionDto> - Created section data
+   * @throws AppError with code 'SECTION_LIMIT_REACHED' if portfolio already has 10 sections
    * @throws AppError with code 'DATABASE_ERROR' if database insertion fails
    */
   static async createSection(
@@ -103,7 +104,29 @@ export class SectionService {
     userId: string,
     command: CreateSectionCommand
   ): Promise<SectionDto> {
-    // Step 1: Get the current maximum position for ordering
+    // Step 1: Check section count limit (maximum 10 sections per portfolio)
+    const { count: sectionCount, error: countError } = await supabase
+      .from("sections")
+      .select("*", { count: "exact", head: true })
+      .eq("portfolio_id", portfolioId);
+
+    if (countError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        portfolioId,
+        cause: countError,
+      });
+    }
+
+    if ((sectionCount || 0) >= 10) {
+      throw new AppError(ERROR_CODES.SECTION_LIMIT_REACHED, "Maximum of 10 sections allowed per portfolio", {
+        userId,
+        portfolioId,
+        details: { currentCount: sectionCount },
+      });
+    }
+
+    // Step 2: Get the current maximum position for ordering
     const { data: maxPositionData, error: maxPosError } = await supabase
       .from("sections")
       .select("position")
@@ -242,6 +265,7 @@ export class SectionService {
       .gt("position", sectionToDelete.position);
 
     if (fetchReorderError) {
+      // eslint-disable-next-line no-console
       console.warn("Failed to fetch sections for reordering after delete:", fetchReorderError);
     } else if (sectionsToReorder) {
       // Update each section individually
@@ -252,6 +276,7 @@ export class SectionService {
           .eq("id", section.id);
 
         if (updateError) {
+          // eslint-disable-next-line no-console
           console.warn(`Failed to update position for section ${section.id}:`, updateError);
         }
       }

@@ -19,7 +19,7 @@ export const portfolioIdSchema = z.string().uuid();
  * Schema for validating section creation command
  */
 export const createSectionCommandSchema = z.object({
-  name: z.string().min(1).max(100).trim(),
+  name: z.string().min(1).max(150).trim(),
   visible: z.boolean().optional().default(true),
 });
 
