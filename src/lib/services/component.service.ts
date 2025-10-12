@@ -533,12 +533,12 @@ export class ComponentService {
     supabase: SupabaseClient,
     sectionId: string,
     userId: string,
-    projectCards: Array<{
+    projectCards: {
       repo_url: string;
       title: string;
       summary: string;
       tech: string[];
-    }>
+    }[]
   ): Promise<ComponentDto[]> {
     // Step 1: Get portfolio ID and verify component limits
     const { data: sectionData, error: sectionError } = await supabase
@@ -586,11 +586,15 @@ export class ComponentService {
 
     const currentCount = componentCount || 0;
     if (currentCount + projectCards.length > 15) {
-      throw new AppError(ERROR_CODES.COMPONENT_LIMIT_REACHED, `Cannot create ${projectCards.length} components. Portfolio already has ${currentCount} components (maximum 15 allowed)`, {
-        userId,
-        portfolioId: sectionData.portfolio_id,
-        details: { currentCount, requestedCount: projectCards.length, maxAllowed: 15 },
-      });
+      throw new AppError(
+        ERROR_CODES.COMPONENT_LIMIT_REACHED,
+        `Cannot create ${projectCards.length} components. Portfolio already has ${currentCount} components (maximum 15 allowed)`,
+        {
+          userId,
+          portfolioId: sectionData.portfolio_id,
+          details: { currentCount, requestedCount: projectCards.length, maxAllowed: 15 },
+        }
+      );
     }
 
     // Step 2: Get the current maximum position for ordering
@@ -621,6 +625,128 @@ export class ComponentService {
         summary: card.summary,
         tech: card.tech,
       } as Json,
+    }));
+
+    // Step 4: Insert components in batch
+    const { data: insertedComponents, error: insertError } = await supabase
+      .from("components")
+      .insert(componentsToInsert)
+      .select("id, type, position, data")
+      .returns<ComponentDto[]>();
+
+    if (insertError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        portfolioId: sectionData.portfolio_id,
+        cause: insertError,
+      });
+    }
+
+    // Step 5: Return created components
+    return insertedComponents || [];
+  }
+
+  /**
+   * Creates multiple components of different types in batch
+   *
+   * @param supabase - Supabase client instance from context.locals
+   * @param sectionId - ID of the section where components will be created
+   * @param userId - ID of the user making the request
+   * @param componentCommands - Array of component creation commands
+   * @returns Promise<ComponentDto[]> - Array of created component data
+   * @throws AppError with code 'COMPONENT_LIMIT_REACHED' if adding components would exceed portfolio limit
+   * @throws AppError with code 'DATABASE_ERROR' if database operations fail
+   */
+  static async createComponents(
+    supabase: SupabaseClient,
+    sectionId: string,
+    userId: string,
+    componentCommands: CreateComponentCommand[]
+  ): Promise<ComponentDto[]> {
+    if (componentCommands.length === 0) {
+      return [];
+    }
+
+    // Step 1: Get portfolio ID and verify component limits
+    const { data: sectionData, error: sectionError } = await supabase
+      .from("sections")
+      .select("portfolio_id")
+      .eq("id", sectionId)
+      .single();
+
+    if (sectionError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: sectionError,
+      });
+    }
+
+    // Get all section IDs for the portfolio to check component limits
+    const { data: sectionIds, error: sectionsError } = await supabase
+      .from("sections")
+      .select("id")
+      .eq("portfolio_id", sectionData.portfolio_id);
+
+    if (sectionsError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        portfolioId: sectionData.portfolio_id,
+        cause: sectionsError,
+      });
+    }
+
+    const sectionIdArray = sectionIds?.map((s) => s.id) || [];
+
+    // Check current component count
+    const { count: componentCount, error: countError } = await supabase
+      .from("components")
+      .select("*", { count: "exact", head: true })
+      .in("section_id", sectionIdArray);
+
+    if (countError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        portfolioId: sectionData.portfolio_id,
+        cause: countError,
+      });
+    }
+
+    const currentCount = componentCount || 0;
+    if (currentCount + componentCommands.length > 15) {
+      throw new AppError(
+        ERROR_CODES.COMPONENT_LIMIT_REACHED,
+        `Cannot create ${componentCommands.length} components. Portfolio already has ${currentCount} components (maximum 15 allowed)`,
+        {
+          userId,
+          portfolioId: sectionData.portfolio_id,
+          details: { currentCount, requestedCount: componentCommands.length, maxAllowed: 15 },
+        }
+      );
+    }
+
+    // Step 2: Get the current maximum position for ordering
+    const { data: maxPositionData, error: maxPosError } = await supabase
+      .from("components")
+      .select("position")
+      .eq("section_id", sectionId)
+      .order("position", { ascending: false })
+      .limit(1);
+
+    if (maxPosError) {
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        userId,
+        cause: maxPosError,
+      });
+    }
+
+    const nextPosition = (maxPositionData?.[0]?.position || 0) + 1;
+
+    // Step 3: Prepare component data for batch insertion
+    const componentsToInsert = componentCommands.map((command, index) => ({
+      section_id: sectionId,
+      type: command.type,
+      position: nextPosition + index,
+      data: command.data as Json,
     }));
 
     // Step 4: Insert components in batch
