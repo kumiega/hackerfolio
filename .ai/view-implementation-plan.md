@@ -52,7 +52,7 @@ None required (GET endpoint)
         "components": [
           {
             "id": "uuid",
-            "type": "text|project_card|tech_list|social_links|list|gallery|bio",
+            "type": "text|card|pills|social_links|list|gallery|bio",
             "position": 1,
             "data": {}
           }

@@ -109,7 +109,7 @@ export const reorderCommandSchema = z.object({
  * Schema for validating component creation command
  */
 export const createComponentCommandSchema = z.object({
-  type: z.enum(["text", "project_card", "tech_list", "social_links", "list", "gallery", "bio"]),
+  type: z.enum(["text", "card", "pills", "social_links", "list", "gallery", "bio"]),
   data: z.union([
     textComponentDataSchema,
     projectCardComponentDataSchema,
@@ -137,7 +137,7 @@ export const componentListQuerySchema = z.object({
   per_page: z.coerce.number().int().min(1).max(100).default(20),
   sort: z.enum(["position", "created_at"]).default("position"),
   order: z.enum(["asc", "desc"]).default("asc"),
-  type: z.enum(["text", "project_card", "tech_list", "social_links", "list", "gallery", "bio"]).optional(),
+  type: z.enum(["text", "card", "pills", "social_links", "list", "gallery", "bio"]).optional(),
   q: z.string().optional(),
 });
 

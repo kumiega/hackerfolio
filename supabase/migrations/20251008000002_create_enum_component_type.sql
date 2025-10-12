@@ -9,8 +9,8 @@ begin
   if not exists (select 1 from pg_type where typname = 'component_type') then
     create type public.component_type as enum (
       'text',
-      'project_card',
-      'tech_list',
+      'card',
+      'pills',
       'social_links',
       'list',
       'gallery',

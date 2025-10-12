@@ -170,7 +170,7 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 - Errors: 409 cannot_delete_last_required
 
 ### 2.4 Components
-Component types (enum): `text`, `project_card`, `tech_list`, `social_links`, `list`, `gallery`, `bio`.
+Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `gallery`, `bio`.
 
 1) GET `/api/v1/sections/:sectionId/components`
 - Description: List components within a section ordered by `position`
@@ -185,8 +185,8 @@ Component types (enum): `text`, `project_card`, `tech_list`, `social_links`, `li
 ```
 - Type-specific `data` guidance
   - `text`: { "content": "<=2000" }
-  - `project_card`: { "repo_url": "string", "title": "<=100", "summary": "<=500", "tech": ["string"] }
-  - `tech_list`: { "items": ["<=30 items", "<=20 chars each"] }
+  - `card`: { "repo_url": "string", "title": "<=100", "summary": "<=500", "tech": ["string"] }
+  - `pills`: { "items": ["<=30 items", "<=20 chars each"] }
   - `social_links`: { "github": "url?", "linkedin": "url?", "x": "url?", "website": [{ "name": "string", "url": "string" }] }
   - `list`: { "items": [{ "label": "<=80", "url": "string" }] }
   - `gallery`: { "images": [{ "url": "string", "alt": "<=120" }], "maxImageSizeMB": 2 }
@@ -225,7 +225,7 @@ Component types (enum): `text`, `project_card`, `tech_list`, `social_links`, `li
 - Errors: 401 if missing token
 
 2) POST `/api/v1/imports/github/generate-project-cards`
-- Description: Generate `project_card` components for selected repos by reading README and tech; auto-insert to a chosen section
+- Description: Generate `card` components for selected repos by reading README and tech; auto-insert to a chosen section
 - Body
 ```json
 {
@@ -236,7 +236,7 @@ Component types (enum): `text`, `project_card`, `tech_list`, `social_links`, `li
 ```
 - Response 201
 ```json
-{ "data": { "created": 3, "components": [ { "id": "uuid", "type": "project_card" } ] } }
+{ "data": { "created": 3, "components": [ { "id": "uuid", "type": "card" } ] } }
 ```
 - Errors: 409 component_limit_reached, 422 validation
 
@@ -344,7 +344,7 @@ Business logic
 - Limits: enforce 10 sections and 15 components caps with 409 responses
 - Reordering: maintain stable, collision-free `position` integers; use transactional, optimistic updates
 - Importers
-  - GitHub: user should be able to select repositories to which API has access. Fetch README and metadata; extract tech (language/topics); create `project_card` components respecting limits; deduplicate by repo URL
+  - GitHub: user should be able to select repositories to which API has access. Fetch README and metadata; extract tech (language/topics); create `card` components respecting limits; deduplicate by repo URL
   - LinkedIn: call AI model (OpenRouter) to parse; optionally create `bio`/`ordered_list` components
 - Error intake: non-blocking; respond 202 and persist asynchronously when possible; attach `client_ip` and `user_agent` on server
 

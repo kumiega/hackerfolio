@@ -25,8 +25,8 @@
 ```sql
 CREATE TYPE component_type AS ENUM (
   'text',
-  'project_card',
-  'tech_list',
+  'card',
+  'pills',
   'social_links',
   'list',
   'gallery',

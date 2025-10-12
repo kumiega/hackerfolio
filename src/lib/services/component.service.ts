@@ -617,7 +617,7 @@ export class ComponentService {
     // Step 3: Prepare component data for batch insertion
     const componentsToInsert = projectCards.map((card, index) => ({
       section_id: sectionId,
-      type: "project_card" as const,
+      type: "card" as const,
       position: nextPosition + index,
       data: {
         repo_url: card.repo_url,

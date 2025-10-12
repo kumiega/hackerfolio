@@ -285,8 +285,8 @@ export interface SectionListQuery extends PaginationQuery, SortingQuery {}
 // Type guard for component data based on type
 export interface ComponentDataMap {
   text: TextComponentData;
-  project_card: ProjectCardComponentData;
-  tech_list: TechListComponentData;
+  card: ProjectCardComponentData;
+  pills: TechListComponentData;
   social_links: SocialLinksComponentData;
   list: LinkListComponentData | OrderedListComponentData;
   gallery: GalleryComponentData;

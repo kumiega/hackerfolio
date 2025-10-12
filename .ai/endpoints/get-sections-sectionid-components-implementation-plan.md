@@ -37,7 +37,7 @@ This endpoint retrieves a paginated list of components within a specific section
   "data": [
     {
       "id": "uuid",
-      "type": "text|project_card|tech_list|...",
+      "type": "text|card|pills|...",
       "position": 0,
       "data": {
         // type-specific data structure

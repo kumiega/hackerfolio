@@ -15,7 +15,7 @@ export const prerender = false;
  *
  * Generates project card components from GitHub repository URLs. This endpoint automatically
  * extracts repository information (title, description, tech stack) from GitHub and creates
- * corresponding project_card components in the specified section.
+ * corresponding card components in the specified section.
  *
  * The endpoint requires user authentication and validates that the user owns the target section.
  * It also enforces portfolio component limits (maximum 15 components total per portfolio).

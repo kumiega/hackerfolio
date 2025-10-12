@@ -16,7 +16,7 @@ This endpoint creates a new component within a specific section. It enforces a g
 - **Request Body Structure**:
   ```json
   {
-    "type": "text|project_card|tech_list|social_links|link_list|gallery|bio|ordered_list",
+    "type": "text|card|pills|social_links|link_list|gallery|bio|ordered_list",
     "data": {
       // Type-specific fields based on component type
     }
@@ -149,7 +149,7 @@ const { count: portfolioComponentCount, error: countError } = await supabase
 ```typescript
 export const createComponentCommandSchema = z.object({
   type: z.enum([
-    "text", "project_card", "tech_list", "social_links",
+    "text", "card", "pills", "social_links",
     "link_list", "gallery", "bio", "ordered_list"
   ]),
   data: z.union([

@@ -1,7 +1,7 @@
 # API Endpoint Implementation Plan: Generate Project Cards from GitHub
 
 ## 1. Endpoint Overview
-This endpoint generates `project_card` components for selected GitHub repositories by automatically reading repository README files and extracting technology stack information. The generated components are automatically inserted into a specified section within the user's portfolio. This enables users to quickly populate their portfolio with project information without manual data entry.
+This endpoint generates `card` components for selected GitHub repositories by automatically reading repository README files and extracting technology stack information. The generated components are automatically inserted into a specified section within the user's portfolio. This enables users to quickly populate their portfolio with project information without manual data entry.
 
 ## 2. Request Details
 - **HTTP Method**: POST
@@ -32,7 +32,7 @@ This endpoint generates `project_card` components for selected GitHub repositori
     "components": [
       {
         "id": "uuid",
-        "type": "project_card",
+        "type": "card",
         "position": 1,
         "data": {
           "repo_url": "https://github.com/user/repo",
