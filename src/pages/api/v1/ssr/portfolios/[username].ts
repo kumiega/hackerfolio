@@ -32,7 +32,7 @@ export const GET: APIRoute = async (context) => {
     if (!username) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "VALIDATION_ERROR",
+          code: ERROR_CODES.VALIDATION_ERROR,
           message: "Username parameter is required",
           requestId,
         },
@@ -48,7 +48,7 @@ export const GET: APIRoute = async (context) => {
     if (!usernameRegex.test(username)) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "VALIDATION_ERROR",
+          code: ERROR_CODES.VALIDATION_ERROR,
           message: "Username must be 3-30 characters, containing only lowercase letters, numbers, and hyphens",
           requestId,
         },
@@ -65,7 +65,7 @@ export const GET: APIRoute = async (context) => {
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "UNAUTHORIZED",
+          code: ERROR_CODES.UNAUTHORIZED,
           message: "Service role authentication required",
           requestId,
         },
@@ -83,7 +83,7 @@ export const GET: APIRoute = async (context) => {
     if (serviceRoleKey !== expectedServiceRoleKey) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "UNAUTHORIZED",
+          code: ERROR_CODES.UNAUTHORIZED,
           message: "Invalid service role key",
           requestId,
         },
@@ -95,16 +95,13 @@ export const GET: APIRoute = async (context) => {
     }
 
     // Step 3: Fetch public portfolio data
-    const publicPortfolio = await PortfolioService.getPublicPortfolioByUsername(
-      supabaseServiceClient,
-      username
-    );
+    const publicPortfolio = await PortfolioService.getPublicPortfolioByUsername(supabaseServiceClient, username);
 
     // Step 4: Handle case where portfolio doesn't exist or isn't published
     if (!publicPortfolio) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "PORTFOLIO_NOT_FOUND",
+          code: ERROR_CODES.PORTFOLIO_NOT_FOUND,
           message: "Portfolio not found or not published",
           requestId,
         },
@@ -127,15 +124,14 @@ export const GET: APIRoute = async (context) => {
         "Cache-Control": "public, max-age=300", // Cache for 5 minutes
       },
     });
-
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle database errors (500)
-    if (error.message === "DATABASE_ERROR" || error.name === "DATABASE_ERROR") {
+    if (error instanceof Error && (error.message === "DATABASE_ERROR" || error.name === "DATABASE_ERROR")) {
       await logError(supabaseServiceClient, {
         message: "Database error while fetching public portfolio",
         severity: "error",
         source: "api",
-        error_code: "DATABASE_ERROR",
+        error_code: ERROR_CODES.DATABASE_ERROR,
         endpoint: "GET /api/v1/ssr/portfolios/[username]",
         route: request.url,
         request_id: requestId,
@@ -147,7 +143,7 @@ export const GET: APIRoute = async (context) => {
 
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "INTERNAL_ERROR",
+          code: ERROR_CODES.INTERNAL_ERROR,
           message: "Database error occurred",
           requestId,
         },
@@ -159,15 +155,18 @@ export const GET: APIRoute = async (context) => {
     }
 
     // Handle unexpected errors (500)
+    const errorMessage = error instanceof Error ? error.message : "Unexpected error in SSR portfolios endpoint";
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     await logError(supabaseServiceClient, {
-      message: error.message || "Unexpected error in SSR portfolios endpoint",
+      message: errorMessage,
       severity: "error",
       source: "api",
-      error_code: "INTERNAL_ERROR",
+      error_code: ERROR_CODES.INTERNAL_ERROR,
       endpoint: "GET /api/v1/ssr/portfolios/[username]",
       route: request.url,
       request_id: requestId,
-      stack: error.stack,
+      stack: errorStack,
       context: {
         username: params.username,
       },
@@ -175,7 +174,7 @@ export const GET: APIRoute = async (context) => {
 
     const errorResponse: ApiErrorResponse = {
       error: {
-        code: "INTERNAL_ERROR",
+        code: ERROR_CODES.INTERNAL_ERROR,
         message: "An unexpected error occurred",
         requestId,
       },
