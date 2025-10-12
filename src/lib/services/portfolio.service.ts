@@ -1,5 +1,12 @@
+import type { SupabaseServiceClient } from "@/db/supabase.client";
 import type { SupabaseClient } from "@/db/supabase.client";
-import type { PortfolioDto, CreatePortfolioCommand, UpdatePortfolioCommand, PublishStatusDto } from "@/types";
+import type {
+  PortfolioDto,
+  CreatePortfolioCommand,
+  UpdatePortfolioCommand,
+  PublishStatusDto,
+  PublicPortfolioDto,
+} from "@/types";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { AppError } from "@/lib/error-handler";
 
@@ -329,5 +336,98 @@ export class PortfolioService {
 
     // Step 4: Return updated publication status
     return updatedPortfolio;
+  }
+
+  /**
+   * Retrieves a published portfolio with sections and components by username
+   * for server-side rendering (SSR). This method uses service role client to bypass RLS.
+   *
+   * @param supabaseService - Service role Supabase client instance (bypasses RLS)
+   * @param username - Username of the portfolio owner
+   * @returns Promise<PublicPortfolioDto | null> - Public portfolio data or null if not found/published
+   * @throws AppError with code 'DATABASE_ERROR' if database query fails
+   */
+  static async getPublicPortfolioByUsername(
+    supabaseService: SupabaseServiceClient,
+    username: string
+  ): Promise<PublicPortfolioDto | null> {
+    // Step 1: Query portfolio with user profile, sections, and components in a single optimized query
+    // Only return published portfolios with visible sections
+    const { data, error } = await supabaseService
+      .from("portfolios")
+      .select(
+        `
+        id,
+        user_id,
+        is_published,
+        published_at,
+        title,
+        description,
+        created_at,
+        user_profiles!inner(username),
+        sections!inner(
+          id,
+          name,
+          position,
+          visible,
+          components(
+            id,
+            type,
+            position,
+            data
+          )
+        )
+      `
+      )
+      .eq("is_published", true)
+      .eq("user_profiles.username", username)
+      .eq("sections.visible", true)
+      .order("sections.position", { ascending: true })
+      .order("sections.components.position", { ascending: true })
+      .single();
+
+    // Step 2: Handle database errors
+    if (error) {
+      // If no row found, return null (portfolio not published or doesn't exist)
+      if (error.code === "PGRST116") {
+        return null;
+      }
+      // For other errors, throw
+      throw new AppError(ERROR_CODES.DATABASE_ERROR, undefined, {
+        details: { username },
+        cause: error,
+      });
+    }
+
+    // Step 3: Transform data to match PublicPortfolioDto structure
+    // The query returns nested data, we need to restructure it
+    const portfolio = data;
+
+    // Extract username from the joined user_profiles
+    const profileUsername = Array.isArray(portfolio.user_profiles)
+      ? portfolio.user_profiles[0]?.username
+      : portfolio.user_profiles?.username;
+
+    // Transform sections to include components
+    const sections = Array.isArray(portfolio.sections)
+      ? portfolio.sections.map((section) => ({
+          id: section.id,
+          name: section.name,
+          position: section.position,
+          visible: section.visible,
+          components: Array.isArray(section.components) ? section.components : [section.components].filter(Boolean),
+        }))
+      : [];
+
+    // Step 4: Return formatted public portfolio data
+    return {
+      username: profileUsername,
+      portfolio: {
+        title: portfolio.title,
+        description: portfolio.description,
+        published_at: portfolio.published_at,
+      },
+      sections,
+    };
   }
 }

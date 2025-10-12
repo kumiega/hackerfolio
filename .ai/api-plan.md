@@ -253,10 +253,11 @@ POST `/api/v1/imports/linkedin/parse`
 ```
 - Errors: 422 invalid url, 429 model_rate_limited
 
-### 2.7 Public — SSR consumption
-GET `/api/v1/public/portfolios/:username`
-- Description: Public read model for SSR of a published portfolio
+### 2.7 SSR consumption
+GET `/api/v1/ssr/portfolios/:username`
+- Description: Server-side only endpoint for SSR rendering of published portfolios (not accessible from client)
 - Query: none
+- Auth: Service role key required (server-side only)
 - Response 200
 ```json
 {
@@ -271,11 +272,11 @@ GET `/api/v1/public/portfolios/:username`
   }
 }
 ```
-- Errors: 404 not_found, 403 if not published
+- Errors: 401 unauthorized, 404 not_found, 403 if not published
 
 ### 2.8 Error intake
 POST `/api/v1/errors`
-- Description: Insert-only logging intake for clients and server subsystems (mirrors `public.log_app_error` RPC). Open to anon and auth.
+- Description: Insert-only logging intake for authenticated clients and server subsystems (mirrors `public.log_app_error` RPC).
 - Body
 ```json
 {
@@ -293,7 +294,7 @@ POST `/api/v1/errors`
 }
 ```
 - Response 202 `{ "data": { "accepted": true } }`
-- Errors: 413 payload_too_large, 422 validation
+- Errors: 401 unauthorized, 413 payload_too_large, 422 validation
 
 (Admin/service-only management of errors — list/query/cleanup — should be internal using service role and not exposed publicly in MVP.)
 
@@ -442,8 +443,8 @@ Summarized types for reference; actual responses follow examples above.
 - [x] DELETE /api/v1/components/:id
 - [x] GET /api/v1/imports/github/repos
 - [x] POST /api/v1/imports/github/generate-project-cards
-- [ ] POST /api/v1/imports/linkedin/parse
-- [ ] GET /api/v1/public/portfolios/:username
-- [ ] POST /api/v1/errors
-- [ ] GET /api/v1/health
-- [ ] GET /api/v1/version
+- [x] POST /api/v1/imports/linkedin/parse
+- [x] GET /api/v1/ssr/portfolios/:username
+- [x] POST /api/v1/errors
+- [x] GET /api/v1/health
+- [x] GET /api/v1/version
