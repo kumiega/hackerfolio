@@ -76,7 +76,7 @@ npm run dev
 - **Authentication:** GitHub OAuth, email/password via Supabase Auth  
 - **Onboarding:** Unique subdomain (`username.hackerfolio.dev`), optional quick-start wizard  
 - **Section Management:** Create, reorder (drag-and-drop), toggle, delete (max 10 sections)  
-- **Component System:** Seven types (text, project card, tech list, social links, generic links list, ordered/unordered list, gallery), max 15 components  
+- **Component System:** Seven types (text, card, pills, social links, links, list, image), max 15 components  
 - **Import Features:** GitHub repo selection (3–10) with AI-generated project cards; LinkedIn profile JSON parsing and preview  
 - **Publishing:** SSR to wildcard subdomain, validation (≥1 section), publish/unpublish  
 - **Dashboard:** Split view (sections + component editor), auto-save, real-time preview  

@@ -43,11 +43,9 @@ export interface LinkListComponentData {
   }[];
 }
 
-export interface GalleryComponentData {
-  images: {
-    url: string;
-    alt: string; // <= 120 chars
-  }[];
+export interface ImageComponentData {
+  url: string;
+  alt: string; // <= 120 chars
   maxImageSizeMB?: number; // default 2
 }
 
@@ -70,7 +68,7 @@ export type ComponentData =
   | TechListComponentData
   | SocialLinksComponentData
   | LinkListComponentData
-  | GalleryComponentData
+  | ImageComponentData
   | BioComponentData
   | OrderedListComponentData;
 
@@ -289,7 +287,7 @@ export interface ComponentDataMap {
   pills: TechListComponentData;
   social_links: SocialLinksComponentData;
   list: LinkListComponentData | OrderedListComponentData;
-  gallery: GalleryComponentData;
+  image: ImageComponentData;
   bio: BioComponentData;
 }
 

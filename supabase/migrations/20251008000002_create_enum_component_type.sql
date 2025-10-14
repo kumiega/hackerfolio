@@ -13,7 +13,7 @@ begin
       'pills',
       'social_links',
       'list',
-      'gallery',
+      'image',
       'bio'
     );
   end if;

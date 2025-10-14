@@ -170,7 +170,7 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 - Errors: 409 cannot_delete_last_required
 
 ### 2.4 Components
-Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `gallery`, `bio`.
+Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `image`, `bio`.
 
 1) GET `/api/v1/sections/:sectionId/components`
 - Description: List components within a section ordered by `position`
@@ -189,7 +189,7 @@ Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `galler
   - `pills`: { "items": ["<=30 items", "<=20 chars each"] }
   - `social_links`: { "github": "url?", "linkedin": "url?", "x": "url?", "website": [{ "name": "string", "url": "string" }] }
   - `list`: { "items": [{ "label": "<=80", "url": "string" }] }
-  - `gallery`: { "images": [{ "url": "string", "alt": "<=120" }], "maxImageSizeMB": 2 }
+  - `image`: { "url": "string", "alt": "<=120", "maxImageSizeMB": 2 }
   - `bio`: { "headline": "<=120", "about": "<=2000" }
 - Response 201 component
 - Errors: 409 component_limit_reached, 422 validation

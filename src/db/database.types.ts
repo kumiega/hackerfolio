@@ -338,7 +338,7 @@ export interface Database {
       };
     };
     Enums: {
-      component_type: "text" | "card" | "pills" | "social_links" | "list" | "gallery" | "bio";
+      component_type: "text" | "card" | "pills" | "social_links" | "list" | "image" | "bio";
       error_severity: "debug" | "info" | "warn" | "error" | "fatal";
       error_source: "frontend" | "api" | "edge" | "worker" | "db" | "other";
     };
@@ -461,7 +461,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      component_type: ["text", "card", "pills", "social_links", "list", "gallery", "bio"],
+      component_type: ["text", "card", "pills", "social_links", "list", "image", "bio"],
       error_severity: ["debug", "info", "warn", "error", "fatal"],
       error_source: ["frontend", "api", "edge", "worker", "db", "other"],
     },

@@ -24,7 +24,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
    - Tworzenie, lista, edycja (nazwa, kolejność drag-and-drop, widoczność), usuwanie
    - Limit max 10 sekcji na portfolio
 4. System komponentów
-   - 7 typów: Text, Karta projektu, Lista technologii, Social media links, Lista linków, Lista numerowana/nienumerowana, Galeria
+   - 6 typów: Text, Project Card, Pills, Social media links, List, Image
    - Formularze w drawerze, auto-save
    - Limit max 15 komponentów w portfolio
 5. Import z GitHub
