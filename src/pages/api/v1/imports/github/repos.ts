@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { GitHubService } from "@/lib/services/github.service";
 import { githubReposQuerySchema } from "@/lib/schemas/github.schemas";
 import { logError } from "@/lib/error-utils";
-import { checkRateLimit, githubRateLimiter } from "@/lib/utils/rate-limit";
+import { checkRateLimit, githubRateLimiter } from "@/lib/rate-limit";
 import { AppError } from "@/lib/error-handler";
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/types";

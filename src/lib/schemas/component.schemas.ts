@@ -152,7 +152,7 @@ export const githubRepoUrlSchema = z
   .refine((url) => {
     try {
       const parsedUrl = new URL(url);
-      return parsedUrl.hostname === "github.com" && /^\/[^\/]+\/[^\/]+\/?$/.test(parsedUrl.pathname);
+      return parsedUrl.hostname === "github.com" && new RegExp("^/[^/]+/[^/]+/?$").test(parsedUrl.pathname);
     } catch {
       return false;
     }

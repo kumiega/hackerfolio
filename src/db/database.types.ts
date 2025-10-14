@@ -251,6 +251,36 @@ export interface Database {
           },
         ];
       };
+      rate_limits: {
+        Row: {
+          action: string;
+          count: number;
+          created_at: string;
+          id: string;
+          identifier: string;
+          updated_at: string;
+          window_start: string;
+        };
+        Insert: {
+          action: string;
+          count?: number;
+          created_at?: string;
+          id?: string;
+          identifier: string;
+          updated_at?: string;
+          window_start?: string;
+        };
+        Update: {
+          action?: string;
+          count?: number;
+          created_at?: string;
+          id?: string;
+          identifier?: string;
+          updated_at?: string;
+          window_start?: string;
+        };
+        Relationships: [];
+      };
       user_profiles: {
         Row: {
           avatar_url: string | null;
