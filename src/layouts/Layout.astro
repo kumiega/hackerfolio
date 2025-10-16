@@ -16,11 +16,37 @@ const { title = "10x Astro Starter" } = Astro.props;
     <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+
+    <style is:global>
+      @font-face {
+        font-family: "Inter";
+        src: url("/fonts/Inter-Italic.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: italic;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Inter";
+        src: url("/fonts/Inter.woff2") format("woff2-variations");
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+
+      @font-face {
+        font-family: "Departure Mono";
+        src: url("/fonts/Departure-Mono.woff2") format("woff2");
+        font-weight: 400;
+        font-style: normal;
+        font-display: swap;
+      }
+    </style>
   </head>
-  <body>
-    <slot />
-  </body>
 </html>
+<body>
+  <slot />
+</body>
 
 <style>
   html,
