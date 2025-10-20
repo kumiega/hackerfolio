@@ -18,7 +18,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
    - GitHub OAuth
    - Email/hasło z Supabase Auth
 2. Onboarding
-   - Wybór unikalnego username (subdomena username.hackerfolio.dev)
+   - Wybór unikalnego username (subdomena username.hackerfolio.test)
    - Opcjonalny quick start wizard: import z GitHub lub start od zera
 3. Zarządzanie sekcjami (CRUD)
    - Tworzenie, lista, edycja (nazwa, kolejność drag-and-drop, widoczność), usuwanie
@@ -34,7 +34,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
    - Wklejenie linku, AI parse (GPT-4o-mini) do struktur JSON
    - Podgląd i edycja przed importem
 7. Generowanie i publikacja
-   - SSR na {username}.hackerfolio.dev
+   - SSR na {username}.hackerfolio.test
    - Walidacja min. 1 sekcja przed publikacją
    - Obsługa publikacji zmian
 8. Dashboard
@@ -149,7 +149,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
   Opis: Użytkownik otwiera publiczny podgląd w nowej karcie  
   Kryteria akceptacji:
 
-  - Link username.hackerfolio.dev otwiera aktualny stan portfolio
+  - Link username.hackerfolio.test otwiera aktualny stan portfolio
   - Strona renderowana jest poprzez SSR
 
 - ID: US-013  
