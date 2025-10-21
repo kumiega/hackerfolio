@@ -149,7 +149,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
   Opis: Użytkownik otwiera publiczny podgląd w nowej karcie  
   Kryteria akceptacji:
 
-  - Link username.hackerfolio.test otwiera aktualny stan portfolio
+  - Link /preview/{username} otwiera aktualny stan portfolio
   - Strona renderowana jest poprzez SSR
 
 - ID: US-013  
