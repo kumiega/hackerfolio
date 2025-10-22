@@ -37,19 +37,38 @@ const buttonVariants = cva(
   }
 );
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
+type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
-  }) {
-  const Comp = asChild ? Slot : "button";
+    href?: string;
+  };
 
-  return <Comp data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+function Button({ className, variant, size, asChild = false, href, ...props }: ButtonProps) {
+  // If asChild, delegate to Slot as usual
+  if (asChild) {
+    return <Slot data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />;
+  }
+
+  if (href) {
+    const { disabled, children, ...anchorProps } = props as React.ComponentProps<"a">;
+    return (
+      <a
+        href={href}
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }), disabled ? "pointer-events-none opacity-50" : "")}
+        tabIndex={disabled ? -1 : undefined}
+        aria-disabled={disabled ? true : undefined}
+        {...anchorProps}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  // Default to <button>
+  return (
+    <button type="button" data-slot="button" className={cn(buttonVariants({ variant, size, className }))} {...props} />
+  );
 }
 
 export { Button, buttonVariants };
