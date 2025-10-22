@@ -11,8 +11,9 @@ export const prerender = false;
  *
  * Handles user logout by signing out the user session.
  * This endpoint requires user authentication and clears the user's session.
+ * After successful logout, redirects to the login page.
  *
- * @returns 200 - Successfully logged out
+ * @returns 302 - Redirect to login page after successful logout
  * @returns 401 - User not authenticated
  * @returns 500 - Internal server error
  */
@@ -32,13 +33,8 @@ export const POST: APIRoute = async (context) => {
       throw new Error(logoutError.message);
     }
 
-    // Return success response
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    // Redirect to login page after successful logout
+    return Response.redirect(`${new URL(context.url).origin}/login`, 302);
   } catch (error: any) {
     // Handle authentication errors (401)
     if (error.message === "UNAUTHENTICATED" || error.name === "UNAUTHENTICATED") {
