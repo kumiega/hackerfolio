@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import type { ApiSuccessResponse, ApiErrorResponse, PublicPortfolioDto } from "@/types";
 import { PortfolioService } from "@/lib/services/portfolio.service";
-import { supabaseServiceClient } from "@/db/supabase.client";
+import { supabaseServiceClient } from "@/db/supabase.server";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { logError } from "@/lib/error-utils";
 

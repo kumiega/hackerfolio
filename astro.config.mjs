@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
@@ -20,4 +20,14 @@ export default defineConfig({
   adapter: node({
     mode: "standalone",
   }),
+  env: {
+    schema: {
+      PUBLIC_SUPABASE_URL: envField.string({ context: "client", access: "public" }),
+      PUBLIC_SUPABASE_KEY: envField.string({ context: "client", access: "public" }),
+      SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret" }),
+      SUPABASE_AUTH_EXTERNAL_GITHUB_CLIENT_ID: envField.string({ context: "server", access: "secret" }),
+      SUPABASE_AUTH_EXTERNAL_GITHUB_SECRET: envField.string({ context: "server", access: "secret" }),
+      // OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret" }),
+    },
+  },
 });

@@ -68,7 +68,7 @@ The view leverages existing types from `src/types.ts` and introduces minimal new
 ## 6. State Management
 State is managed locally within the LoginForm React component using React's `useState` and `useEffect` hooks, integrated with the Supabase client via `@supabase/supabase-js`. No global state (e.g., Redux/Zustand) is required for this simple view, as it's isolated to authentication.
 
-- Custom Hook: `useAuthLogin` - A composable hook that:
+- Custom Hook: `useAuth` - A composable hook that:
   - Initializes Supabase client.
   - Fetches current session on mount using `supabase.auth.getSession()`.
   - Listens to auth state changes with `supabase.auth.onAuthStateChange()`.
@@ -115,7 +115,7 @@ These conditions prevent invalid states, ensuring the view only shows when unaut
 1. Set up the page: Create `src/pages/login.astro` with basic layout using Tailwind classes for centering.
 2. Install dependencies: Ensure `@supabase/supabase-js`, `lucide-react` (for icons), and Shadcn/ui button/alert are available.
 3. Create React components: Implement `LoginForm.tsx`, `GitHubLoginButton.tsx`, `ErrorMessage.tsx` in `src/components/auth/`.
-4. Develop custom hook: Write `useAuthLogin` in `src/hooks/useAuthLogin.ts`, integrating Supabase client initialization from env vars.
+4. Develop custom hook: Write `useAuth` in `src/hooks/useAuth.ts`, integrating Supabase client initialization from env vars.
 5. Integrate Supabase: Configure client with `SUPABASE_URL` and `SUPABASE_ANON_KEY`; set OAuth redirect to `/auth/callback`.
 6. Add types: Extend `src/types.ts` if needed, but use existing `AuthSessionDto`; define `LoginState` and `LoginError` locally in component files.
 7. Handle routing: Use Astro's `Astro.redirect()` for session-based redirects; for client-side, use React Router or `window.location.href`.

@@ -59,7 +59,8 @@ export const POST: APIRoute = async (context) => {
 
     // Step 3: Validate payload size (256KB limit)
     const payloadSize = new TextEncoder().encode(JSON.stringify(body)).length;
-    if (payloadSize > 256 * 1024) { // 256KB
+    if (payloadSize > 256 * 1024) {
+      // 256KB
       const errorResponse: ApiErrorResponse = {
         error: {
           code: "VALIDATION_ERROR",
@@ -179,7 +180,6 @@ export const POST: APIRoute = async (context) => {
         "Content-Type": "application/json",
       },
     });
-
   } catch (error: any) {
     // Handle unexpected errors (500)
     // eslint-disable-next-line no-console

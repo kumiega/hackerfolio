@@ -10,14 +10,14 @@ export class AuthService {
   /**
    * Retrieves current authenticated user session with profile data
    *
-   * @param supabase - Supabase client instance from context.locals
+   * @param supabase - Supabase client instance from context.locals (SSR-aware)
    * @returns Promise<AuthSessionDto> - User session data including auth user and profile
    * @throws AuthError with code 'UNAUTHENTICATED' if user is not authenticated
    * @throws AuthError with code 'PROFILE_NOT_FOUND' if user profile doesn't exist
    */
   static async getCurrentSession(supabase: SupabaseClient): Promise<AuthSessionDto> {
-    // Step 1: Get authenticated user
-    // Use getUser() instead of getSession() to verify JWT signature
+    // Step 1: Get authenticated user from SSR-aware Supabase client
+    // The client automatically handles cookie-based session management
     const {
       data: { user },
       error: authError,

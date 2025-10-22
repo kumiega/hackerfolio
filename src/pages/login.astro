@@ -1,0 +1,16 @@
+---
+import Layout from "../layouts/Layout.astro";
+import LoginForm from "../components/auth/login-form";
+---
+
+<Layout>
+  <div class="min-h-screen flex items-center justify-center bg-background">
+    <div class="w-full max-w-md p-6">
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-foreground mb-2">Welcome to Hackerfolio</h1>
+        <p class="text-muted-foreground">Sign in with your GitHub account to get started</p>
+      </div>
+      <LoginForm client:load />
+    </div>
+  </div>
+</Layout>
