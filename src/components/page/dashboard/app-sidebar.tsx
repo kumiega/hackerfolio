@@ -1,5 +1,5 @@
 import * as React from "react";
-import { BookOpen, Bot, Frame, Map, PieChart, Settings2, SquareTerminal } from "lucide-react";
+import { PanelsTopLeft, Settings2 } from "lucide-react";
 
 import { NavMain } from "@/components/page/dashboard/nav-main";
 import { NavUser } from "@/components/page/dashboard/nav-user";
@@ -14,141 +14,59 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
-import { useSessionCheck } from "@/hooks/useSessionCheck";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth } from "@/hooks/useAuth";
 
 const data = {
   navMain: [
     {
-      title: "Playground",
-      url: "#",
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: "History",
-          url: "#",
-        },
-        {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Models",
-      url: "#",
-      icon: Bot,
-      items: [
-        {
-          title: "Genesis",
-          url: "#",
-        },
-        {
-          title: "Explorer",
-          url: "#",
-        },
-        {
-          title: "Quantum",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Documentation",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Introduction",
-          url: "#",
-        },
-        {
-          title: "Get Started",
-          url: "#",
-        },
-        {
-          title: "Tutorials",
-          url: "#",
-        },
-        {
-          title: "Changelog",
-          url: "#",
-        },
-      ],
+      title: "Editor",
+      url: "/dashboard/editor",
+      icon: PanelsTopLeft,
+      isActive: false,
     },
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/settings",
       icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  projects: [
-    {
-      name: "Design Engineering",
-      url: "#",
-      icon: Frame,
-    },
-    {
-      name: "Sales & Marketing",
-      url: "#",
-      icon: PieChart,
-    },
-    {
-      name: "Travel",
-      url: "#",
-      icon: Map,
+      isActive: false,
     },
   ],
 };
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  currentPath?: string;
+}
+
+export function AppSidebar({ currentPath, ...props }: AppSidebarProps) {
   const { session, isLoading: isAuthLoading } = useAuth();
+
+  // Update nav items with active state based on current path
+  const navItems = data.navMain.map((item) => ({
+    ...item,
+    isActive: currentPath === item.url,
+  }));
 
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="/dashboard">
-                <Logo className="text-base sm:text-lg" />
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarSeparator />
-          <SidebarMenuItem>
-            <UserAvatar session={session} isLoading={isAuthLoading} />
+            <a href="/dashboard">
+              <Logo className="text-base sm:text-lg mx-2 pt-0.5" />
+            </a>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <SidebarSeparator />
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenuItem>
+          <UserAvatar session={session} isLoading={isAuthLoading} />
+        </SidebarMenuItem>
+
         <NavUser />
       </SidebarFooter>
     </Sidebar>

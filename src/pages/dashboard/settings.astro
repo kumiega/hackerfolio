@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/layout-base.astro";
+import { DashboardLayout } from "@/components/page/dashboard/layout";
+import { SettingsContent } from "@/components/page/dashboard/settings-content";
+---
+
+<Layout title="Settings - Hackerfolio">
+  <DashboardLayout client:load transition:persist currentPath="/dashboard/settings">
+    <SettingsContent client:load />
+  </DashboardLayout>
+</Layout>

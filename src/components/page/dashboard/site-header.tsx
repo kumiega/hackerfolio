@@ -3,8 +3,13 @@ import { SidebarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Breadcrumbs } from "@/components/page/dashboard/breadcrumbs";
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  currentPath?: string;
+}
+
+export function SiteHeader({ currentPath }: SiteHeaderProps) {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -14,6 +19,7 @@ export function SiteHeader() {
           <SidebarIcon />
         </Button>
         <Separator orientation="vertical" className="mr-2 h-4" />
+        <Breadcrumbs currentPath={currentPath} />
       </div>
     </header>
   );

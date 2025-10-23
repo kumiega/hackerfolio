@@ -1,0 +1,11 @@
+---
+import Layout from "../../layouts/layout-base.astro";
+import { DashboardLayout } from "@/components/page/dashboard/layout";
+import { EditorContent } from "@/components/page/dashboard/editor-content";
+---
+
+<Layout title="Editor - Hackerfolio">
+  <DashboardLayout client:load transition:persist currentPath="/dashboard/editor">
+    <EditorContent client:load />
+  </DashboardLayout>
+</Layout>

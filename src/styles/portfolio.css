@@ -1,0 +1,96 @@
+@import "../styles/global.css";
+
+@layer base {
+
+    h1 {
+        @apply text-4xl tracking-tight font-bold;
+    }
+
+    p {
+        line-height: 1.5;
+        color: color-mix(in oklch, var(--color-foreground) 86%, transparent);
+    }
+
+    footer {
+        @apply text-[12px] font-mono mt-24 py-3 bg-neutral-200;
+    }
+
+}
+
+.link-button {
+    @apply px-2 py-0.5 border border-neutral-300 border-dashed font-mono text-sm text-muted-foreground uppercase;
+
+    &:hover {
+        position: relative;
+        z-index: 1;
+        color: var(--color-primary);
+        border-color: currentColor;
+        @apply bg-linear-30 from-primary/10 to-transparent to-60%;
+    }
+}
+
+.link-button+.link-button {
+    margin-inline-start: -1px;
+}
+
+.pill {
+    display: flex;
+    align-items: center;
+    border-color: color-mix(in oklch, var(--color-primary) 50%, transparent);
+    color: var(--color-primary);
+    background-color: color-mix(in oklch, var(--color-primary) 5%, transparent);
+    height: 24px;
+    font-size: 12px;
+
+    @apply px-2 py-1 pt-1.5 border border-dashed font-mono uppercase leading-none tracking-wider;
+}
+
+.link-card {
+    @apply flex items-center justify-between gap-2 px-4 py-3 border border-dashed border-neutral-300 hover:border-primary;
+
+    &:hover {
+        position: relative;
+        z-index: 1;
+
+        @apply bg-linear-30 from-primary/10 to-transparent to-60%;
+
+        p,
+        h3 {
+            color: var(--color-primary);
+        }
+
+        .link-card-arrow {
+            @apply block animate-in zoom-in duration-250;
+        }
+    }
+}
+
+.link-card-content {
+    max-width: 360px;
+    text-wrap: balance;
+}
+
+.link-card-arrow {
+    @apply font-mono text-primary text-xl hidden;
+}
+
+.link-list-item {
+    @apply border-b border-dashed border-neutral-300;
+
+    &:hover {
+        @apply text-primary;
+
+        .list-link-arrow {
+            color: currentColor;
+            @apply animate-in zoom-in duration-250;
+        }
+    }
+
+    a {
+        @apply font-medium py-3 flex flex justify-between items-center;
+    }
+}
+
+.list-link-arrow {
+    @apply font-mono text-muted text-xl;
+}

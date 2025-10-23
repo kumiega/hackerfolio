@@ -1,0 +1,36 @@
+---
+interface SocialLink {
+  platform: string;
+  url: string;
+  label: string;
+}
+
+interface Props {
+  links: SocialLink[];
+}
+
+const { links } = Astro.props;
+---
+
+<section aria-labelledby="other-places-heading">
+  <h2 id="other-places-heading" class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
+    <span class="text-primary" aria-hidden="true">▷</span> My other places
+  </h2>
+
+  <nav aria-label="Other online profiles">
+    <ul class="link-list" role="list">
+      {
+        links.map((link) => (
+          <li class="link-list-item">
+            <a href={link.url} class="hover:text-primary" target="_blank" rel="noopener noreferrer">
+              {link.label}{" "}
+              <span aria-hidden="true" class="list-link-arrow">
+                ↗
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</section>

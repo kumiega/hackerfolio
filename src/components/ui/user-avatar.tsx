@@ -38,13 +38,12 @@ export function UserAvatar({ session, isLoading = false, size = "md", showText =
   if (!session) {
     return (
       <div className="flex items-center gap-2 px-1 py-1.5 text-left">
-        <Avatar className={`${sizeClasses[size]} rounded-lg`}>
-          <AvatarFallback className="rounded-lg">?</AvatarFallback>
-        </Avatar>
+        <div className={`${sizeClasses[size]} bg-muted animate-pulse rounded-lg`} />
+
         {showText && (
           <div className="grid flex-1 text-left leading-tight">
-            <span className="truncate font-medium">Not authenticated</span>
-            <span className="truncate text-xs">Please log in</span>
+            <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+            <div className="h-3 w-32 bg-muted animate-pulse rounded mt-1" />
           </div>
         )}
       </div>

@@ -5,15 +5,16 @@ import { SiteHeader } from "@/components/page/dashboard/site-header";
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
+  currentPath?: string;
 }
 
-export function DashboardLayout({ children }: DashboardLayoutProps) {
+export function DashboardLayout({ children, currentPath }: DashboardLayoutProps) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
       <SidebarProvider className="flex flex-col">
-        <SiteHeader />
+        <SiteHeader currentPath={currentPath} />
         <div className="flex flex-1">
-          <AppSidebar />
+          <AppSidebar currentPath={currentPath} />
           <SidebarInset>
             {children || (
               <div className="flex flex-1 flex-col gap-4 p-4">

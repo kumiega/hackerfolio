@@ -1,0 +1,84 @@
+---
+import { Image } from "astro:assets";
+
+interface Props {
+  name: string;
+  title: string;
+  description: string;
+  avatarSrc: string;
+  avatarAlt: string;
+  email?: string;
+  github?: string;
+  linkedin?: string;
+  twitter?: string;
+}
+
+const { name, title, description, avatarSrc, avatarAlt, email, github, linkedin, twitter } = Astro.props;
+---
+
+<section class="portfolio-intro" aria-labelledby="portfolio-intro-heading">
+  <div class="relative max-w-max mb-8">
+    <div class="bg-linear-340 from-primary to-transparent to-50% absolute top-0 left-0 h-full w-full z-10"></div>
+    <Image src={avatarSrc} height={64} width={64} alt={avatarAlt} class="w-24 h-24" />
+  </div>
+
+  <h1 id="portfolio-intro-heading" class="text-2xl font-bold mb-2">{name}</h1>
+
+  <p class="text-foreground/64 font-mono uppercase text-sm mb-5">
+    <span class="text-primary" aria-hidden="true">►</span>
+    {title}
+  </p>
+
+  <p class="text-foreground text-base mb-5 max-w-prose">
+    {description}
+  </p>
+
+  <nav class="flex flex-wrap" aria-label="Social links">
+    {
+      email && (
+        <a class="link-button" href={`mailto:${email}`} aria-label={`Send email to ${name}`}>
+          Email
+        </a>
+      )
+    }
+    {
+      github && (
+        <a
+          class="link-button"
+          href={github}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${name}'s GitHub profile`}
+        >
+          GitHub
+        </a>
+      )
+    }
+    {
+      linkedin && (
+        <a
+          class="link-button"
+          href={linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${name}'s LinkedIn profile`}
+        >
+          LinkedIn
+        </a>
+      )
+    }
+    {
+      twitter && (
+        <a
+          class="link-button"
+          href={twitter}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${name}'s X profile`}
+        >
+          X
+        </a>
+      )
+    }
+  </nav>
+</section>

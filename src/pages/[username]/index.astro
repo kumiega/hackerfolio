@@ -1,0 +1,89 @@
+---
+import Layout from "../../layouts/layout-portfolio.astro";
+import BioSection from "../../components/page/portfolio/bio.astro";
+import TechnologiesSection from "../../components/page/portfolio/technologies.astro";
+import ProjectsSection from "../../components/page/portfolio/projects.astro";
+import LinksListSection from "../../components/page/portfolio/links-list.astro";
+import Footer from "../../components/page/portfolio/footer.astro";
+import GradualBlur from "../../components/ui/gradual-blur/index.tsx";
+import "../../styles/portfolio.css";
+import type { Target } from "lucide-react";
+
+const technologies = [
+  "react.js",
+  "next.js",
+  "vue.js",
+  "postgresql",
+  "aws",
+  "supabase",
+  "tailwindcss",
+  "shadcn",
+  "typescript",
+  "three.js",
+  "html",
+  "css",
+  "javascript",
+  "wordpress",
+];
+
+const projects = [
+  {
+    name: "Hackerfolio",
+    description: "Generate professional portfolio with AI easy way.",
+    url: "#",
+  },
+  {
+    name: "Hackerfolio",
+    description: "Generate professional portfolio with AI easy way.",
+    url: "#",
+  },
+  {
+    name: "Hackerfolio",
+    description: "Generate professional portfolio with AI easy way.",
+    url: "#",
+  },
+];
+
+const socialLinks = [
+  {
+    platform: "GitHub",
+    url: "https://github.com/markcoderfast",
+    label: "Link to my GitHub profile",
+  },
+  {
+    platform: "LinkedIn",
+    url: "https://linkedin.com/in/markcoderfast",
+    label: "Link to my LinkedIn profile",
+  },
+  {
+    platform: "X",
+    url: "https://twitter.com/markcoderfast",
+    label: "Link to my X profile",
+  },
+];
+---
+
+<Layout title="Portfolio - Hackerfolio">
+  <div class="max-w-[480px] mx-auto pt-24 px-5">
+    <BioSection
+      name="Mark Coderfast"
+      title="Full-stack developer at Google"
+      description="I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012."
+      avatarSrc="/images/avatar.jpg"
+      avatarAlt="Mark Coderfast"
+      email="mark@coderfast.com"
+      github="https://github.com/markcoderfast"
+      linkedin="https://linkedin.com/in/markcoderfast"
+      twitter="https://twitter.com/markcoderfast"
+    />
+
+    <main>
+      <TechnologiesSection technologies={technologies} />
+
+      <ProjectsSection projects={projects} />
+
+      <LinksListSection links={socialLinks} />
+    </main>
+  </div>
+  <Footer copyrightYear="2025" copyrightText="© All rights reserved." madeWithText="» Made with" madeWithUrl="/" />
+</Layout>

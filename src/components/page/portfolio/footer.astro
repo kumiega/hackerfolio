@@ -1,0 +1,22 @@
+---
+interface Props {
+  copyrightYear: string;
+  copyrightText: string;
+  madeWithText: string;
+  madeWithUrl: string;
+}
+
+const {
+  copyrightYear = "2025",
+  copyrightText = "© All rights reserved.",
+  madeWithText = "» Made with",
+  madeWithUrl = "/",
+} = Astro.props;
+---
+
+<footer>
+  <div class="mx-auto max-w-[480px] w-full px-5 flex items-center justify-between gap-4 flex-wrap">
+    <p class="text-muted">{copyrightYear} {copyrightText}</p>
+    <p class="text-muted">{madeWithText} <a class="hover:text-primary underline" href={madeWithUrl}>Hackerfolio</a></p>
+  </div>
+</footer>

@@ -1,0 +1,25 @@
+---
+interface Props {
+  technologies: string[];
+}
+
+const { technologies } = Astro.props;
+---
+
+<section aria-labelledby="tech-stack-heading">
+  <h2 id="tech-stack-heading" class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
+    <span class="text-primary" aria-hidden="true">▷</span> Tech stack
+  </h2>
+
+  <p class="mb-4">Technologies that I used to work with:</p>
+
+  <ul class="flex flex-wrap gap-[4px] mt-4" role="list" aria-label="Technology stack">
+    {
+      technologies.map((tech) => (
+        <li>
+          <span class="pill">{tech}</span>
+        </li>
+      ))
+    }
+  </ul>
+</section>
