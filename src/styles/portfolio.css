@@ -18,7 +18,7 @@
 }
 
 .link-button {
-    @apply px-2 py-0.5 border border-neutral-300 border-dashed font-mono text-sm text-muted-foreground uppercase;
+    @apply px-2 py-0.5 border border-neutral-300 border-dashed font-mono text-sm text-muted-foreground bg-background uppercase;
 
     &:hover {
         position: relative;
