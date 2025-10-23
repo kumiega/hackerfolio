@@ -35,6 +35,13 @@ create policy user_profiles_insert_authenticated
   to authenticated
   with check (id = auth.uid());
 
+-- Allow system functions to insert user profiles (for OAuth flow)
+create policy user_profiles_insert_system
+  on public.user_profiles
+  for insert
+  to service_role
+  with check (true);
+
 create policy user_profiles_update_authenticated
   on public.user_profiles
   for update
@@ -78,6 +85,8 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   -- Insert user profile with nullable username (no auto-generation)
+  -- Use security definer to bypass RLS during user creation
+  -- Use ON CONFLICT DO NOTHING to handle duplicate inserts gracefully
   insert into public.user_profiles (
     id,
     username,
@@ -90,14 +99,33 @@ begin
   values (
     new.id,
     null, -- username is nullable, will be set later via set_username() function
-    new.email,
-    coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name'),
-    new.raw_user_meta_data->>'avatar_url',
-    new.created_at,
-    new.updated_at
-  );
+    coalesce(new.email, ''),
+    coalesce(
+      new.user_metadata->>'full_name', 
+      new.user_metadata->>'name', 
+      new.raw_user_meta_data->>'full_name', 
+      new.raw_user_meta_data->>'name',
+      ''
+    ),
+    nullif(coalesce(
+      new.user_metadata->>'avatar_url',
+      new.raw_user_meta_data->>'avatar_url',
+      new.user_metadata->>'picture',
+      new.raw_user_meta_data->>'picture',
+      new.user_metadata->>'profilePicture',
+      new.raw_user_meta_data->>'profilePicture'
+    ), ''),
+    coalesce(new.created_at, now()),
+    now()
+  )
+  on conflict (id) do nothing;
   
   return new;
+exception
+  when others then
+    -- Log the error but don't fail the auth process
+    raise log 'Error creating user profile for user %: %', new.id, SQLERRM;
+    return new;
 end;
 $$ language plpgsql security definer;
 
@@ -107,12 +135,31 @@ returns trigger as $$
 begin
   update public.user_profiles
   set
-    email = new.email,
-    full_name = coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', full_name),
-    avatar_url = coalesce(new.raw_user_meta_data->>'avatar_url', avatar_url),
-    updated_at = new.updated_at
+    email = coalesce(new.email, email),
+    full_name = coalesce(
+      new.user_metadata->>'full_name', 
+      new.user_metadata->>'name', 
+      new.raw_user_meta_data->>'full_name', 
+      new.raw_user_meta_data->>'name', 
+      full_name
+    ),
+    avatar_url = nullif(coalesce(
+      new.user_metadata->>'avatar_url',
+      new.raw_user_meta_data->>'avatar_url',
+      new.user_metadata->>'picture',
+      new.raw_user_meta_data->>'picture',
+      new.user_metadata->>'profilePicture',
+      new.raw_user_meta_data->>'profilePicture',
+      avatar_url
+    ), ''),
+    updated_at = now()
   where id = new.id;
   return new;
+exception
+  when others then
+    -- Log the error but don't fail the auth update
+    raise log 'Error updating user profile for user %: %', new.id, SQLERRM;
+    return new;
 end;
 $$ language plpgsql security definer;
 

@@ -3,53 +3,93 @@ export const prerender = false;
 ---
 
 <script>
-import { supabaseClient } from "@/db/supabase.client";
+  import { supabaseClient } from "@/db/supabase.client";
 
-// Handle implicit OAuth flow with automatic session detection
-async function handleCallback() {
-  try {
-    // Check for OAuth errors in URL fragment first
-    const hash = window.location.hash.substring(1);
-    const params = new URLSearchParams(hash);
-    const error = params.get("error");
-    const errorDescription = params.get("error_description");
+  // Handle implicit OAuth flow with automatic session detection
+  async function handleCallback() {
+    try {
+      // First check if user is already authenticated (for page refreshes/navigation)
+      const {
+        data: { session: existingSession },
+      } = await supabaseClient.auth.getSession();
 
-    if (error) {
-      console.error("OAuth error:", error, errorDescription);
-      window.location.href = `/login?error=oauth_error&message=${encodeURIComponent(errorDescription || error)}`;
-      return;
+      if (existingSession?.user) {
+        // User is already authenticated, check if they have completed onboarding
+        try {
+          const response = await fetch("/api/v1/auth/session", {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (response.ok) {
+            const sessionData = await response.json();
+            if (sessionData.data?.profile?.username) {
+              // User has completed onboarding, redirect to dashboard
+              window.location.href = "/dashboard";
+              return;
+            } else {
+              // User needs to complete onboarding
+              window.location.href = "/onboarding";
+              return;
+            }
+          }
+        } catch (sessionCheckError) {
+          console.error("Session check error:", sessionCheckError);
+          // Continue with OAuth flow check
+        }
+      }
+
+      // Check for OAuth errors in URL fragment
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const error = params.get("error");
+      const errorDescription = params.get("error_description");
+
+      if (error) {
+        console.error("OAuth error:", error, errorDescription);
+        window.location.href = `/login?error=oauth_error&message=${encodeURIComponent(errorDescription || error)}`;
+        return;
+      }
+
+      // Check if there's OAuth callback data in the URL
+      const accessToken = params.get("access_token");
+      const refreshToken = params.get("refresh_token");
+
+      if (accessToken && refreshToken) {
+        // This is a fresh OAuth callback, set the session
+        const { error: setSessionError } = await supabaseClient.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (setSessionError) {
+          console.error("Set session error:", setSessionError);
+          window.location.href = `/login?error=session_failed&message=${encodeURIComponent(setSessionError.message)}`;
+          return;
+        }
+
+        // Success! User is authenticated via OAuth
+        console.log("User authenticated via OAuth");
+
+        // Wait a moment for the database trigger to complete, then redirect to onboarding
+        setTimeout(() => {
+          window.location.href = "/onboarding";
+        }, 1000);
+      } else {
+        // No OAuth callback data and no existing session, redirect to login
+        console.log("No OAuth callback data and no existing session, redirecting to login");
+        window.location.href = "/login?error=no_session";
+      }
+    } catch (err) {
+      console.error("Unexpected error during callback:", err);
+      window.location.href = "/login?error=unexpected_error";
     }
-
-    // Supabase will automatically detect and set the session from URL fragment
-    // when detectSessionInUrl is enabled
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabaseClient.auth.getSession();
-
-    if (sessionError) {
-      console.error("Session error:", sessionError);
-      window.location.href = `/login?error=session_failed&message=${encodeURIComponent(sessionError.message)}`;
-      return;
-    }
-
-    if (session?.user) {
-      // Success! User is authenticated
-      console.log("User authenticated:", session.user.email);
-      window.location.href = "/onboarding";
-    } else {
-      // No session found, redirect to login
-      console.log("No session found, redirecting to login");
-      window.location.href = "/login?error=no_session";
-    }
-  } catch (err) {
-    console.error("Unexpected error during callback:", err);
-    window.location.href = "/login?error=unexpected_error";
   }
-}
 
-// Run the callback handler when the page loads
-handleCallback();
+  // Run the callback handler when the page loads
+  handleCallback();
 </script>
 
 <div class="min-h-screen flex items-center justify-center bg-background">

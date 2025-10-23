@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabaseClient } from "@/db/supabase.client";
 import type { AuthSessionDto } from "@/types";
+import { AuthService } from "@/lib/services/auth.service";
 
 // Local types for login component state management
 export interface LoginState {
@@ -24,6 +25,19 @@ export function useAuth() {
   const [error, setError] = useState<LoginError | null>(null);
   const [session, setSession] = useState<AuthSessionDto | null>(null);
   const initializedRef = useRef(false);
+
+  /**
+   * Fetches complete session data including profile from database
+   */
+  const fetchSessionData = useCallback(async (): Promise<AuthSessionDto | null> => {
+    try {
+      const sessionData = await AuthService.getCurrentSession(supabaseClient);
+      console.log("sessionData", sessionData);
+      return sessionData;
+    } catch {
+      return null;
+    }
+  }, []);
 
   /**
    * Clears the current error state
@@ -120,17 +134,8 @@ export function useAuth() {
         }
 
         if (currentSession?.user) {
-          setSession({
-            user: {
-              id: currentSession.user.id,
-              email: currentSession.user.email || "",
-            },
-            profile: {
-              id: currentSession.user.id,
-              username: null,
-              created_at: currentSession.user.created_at || "",
-            },
-          });
+          const sessionData = await fetchSessionData();
+          setSession(sessionData);
         } else {
           setSession(null);
         }
@@ -155,34 +160,16 @@ export function useAuth() {
       if (!isMounted) return;
 
       if (event === "SIGNED_IN" && session?.user) {
-        setSession({
-          user: {
-            id: session.user.id,
-            email: session.user.email || "",
-          },
-          profile: {
-            id: session.user.id,
-            username: null,
-            created_at: session.user.created_at || "",
-          },
-        });
+        const sessionData = await fetchSessionData();
+        setSession(sessionData);
         setError(null);
       } else if (event === "SIGNED_OUT") {
         setSession(null);
         setError(null);
       } else if (event === "TOKEN_REFRESHED") {
         if (session?.user) {
-          setSession({
-            user: {
-              id: session.user.id,
-              email: session.user.email || "",
-            },
-            profile: {
-              id: session.user.id,
-              username: null,
-              created_at: session.user.created_at || "",
-            },
-          });
+          const sessionData = await fetchSessionData();
+          setSession(sessionData);
         }
       }
     });
@@ -191,7 +178,7 @@ export function useAuth() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchSessionData]);
 
   return {
     isLoading,

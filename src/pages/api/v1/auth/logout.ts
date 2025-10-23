@@ -35,9 +35,14 @@ export const POST: APIRoute = async (context) => {
 
     // Redirect to login page after successful logout
     return Response.redirect(`${new URL(context.url).origin}/login`, 302);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // Type guard for error
+    const isError = error instanceof Error;
+    const errorMessage = isError ? error.message : "Unexpected error in logout endpoint";
+    const errorStack = isError ? error.stack : undefined;
+
     // Handle authentication errors (401)
-    if (error.message === "UNAUTHENTICATED" || error.name === "UNAUTHENTICATED") {
+    if (errorMessage === "UNAUTHENTICATED" || (isError && error.name === "UNAUTHENTICATED")) {
       const errorResponse: ApiErrorResponse = {
         error: {
           code: "UNAUTHENTICATED",
@@ -53,14 +58,14 @@ export const POST: APIRoute = async (context) => {
 
     // Handle unexpected errors (500)
     await logError(supabase, {
-      message: error.message || "Unexpected error in logout endpoint",
+      message: errorMessage,
       severity: "error",
       source: "api",
       error_code: "INTERNAL_ERROR",
       endpoint: "POST /api/v1/auth/logout",
       route: "/api/v1/auth/logout",
       request_id: requestId,
-      stack: error.stack,
+      stack: errorStack,
       context: {},
     });
 

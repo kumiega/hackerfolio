@@ -29,17 +29,39 @@ export class AuthService {
 
     // Step 2: Fetch user profile from database
     // RLS policy ensures user can only access their own profile
-    const { data: profile, error: profileError } = await supabase
+    const { data, error: profileError } = await supabase
       .from("user_profiles")
-      .select("id, username, created_at")
+      .select("id, username, avatar_url, created_at")
       .eq("id", user.id)
       .single();
 
+    let profile = data;
+
     if (profileError || !profile) {
-      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
+      // If profile doesn't exist, create it manually
+      const { data: newProfile, error: createError } = await supabase
+        .from("user_profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+        })
+        .select("id, username, avatar_url, created_at")
+        .single();
+
+      if (createError || !newProfile) {
+        throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
+      }
+
+      // Use the newly created profile
+      profile = newProfile;
     }
 
     // Step 3: Build and return DTO
+    // Treat empty strings as null for avatar URLs
+    const avatarUrl = profile.avatar_url && profile.avatar_url.trim() !== "" ? profile.avatar_url : null;
+
     return {
       user: {
         id: user.id,
@@ -48,6 +70,7 @@ export class AuthService {
       profile: {
         id: profile.id,
         username: profile.username,
+        avatar_url: avatarUrl,
         created_at: profile.created_at,
       },
     };

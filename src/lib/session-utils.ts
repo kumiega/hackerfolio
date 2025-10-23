@@ -44,6 +44,7 @@ export class SessionUtils {
         profile: {
           id: session.user.id,
           username: null,
+          avatar_url: null,
           created_at: session.user.created_at || "",
         },
       };
