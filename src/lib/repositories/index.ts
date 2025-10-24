@@ -28,6 +28,7 @@ class RepositoryLocator {
 
   static getInstance(): RepositoryLocator {
     if (!RepositoryLocator.instance) {
+
       RepositoryLocator.instance = new RepositoryLocator();
     }
     return RepositoryLocator.instance;
