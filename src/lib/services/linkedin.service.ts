@@ -1,8 +1,7 @@
-import type { SupabaseClient } from "@/db/supabase.client";
 import type { LinkedInProfile, BioComponentData } from "@/types";
 import { AppError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-constants";
-import { logError } from "@/lib/error-utils";
+import { repositories } from "@/lib/repositories";
 
 /**
  * LinkedIn profile parsing service
@@ -120,22 +119,16 @@ export class LinkedInService {
   /**
    * Parses LinkedIn profile using AI
    *
-   * @param supabase - Supabase client instance
    * @param profileUrl - LinkedIn profile URL to parse
    * @param userId - ID of the user making the request (for logging)
    * @param requestId - Request ID for tracing (for logging)
    * @returns Promise<LinkedInProfile> - Parsed profile data
    * @throws AppError for various parsing failures
    */
-  static async parseProfileWithAI(
-    supabase: SupabaseClient,
-    profileUrl: string,
-    userId?: string,
-    requestId?: string
-  ): Promise<LinkedInProfile> {
+  static async parseProfileWithAI(profileUrl: string, userId?: string, requestId?: string): Promise<LinkedInProfile> {
     // Validate URL format
     if (!this.isValidLinkedInUrl(profileUrl)) {
-      await logError(supabase, {
+      await repositories.appErrors.logError({
         message: "Invalid LinkedIn URL format provided",
         severity: "warn",
         source: "api",
@@ -163,7 +156,7 @@ export class LinkedInService {
       return profile;
     } catch (error) {
       // Log detailed error information
-      await logError(supabase, {
+      await repositories.appErrors.logError({
         message: "LinkedIn profile parsing failed",
         severity: "error",
         source: "api",

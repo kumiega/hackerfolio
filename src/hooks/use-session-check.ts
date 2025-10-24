@@ -49,7 +49,6 @@ export function useSessionCheck() {
     isAuthenticated,
     userId: session?.user.id || null,
     userEmail: session?.user.email || null,
-    
   };
 }
 

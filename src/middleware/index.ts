@@ -2,6 +2,7 @@ import type { MiddlewareHandler } from "astro";
 import { createServerClient } from "@supabase/ssr";
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY } from "astro:env/client";
 import type { Database } from "@/db/database.types";
+import { repositories } from "@/lib/repositories";
 
 export const onRequest: MiddlewareHandler = async (context, next) => {
   // Generate unique request ID for tracking and error logging
@@ -34,6 +35,9 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
 
   // Add Supabase client to locals for server-side access
   context.locals.supabase = supabase;
+
+  // Initialize repository locator with the Supabase client
+  repositories.initialize(supabase);
 
   const response = await next();
   return response;

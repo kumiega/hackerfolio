@@ -9,13 +9,12 @@ import {
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 
 const data = {
   navMain: [

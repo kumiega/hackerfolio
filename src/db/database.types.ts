@@ -22,7 +22,7 @@ export interface Database {
     Tables: {
       app_errors: {
         Row: {
-          client_ip: unknown | null;
+          client_ip: unknown;
           context: Json;
           endpoint: string | null;
           error_code: string | null;
@@ -41,7 +41,7 @@ export interface Database {
           username: string | null;
         };
         Insert: {
-          client_ip?: unknown | null;
+          client_ip?: unknown;
           context?: Json;
           endpoint?: string | null;
           error_code?: string | null;
@@ -60,7 +60,7 @@ export interface Database {
           username?: string | null;
         };
         Update: {
-          client_ip?: unknown | null;
+          client_ip?: unknown;
           context?: Json;
           endpoint?: string | null;
           error_code?: string | null;
@@ -213,6 +213,36 @@ export interface Database {
           },
         ];
       };
+      rate_limits: {
+        Row: {
+          action: string;
+          count: number;
+          created_at: string | null;
+          id: string;
+          identifier: string;
+          updated_at: string | null;
+          window_start: string;
+        };
+        Insert: {
+          action: string;
+          count?: number;
+          created_at?: string | null;
+          id?: string;
+          identifier: string;
+          updated_at?: string | null;
+          window_start?: string;
+        };
+        Update: {
+          action?: string;
+          count?: number;
+          created_at?: string | null;
+          id?: string;
+          identifier?: string;
+          updated_at?: string | null;
+          window_start?: string;
+        };
+        Relationships: [];
+      };
       sections: {
         Row: {
           created_at: string;
@@ -251,36 +281,6 @@ export interface Database {
           },
         ];
       };
-      rate_limits: {
-        Row: {
-          action: string;
-          count: number;
-          created_at: string;
-          id: string;
-          identifier: string;
-          updated_at: string;
-          window_start: string;
-        };
-        Insert: {
-          action: string;
-          count?: number;
-          created_at?: string;
-          id?: string;
-          identifier: string;
-          updated_at?: string;
-          window_start?: string;
-        };
-        Update: {
-          action?: string;
-          count?: number;
-          created_at?: string;
-          id?: string;
-          identifier?: string;
-          updated_at?: string;
-          window_start?: string;
-        };
-        Relationships: [];
-      };
       user_profiles: {
         Row: {
           avatar_url: string | null;
@@ -288,6 +288,7 @@ export interface Database {
           email: string | null;
           full_name: string | null;
           id: string;
+          is_onboarded: boolean;
           updated_at: string;
           username: string | null;
         };
@@ -297,6 +298,7 @@ export interface Database {
           email?: string | null;
           full_name?: string | null;
           id: string;
+          is_onboarded?: boolean;
           updated_at?: string;
           username?: string | null;
         };
@@ -306,6 +308,7 @@ export interface Database {
           email?: string | null;
           full_name?: string | null;
           id?: string;
+          is_onboarded?: boolean;
           updated_at?: string;
           username?: string | null;
         };
@@ -314,10 +317,12 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
-      app_errors_cleanup: {
-        Args: { retain_days?: number };
+      app_errors_cleanup: { Args: { retain_days?: number }; Returns: number };
+      cleanup_rate_limits: {
+        Args: { retention_hours?: number };
         Returns: number;
       };
+      complete_onboarding: { Args: never; Returns: undefined };
       log_app_error: {
         Args: {
           client_ip_in?: unknown;
@@ -335,7 +340,7 @@ export interface Database {
           user_agent_in?: string;
         };
         Returns: {
-          client_ip: unknown | null;
+          client_ip: unknown;
           context: Json;
           endpoint: string | null;
           error_code: string | null;
@@ -353,6 +358,12 @@ export interface Database {
           user_id: string | null;
           username: string | null;
         };
+        SetofOptions: {
+          from: "*";
+          to: "app_errors";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
       };
       set_username: {
         Args: { username_input: string };
@@ -362,8 +373,15 @@ export interface Database {
           email: string | null;
           full_name: string | null;
           id: string;
+          is_onboarded: boolean;
           updated_at: string;
           username: string | null;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "user_profiles";
+          isOneToOne: true;
+          isSetofReturn: false;
         };
       };
     };

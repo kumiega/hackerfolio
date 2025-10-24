@@ -31,8 +31,7 @@ export function useAuth() {
    */
   const fetchSessionData = useCallback(async (): Promise<AuthSessionDto | null> => {
     try {
-      const sessionData = await AuthService.getCurrentSession(supabaseClient);
-      console.log("sessionData", sessionData);
+      const sessionData = await AuthService.getCurrentSession();
       return sessionData;
     } catch {
       return null;

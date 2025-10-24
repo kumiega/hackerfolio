@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import GitHubLoginButton from "./login-button";
 import ErrorMessage from "./error-message";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 
 interface LoginFormProps {
   onLoginSuccess?: () => void;

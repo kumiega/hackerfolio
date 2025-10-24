@@ -1,4 +1,4 @@
-import { useSessionCheck } from "@/hooks/useSessionCheck";
+import { useSessionCheck } from "@/hooks/use-session-check";
 
 interface AuthGuardProps {
   children: React.ReactNode;

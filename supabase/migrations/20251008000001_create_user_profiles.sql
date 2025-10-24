@@ -10,6 +10,7 @@ create table if not exists public.user_profiles (
   username text unique,
   -- Basic auth sync
   email text,
+  is_onboarded boolean not null default false,
   full_name text,
   avatar_url text,
   -- Metadata
@@ -225,5 +226,19 @@ begin
 end;
 $$;
 
+-- Function to complete onboarding
+create or replace function public.complete_onboarding()
+returns void
+as $$
+begin
+  update public.user_profiles
+  set
+    is_onboarded = true,
+    updated_at = now()
+  where id = auth.uid();
+end;
+$$ language plpgsql security definer;
+
 -- Grant permissions
 grant execute on function public.set_username(text) to authenticated;
+grant execute on function public.complete_onboarding() to authenticated;

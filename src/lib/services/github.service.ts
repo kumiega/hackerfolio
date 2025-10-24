@@ -1,4 +1,3 @@
-import type { SupabaseClient } from "@/db/supabase.client";
 import type { GitHubRepoDto } from "@/types";
 import { AppError } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-constants";
@@ -114,7 +113,6 @@ export class GitHubService {
   /**
    * Retrieves GitHub repositories for the authenticated user
    *
-   * @param supabase - Supabase client instance from context.locals
    * @param accessToken - GitHub OAuth access token
    * @param params - Query parameters for filtering and pagination
    * @returns Promise<{ repos: GitHubRepoDto[]; total: number; page: number; per_page: number }>
@@ -123,7 +121,6 @@ export class GitHubService {
    * @throws AppError with code 'GITHUB_TOKEN_INVALID' for invalid/expired tokens
    */
   static async getUserRepositories(
-    supabase: SupabaseClient,
     accessToken: string,
     params: GitHubReposParams = {}
   ): Promise<{ repos: GitHubRepoDto[]; total: number; page: number; per_page: number }> {
@@ -309,7 +306,7 @@ export class GitHubService {
     accessToken?: string
   ): Promise<{ name: string; description: string | null; topics: string[] }> {
     // Parse repository URL to extract owner and repo name
-    const urlMatch = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+?)\/?$/);
+    const urlMatch = repoUrl.match(/github\.com\/([^/]+)\/([^/]+?)\/?$/);
     if (!urlMatch) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Invalid GitHub repository URL format");
     }
@@ -490,7 +487,8 @@ export class GitHubService {
     }
 
     // Also check for tech stack sections in README
-    const techSectionRegex = /#+\s*(?:tech|technology|stack|built with|tools|frameworks?|languages?)\s*#*\n([\s\S]*?)(?=\n#+\s*|$)/gi;
+    const techSectionRegex =
+      /#+\s*(?:tech|technology|stack|built with|tools|frameworks?|languages?)\s*#*\n([\s\S]*?)(?=\n#+\s*|$)/gi;
     const techSections = content.match(techSectionRegex);
 
     if (techSections) {
@@ -538,12 +536,13 @@ export class GitHubService {
 
         // Clean up markdown formatting
         summary = summary
-          .replace(/\[([^\]]+)\]\([^\)]+\)/g, "$1") // Remove links, keep text
+          .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1") // Remove links, keep text
           .replace(/[*_`~]/g, "") // Remove emphasis markers
           .replace(/\n+/g, " ") // Replace newlines with spaces
           .trim();
 
-        if (summary.length > 10) { // Ensure we have meaningful content
+        if (summary.length > 10) {
+          // Ensure we have meaningful content
           return summary.length > 500 ? summary.substring(0, 497) + "..." : summary;
         }
       }
