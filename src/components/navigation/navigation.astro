@@ -10,7 +10,7 @@ let isAuthenticated = false;
 let userEmail = "";
 
 try {
-  sessionData = await AuthService.getCurrentSession(Astro.locals.supabase);
+  sessionData = await AuthService.getCurrentSession();
   isAuthenticated = true;
   userEmail = sessionData.user.email;
 } catch (error) {

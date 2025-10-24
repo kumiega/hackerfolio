@@ -25,10 +25,15 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
         });
       },
       setAll(cookiesToSet) {
-        // Set cookies in the response
-        cookiesToSet.forEach(({ name, value, options }) => {
-          context.cookies.set(name, value, options);
-        });
+        // Set cookies in the response - only if response hasn't been sent yet
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            context.cookies.set(name, value, options);
+          });
+        } catch (error) {
+          // Ignore cookie setting errors if response has already been sent
+          console.warn("Failed to set cookies:", error);
+        }
       },
     },
   });
