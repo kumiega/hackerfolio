@@ -46,6 +46,8 @@ export class SessionUtils {
           username: null,
           avatar_url: null,
           created_at: session.user.created_at || "",
+          updated_at: session.user.updated_at || "",
+          is_onboarded: false,
         },
       };
     } catch {
@@ -79,7 +81,12 @@ export class SessionUtils {
         data: { session },
         error,
       } = await supabaseClient.auth.getSession();
-      return !error && session?.user ? session.user.email : null;
+
+      if (error || !session?.user) {
+        return null;
+      }
+
+      return session.user.email || null;
     } catch {
       return null;
     }
@@ -107,7 +114,10 @@ export class SessionUtils {
               profile: {
                 id: session.user.id,
                 username: null,
+                avatar_url: null,
                 created_at: session.user.created_at || "",
+                updated_at: session.user.updated_at || "",
+                is_onboarded: false,
               },
             });
           } else {
