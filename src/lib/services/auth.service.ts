@@ -38,7 +38,10 @@ export class AuthService {
 
     // Step 3: Build and return DTO
     // Treat empty strings as null for avatar URLs
-    const avatarUrl = profile.avatar_url && profile.avatar_url.trim() !== "" ? profile.avatar_url : null;
+    const avatarUrl =
+      user.user_metadata?.avatar_url && user.user_metadata?.avatar_url.trim() !== ""
+        ? user.user_metadata?.avatar_url
+        : null;
 
     return {
       user: {
@@ -50,6 +53,8 @@ export class AuthService {
         username: profile.username,
         avatar_url: avatarUrl,
         created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        is_onboarded: profile.is_onboarded,
       },
     };
   }
