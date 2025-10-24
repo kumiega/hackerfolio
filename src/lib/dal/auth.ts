@@ -24,6 +24,11 @@ export async function getCurrentSession(): Promise<SessionDisplay | null> {
     const profile = await repositories.userProfiles.findById(user.id);
     if (!profile) return null;
 
+    const avatarUrl =
+      user.user_metadata?.avatar_url && user.user_metadata?.avatar_url.trim() !== ""
+        ? user.user_metadata?.avatar_url
+        : null;
+
     return {
       user: {
         id: user.id,
@@ -32,7 +37,9 @@ export async function getCurrentSession(): Promise<SessionDisplay | null> {
       profile: {
         id: profile.id,
         username: profile.username,
-        avatar_url: profile.avatar_url,
+        avatar_url: avatarUrl,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
         is_onboarded: profile.is_onboarded,
       },
     };
