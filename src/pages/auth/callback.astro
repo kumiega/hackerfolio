@@ -14,31 +14,10 @@ export const prerender = false;
       } = await supabaseClient.auth.getSession();
 
       if (existingSession?.user) {
-        // User is already authenticated, check if they have completed onboarding
-        try {
-          const response = await fetch("/api/v1/auth/session", {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          });
-
-          if (response.ok) {
-            const sessionData = await response.json();
-            if (sessionData.data?.profile?.username) {
-              // User has completed onboarding, redirect to dashboard
-              window.location.href = "/dashboard";
-              return;
-            } else {
-              // User needs to complete onboarding
-              window.location.href = "/onboarding";
-              return;
-            }
-          }
-        } catch (sessionCheckError) {
-          console.error("Session check error:", sessionCheckError);
-          // Continue with OAuth flow check
-        }
+        // User is already authenticated, redirect to onboarding
+        // The onboarding page will handle profile creation and session validation
+        window.location.href = "/onboarding";
+        return;
       }
 
       // Check for OAuth errors in URL fragment
@@ -73,10 +52,8 @@ export const prerender = false;
         // Success! User is authenticated via OAuth
         console.log("User authenticated via OAuth");
 
-        // Wait a moment for the database trigger to complete, then redirect to onboarding
-        setTimeout(() => {
-          window.location.href = "/onboarding";
-        }, 1000);
+        // Redirect immediately to onboarding - the onboarding page will handle profile creation
+        window.location.href = "/onboarding";
       } else {
         // No OAuth callback data and no existing session, redirect to login
         console.log("No OAuth callback data and no existing session, redirecting to login");

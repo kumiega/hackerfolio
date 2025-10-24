@@ -1,6 +1,7 @@
 import type { APIRoute } from "astro";
 import { AuthService } from "@/lib/services/auth.service";
 import { logError } from "@/lib/error-utils";
+import { repositories } from "@/lib/repositories";
 import type { ApiSuccessResponse, ApiErrorResponse, AuthSessionDto } from "@/types";
 
 // Disable prerendering for this API route
@@ -22,8 +23,11 @@ export const GET: APIRoute = async (context) => {
   const requestId = locals.requestId || crypto.randomUUID();
 
   try {
+    // Initialize repositories with the Supabase client from middleware
+    repositories.initialize(supabase);
+
     // Call service layer to retrieve session data
-    const sessionData = await AuthService.getCurrentSession(supabase);
+    const sessionData = await AuthService.getCurrentSession();
 
     // Build success response
     const response: ApiSuccessResponse<AuthSessionDto> = {

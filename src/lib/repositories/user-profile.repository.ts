@@ -25,7 +25,10 @@ export class UserProfileRepository extends BaseRepository {
    */
   async findById(userId: string): Promise<UserProfileRow | null> {
     return this.executeQueryNullable(
-      async () => await this.supabase.from(this.tableName).select("*").eq("id", userId).single(),
+      async () => {
+        const { data, error } = await this.supabase.from(this.tableName).select("*").eq("id", userId).limit(1);
+        return { data: data?.[0] || null, error };
+      },
       "Failed to find user profile",
       { userId }
     );

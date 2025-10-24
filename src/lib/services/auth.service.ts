@@ -34,12 +34,19 @@ export class AuthService {
 
     if (!profile) {
       // If profile doesn't exist, create it manually
-      profile = await repositories.userProfiles.create({
-        id: user.id,
-        email: user.email,
-        full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-        avatar_url: user.user_metadata?.avatar_url || null,
-      });
+      console.log(`Creating user profile for user ${user.id}`);
+      try {
+        profile = await repositories.userProfiles.create({
+          id: user.id,
+          email: user.email,
+          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+          avatar_url: user.user_metadata?.avatar_url || null,
+        });
+        console.log(`Successfully created user profile for user ${user.id}`);
+      } catch (error) {
+        console.error(`Failed to create user profile for user ${user.id}:`, error);
+        throw error;
+      }
     }
 
     // Step 3: Build and return DTO
