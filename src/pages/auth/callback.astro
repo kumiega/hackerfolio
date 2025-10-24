@@ -4,19 +4,27 @@ export const prerender = false;
 
 <script>
   import { supabaseClient } from "@/db/supabase.client";
+  import { AuthService } from "@/lib/services/auth.service";
+  import { repositories } from "@/lib/repositories";
 
   // Handle implicit OAuth flow with automatic session detection
   async function handleCallback() {
     try {
-      // First check if user is already authenticated (for page refreshes/navigation)
-      const {
-        data: { session: existingSession },
-      } = await supabaseClient.auth.getSession();
+      Astro.locals.supabase = supabaseClient;
+      repositories.initialize(supabaseClient);
 
-      if (existingSession?.user) {
+      // First check if user is already authenticated (for page refreshes/navigation)
+      const session = await AuthService.getCurrentSession();
+
+      if (session && !session.profile?.is_onboarded) {
         // User is already authenticated, redirect to onboarding
         // The onboarding page will handle profile creation and session validation
         window.location.href = "/onboarding";
+        return;
+      }
+
+      if (session && session.profile?.is_onboarded) {
+        window.location.href = "/dashboard";
         return;
       }
 
@@ -28,7 +36,7 @@ export const prerender = false;
 
       if (error) {
         console.error("OAuth error:", error, errorDescription);
-        window.location.href = `/login?error=oauth_error&message=${encodeURIComponent(errorDescription || error)}`;
+        window.location.href = `/login?error=oauth_error`;
         return;
       }
 
@@ -44,24 +52,18 @@ export const prerender = false;
         });
 
         if (setSessionError) {
-          console.error("Set session error:", setSessionError);
-          window.location.href = `/login?error=session_failed&message=${encodeURIComponent(setSessionError.message)}`;
+          window.location.href = `/login?error=session_failed`;
           return;
         }
 
-        // Success! User is authenticated via OAuth
-        console.log("User authenticated via OAuth");
-
-        // Redirect immediately to onboarding - the onboarding page will handle profile creation
-        window.location.href = "/onboarding";
+        window.location.href = "/dashboard";
       } else {
         // No OAuth callback data and no existing session, redirect to login
-        console.log("No OAuth callback data and no existing session, redirecting to login");
         window.location.href = "/login?error=no_session";
       }
     } catch (err) {
       console.error("Unexpected error during callback:", err);
-      window.location.href = "/login?error=unexpected_error";
+      // window.location.href = "/login?error=unexpected_error";
     }
   }
 

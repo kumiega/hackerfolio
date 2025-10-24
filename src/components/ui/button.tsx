@@ -50,7 +50,7 @@ function Button({ className, variant, size, asChild = false, href, ...props }: B
   }
 
   if (href) {
-    const { disabled, children, ...anchorProps } = props as React.ComponentProps<"a">;
+    const { disabled, children, ...anchorProps } = props as React.ComponentProps<"a"> & { disabled?: boolean };
     return (
       <a
         href={href}

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import GitHubLoginButton from "./login-button";
 import ErrorMessage from "./error-message";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,8 +24,9 @@ function getErrorMessageFromCode(errorCode: string | null): string | null {
   }
 }
 
-export default function LoginForm({ onLoginSuccess, initialError }: LoginFormProps) {
-  const { isLoading, error, session, handleGitHubLogin, clearError, setError } = useAuth();
+export default function LoginForm({ initialError }: LoginFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  const { error, handleGitHubLogin, clearError, setError } = useAuth();
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -43,20 +44,8 @@ export default function LoginForm({ onLoginSuccess, initialError }: LoginFormPro
     }
   }, [initialError, setError]);
 
-  useEffect(() => {
-    if (buttonRef.current && !session) {
-      buttonRef.current.focus();
-    }
-  }, [session]);
-
-  useEffect(() => {
-    if (session) {
-      onLoginSuccess?.();
-      window.location.href = "/dashboard";
-    }
-  }, [session, onLoginSuccess]);
-
   const handleLogin = async () => {
+    setIsLoading(true);
     await handleGitHubLogin();
   };
 
