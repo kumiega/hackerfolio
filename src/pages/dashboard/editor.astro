@@ -2,6 +2,17 @@
 import Layout from "../../layouts/layout-base.astro";
 import { DashboardLayout } from "@/components/page/dashboard/layout";
 import { EditorContent } from "@/components/page/dashboard/editor-content";
+import { getCurrentSession, type SessionDisplay } from "@/lib/dal";
+
+let sessionData: SessionDisplay | null = await getCurrentSession();
+
+if (!sessionData) {
+  return Astro.redirect("/login");
+}
+
+if (!sessionData.profile.is_onboarded) {
+  return Astro.redirect("/onboarding");
+}
 ---
 
 <Layout title="Editor - Hackerfolio">

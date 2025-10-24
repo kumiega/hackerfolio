@@ -58,7 +58,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Step 2: Claim username via AuthService
-    const updatedProfile = await AuthService.claimUsername(supabase, requestBody.username);
+    const updatedProfile = await AuthService.claimUsername(requestBody.username);
 
     // Step 3: Build and return success response
     const response: ApiSuccessResponse<UserProfileDto> = {

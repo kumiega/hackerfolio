@@ -16,10 +16,6 @@ drop policy if exists user_profiles_select_authenticated on public.user_profiles
 drop policy if exists user_profiles_insert_authenticated on public.user_profiles;
 drop policy if exists user_profiles_update_authenticated on public.user_profiles;
 drop policy if exists user_profiles_delete_authenticated on public.user_profiles;
-drop policy if exists user_profiles_select_anon on public.user_profiles;
-drop policy if exists user_profiles_insert_anon on public.user_profiles;
-drop policy if exists user_profiles_update_anon on public.user_profiles;
-drop policy if exists user_profiles_delete_anon on public.user_profiles;
 
 -- drop all policies on portfolios
 drop policy if exists portfolios_select_authenticated on public.portfolios;

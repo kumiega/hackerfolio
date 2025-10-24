@@ -24,7 +24,7 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // Verify user is authenticated before logout
-    await AuthService.getCurrentSession(supabase);
+    await AuthService.getCurrentSession();
 
     // Sign out the user
     const { error: logoutError } = await supabase.auth.signOut();

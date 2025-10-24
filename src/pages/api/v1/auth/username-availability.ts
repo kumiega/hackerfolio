@@ -72,7 +72,7 @@ export const GET: APIRoute = async (context) => {
     }
 
     // Step 2: Check username availability via AuthService
-    const availabilityData = await AuthService.checkUsernameAvailability(supabase, usernameParam);
+    const availabilityData = await AuthService.checkUsernameAvailability(usernameParam);
 
     // Step 3: Build and return success response
     const response: ApiSuccessResponse<UsernameAvailabilityDto> = {

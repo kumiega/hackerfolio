@@ -1,23 +1,14 @@
 ---
 import Layout from "../layouts/layout-base.astro";
-import { AuthService } from "@/lib/services/auth.service";
+import { getCurrentSession, hasUsername, type SessionDisplay } from "@/lib/dal";
 
-// Check if user is authenticated using server-side Supabase client
-let sessionData;
-try {
-  sessionData = await AuthService.getCurrentSession(Astro.locals.supabase);
-} catch {
-  return Astro.redirect("/login");
+let sessionData: SessionDisplay | null = await getCurrentSession();
+
+if (!sessionData) {
+  throw new Error("Session data not found");
 }
 
-// Check if user already has a username
-const { data: profile } = await Astro.locals.supabase
-  .from("user_profiles")
-  .select("username")
-  .eq("id", sessionData.user.id)
-  .single();
-
-if (profile?.username) {
+if (await hasUsername(sessionData.user.id)) {
   return Astro.redirect("/dashboard");
 }
 ---
@@ -32,7 +23,7 @@ if (profile?.username) {
 
       <form id="onboarding-form" class="space-y-6">
         <div>
-          <label for="username" class="block text-sm font-medium text-foreground mb-2"> Username </label>
+          <label for="username" class="block text-sm font-medium text-foreground mb-2">Username</label>
           <input
             type="text"
             id="username"

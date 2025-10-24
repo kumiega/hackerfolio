@@ -30,23 +30,10 @@ export class AuthService {
 
     // Step 2: Fetch user profile from database
     // RLS policy ensures user can only access their own profile
-    let profile = await repositories.userProfiles.findById(user.id);
+    const profile = await repositories.userProfiles.findById(user.id);
 
     if (!profile) {
-      // If profile doesn't exist, create it manually
-      console.log(`Creating user profile for user ${user.id}`);
-      try {
-        profile = await repositories.userProfiles.create({
-          id: user.id,
-          email: user.email,
-          full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-          avatar_url: user.user_metadata?.avatar_url || null,
-        });
-        console.log(`Successfully created user profile for user ${user.id}`);
-      } catch (error) {
-        console.error(`Failed to create user profile for user ${user.id}:`, error);
-        throw error;
-      }
+      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
     }
 
     // Step 3: Build and return DTO

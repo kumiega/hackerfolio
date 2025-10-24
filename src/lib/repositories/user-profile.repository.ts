@@ -171,4 +171,16 @@ export class UserProfileRepository extends BaseRepository {
       { userId, fields }
     );
   }
+
+  /**
+   * Find all user profiles
+   *
+   * @returns Promise<UserProfileRow[]> - Array of all user profiles
+   */
+  async findAll(): Promise<UserProfileRow[]> {
+    return this.executeQueryArray(
+      async () => await this.supabase.from(this.tableName).select("*").order("created_at", { ascending: false }),
+      "Failed to find all user profiles"
+    );
+  }
 }
