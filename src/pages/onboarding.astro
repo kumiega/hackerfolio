@@ -25,8 +25,6 @@ if (await hasUsername(sessionData.user.id)) {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    height: 100%;
-    width: 100%;
 
     @media (min-width: 40rem) {
       --bg-url: url("../assets/bg.jpg");
@@ -42,13 +40,15 @@ if (await hasUsername(sessionData.user.id)) {
 </style>
 
 <Layout title="Complete Your Profile">
-  <div class="min-h-screen lg:grid lg:grid-cols-2">
-    <div class="hero grid place-items-center">
-      <div class="space-y-3">
-        <Logo className="text-2xl sm:text-5xl" />
-        <p class="text-background/86">
-          Say <span class="font-mono">“</span>hello world<span class="font-mono">”</span> with us today!
-        </p>
+  <div class="min-h-[100vh] lg:grid lg:grid-cols-2 relative">
+    <div class="relative">
+      <div class="max-h-screen hero grid place-items-center fixed w-1/2 h-screen top-0 left-0">
+        <div class="space-y-3">
+          <Logo className="text-2xl sm:text-5xl" />
+          <p class="text-background/86">
+            Say <span class="font-mono">“</span>hello world<span class="font-mono">”</span> with us today!
+          </p>
+        </div>
       </div>
     </div>
     <div class="p-24">

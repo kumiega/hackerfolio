@@ -1,14 +1,13 @@
 ---
-import Layout from "../../layouts/layout-portfolio.astro";
-import BioSection from "../../components/page/portfolio/bio.astro";
-import TechnologiesSection from "../../components/page/portfolio/technologies.astro";
-import ProjectsSection from "../../components/page/portfolio/projects.astro";
-import LinksListSection from "../../components/page/portfolio/links-list.astro";
-import Footer from "../../components/page/portfolio/footer.astro";
-import GradualBlur from "../../components/ui/gradual-blur/index.tsx";
-import "../../styles/portfolio.css";
-import type { Target } from "lucide-react";
+import Layout from "@/layouts/layout-portfolio.astro";
+import BioSection from "@/components/page/portfolio/bio.astro";
+import TechnologiesSection from "@/components/page/portfolio/technologies.astro";
+import ProjectsSection from "@/components/page/portfolio/projects.astro";
+import LinksListSection from "@/components/page/portfolio/links-list.astro";
+import Footer from "@/components/page/portfolio/footer.astro";
 import PixelBlast from "@/components/ui/pixel-blast";
+
+import "@/styles/portfolio.css";
 
 const technologies = [
   "react.js",

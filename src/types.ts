@@ -296,3 +296,5 @@ export interface ComponentDataMap {
 
 // Extract component data type by component type
 export type ComponentDataByType<T extends ComponentType> = ComponentDataMap[T];
+
+export type QueryState = "idle" | "loading" | "success" | "error";

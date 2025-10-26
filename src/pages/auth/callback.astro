@@ -10,7 +10,6 @@ export const prerender = false;
   // Handle implicit OAuth flow with automatic session detection
   async function handleCallback() {
     try {
-      Astro.locals.supabase = supabaseClient;
       repositories.initialize(supabaseClient);
 
       // First check if user is already authenticated (for page refreshes/navigation)

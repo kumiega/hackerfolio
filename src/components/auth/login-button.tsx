@@ -13,7 +13,7 @@ const GitHubLoginButton = forwardRef<HTMLButtonElement, GitHubLoginButtonProps>(
     return (
       <Button
         ref={ref}
-        variant="outline"
+        variant="default"
         size="lg"
         onClick={onClick}
         disabled={disabled || isLoading}

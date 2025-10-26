@@ -1,14 +1,15 @@
 ---
-import Layout from "../layouts/layout-base.astro";
-import LoginForm from "../components/auth/login-form";
+import Layout from "@/layouts/layout-base.astro";
+import LoginForm from "@/components/auth/login-form";
+import { Logo } from "@/components/ui/logo";
 ---
 
 <Layout>
   <div class="min-h-screen flex items-center justify-center bg-background">
     <div class="w-full max-w-md p-6">
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-foreground mb-2">Welcome to Hackerfolio</h1>
-        <p class="text-muted-foreground">Sign in with your GitHub account to get started</p>
+        <h1 class="text-3xl font-bold text-foreground mb-5"><Logo className="text-2xl sm:text-5xl" /></h1>
+        <p class="text-muted-foreground text-lg">Sign in with your GitHub account to get started</p>
       </div>
       <LoginForm client:load />
     </div>
