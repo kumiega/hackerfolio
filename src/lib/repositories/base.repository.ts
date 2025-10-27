@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@/db/supabase.client";
+import type { SupabaseClientSSR } from "@/db/supabase.client";
 import { AppError } from "@/lib/error-handler";
 import type { PostgrestError } from "@supabase/supabase-js";
 
@@ -12,9 +12,9 @@ import type { PostgrestError } from "@supabase/supabase-js";
  * - Row Level Security (RLS) compliance
  */
 export abstract class BaseRepository {
-  protected readonly supabase: SupabaseClient;
+  protected readonly supabase: SupabaseClientSSR;
 
-  constructor(supabase: SupabaseClient) {
+  constructor(supabase: SupabaseClientSSR) {
     this.supabase = supabase;
   }
 

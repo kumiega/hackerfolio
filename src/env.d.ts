@@ -3,6 +3,8 @@
 declare namespace App {
   interface Locals {
     user: AuthSessionDto;
+    requestId: string;
+    supabase: SupabaseClientSSR;
   }
 }
 

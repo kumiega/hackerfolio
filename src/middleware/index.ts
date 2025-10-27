@@ -74,7 +74,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return redirect("/signin");
   }
 
+  locals.supabase = supabase;
   locals.user = user;
+  locals.requestId = crypto.randomUUID();
 
   return next();
 });
