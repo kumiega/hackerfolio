@@ -29,7 +29,7 @@ try {
           <Button variant="glass" href="/dashboard">
             Dashboard
           </Button>
-          <form method="POST" action="/api/v1/auth/logout" class="inline">
+          <form method="POST" action="/api/v1/auth/signout" class="inline">
             <Button variant="ghost" type="submit" aria-label="Logout from your account">
               Logout
             </Button>
@@ -37,8 +37,8 @@ try {
         </>
       ) : (
         <>
-          <Button variant="glass" href="/login">
-            Log in
+          <Button variant="glass" href="/signin">
+            Sign in
           </Button>
         </>
       )

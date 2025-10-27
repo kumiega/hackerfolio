@@ -2,21 +2,22 @@
 import Layout from "../../layouts/layout-base.astro";
 import { DashboardLayout } from "@/components/page/dashboard/layout";
 import { EditorContent } from "@/components/page/dashboard/editor-content";
-import { getCurrentSession, type SessionDisplay } from "@/lib/dal";
 
-let sessionData: SessionDisplay | null = await getCurrentSession();
+const { user } = Astro.locals;
 
-if (!sessionData) {
-  return Astro.redirect("/login");
+console.log(user);
+
+if (!user) {
+  return Astro.redirect("/signin");
 }
 
-if (!sessionData.profile.is_onboarded) {
+if (!user.user_metadata.is_onboarded) {
   return Astro.redirect("/onboarding");
 }
 ---
 
 <Layout title="Editor - Hackerfolio">
-  <DashboardLayout client:load transition:persist currentPath="/dashboard/editor">
+  <DashboardLayout client:load currentPath="/dashboard/editor">
     <EditorContent client:load />
   </DashboardLayout>
 </Layout>

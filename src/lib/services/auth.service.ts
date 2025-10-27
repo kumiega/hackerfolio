@@ -1,4 +1,4 @@
-import type { AuthSessionDto, UserProfileDto } from "@/types";
+import type { UserProfileDto } from "@/types";
 import { AppError } from "@/lib/error-handler";
 import { repositories } from "@/lib/repositories";
 
@@ -7,74 +7,6 @@ import { repositories } from "@/lib/repositories";
  */
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class AuthService {
-  /**
-   * Retrieves current authenticated user session with profile data
-   *
-   * @returns Promise<AuthSessionDto> - User session data including auth user and profile
-   * @throws AuthError with code 'UNAUTHENTICATED' if user is not authenticated
-   * @throws AuthError with code 'PROFILE_NOT_FOUND' if user profile doesn't exist
-   */
-  static async getCurrentSession(): Promise<AuthSessionDto> {
-    const supabase = repositories.getSupabaseClient();
-
-    // Step 1: Get authenticated user from SSR-aware Supabase client
-    // Use getUser() for security (validates with Supabase Auth server)
-    // rather than getSession() which reads from potentially insecure cookies
-    let user;
-    const {
-      data: { user: authUser },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !authUser || !authUser.email) {
-      // If getUser() fails, it might be due to token refresh issues in middleware
-      // Try getSession() as a fallback, but this is less secure per Supabase warning
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError || !session?.user || !session.user.email) {
-        throw new AppError("UNAUTHENTICATED");
-      }
-
-      // Use session user as fallback (less secure per Supabase warning)
-      user = session.user;
-    } else {
-      user = authUser;
-    }
-
-    // Step 2: Fetch user profile from database
-    // RLS policy ensures user can only access their own profile
-    const profile = await repositories.userProfiles.findById(user.id);
-
-    if (!profile) {
-      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
-    }
-
-    // Step 3: Build and return DTO
-    // Treat empty strings as null for avatar URLs
-    const avatarUrl =
-      user.user_metadata?.avatar_url && user.user_metadata?.avatar_url.trim() !== ""
-        ? user.user_metadata?.avatar_url
-        : null;
-
-    return {
-      user: {
-        id: user.id,
-        email: user.email || "",
-      },
-      profile: {
-        id: profile.id,
-        username: profile.username,
-        avatar_url: avatarUrl,
-        created_at: profile.created_at,
-        updated_at: profile.updated_at,
-        is_onboarded: profile.is_onboarded,
-      },
-    };
-  }
-
   /**
    * Checks if a username is available for registration or profile updates
    *

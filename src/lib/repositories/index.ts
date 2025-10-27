@@ -9,7 +9,7 @@ export { ComponentRepository } from "./component.repository";
 export { AppErrorRepository } from "./app-error.repository";
 
 // Service locator for repositories
-import type { SupabaseClient } from "@/db/supabase.client";
+import type { SupabaseClientSSR } from "@/db/supabase.client";
 import { UserProfileRepository } from "./user-profile.repository";
 import { PortfolioRepository } from "./portfolio.repository";
 import { SectionRepository } from "./section.repository";
@@ -18,7 +18,7 @@ import { AppErrorRepository } from "./app-error.repository";
 
 class RepositoryLocator {
   private static instance: RepositoryLocator;
-  private supabaseClient: SupabaseClient | null = null;
+  private supabaseClient: SupabaseClientSSR | null = null;
 
   private userProfileRepository: UserProfileRepository | null = null;
   private portfolioRepository: PortfolioRepository | null = null;
@@ -33,13 +33,13 @@ class RepositoryLocator {
     return RepositoryLocator.instance;
   }
 
-  initialize(supabaseClient: SupabaseClient): void {
+  initialize(supabaseClient: SupabaseClientSSR): void {
     this.supabaseClient = supabaseClient;
     // Repositories will be created lazily when first accessed
   }
 
   // Method to get the current supabase client for auth operations
-  getSupabaseClient(): SupabaseClient {
+  getSupabaseClient(): SupabaseClientSSR {
     if (!this.supabaseClient) {
       throw new Error("RepositoryLocator not initialized with Supabase client");
     }

@@ -1,0 +1,2 @@
+export const GITHUB_OAUTH_PROVIDER = "github";
+export const ALLOWED_OAUTH_PROVIDERS = [GITHUB_OAUTH_PROVIDER];
