@@ -35,21 +35,29 @@ Common conventions
 - **Idempotency**: endpoints that cause side effects accept `Idempotency-Key`
 
 ### 2.1 Auth / Session
-1) GET `/api/v1/auth/session`
-- Description: Returns current authenticated user and profile
-- Query: none
-- Response 200
-```json
-{
-  "data": {
-    "user": { "id": "uuid", "email": "string" },
-    "profile": { "id": "uuid", "username": "string|null", "created_at": "iso" }
-  }
-}
-```
-- Errors: 401 unauthenticated
+1) POST `/api/v1/auth/signin`
+- Description: Provides sign-in using GitHub oAuth2 autorization
+- Body: <empty>
+- Response: 302 redirects to GitHub login page
+- Errors: 500 internal server error
 
-2) GET `/api/v1/auth/username-availability`
+2) POST `/api/v1/auth/signout`
+- Description: Sign out current user
+- Body: <empty>
+- Response: 302 redirects to app login page
+- Errors: 401 unauthorized
+
+3) POST `/api/v1/auth/callback`
+- Description: Handles Supabase autorization response
+- Query: `code` (required) provided by Supabase
+- Response 302
+```json
+{ "data": { "available": true } }
+```
+- Errors: 401 unauthorized
+
+### 2.2 Profile
+2) GET `/api/v1/profile/username-availability`
 - Description: Check username availability in real-time
 - Query: `username` (required)
 - Response 200
@@ -58,7 +66,7 @@ Common conventions
 ```
 - Errors: 400 invalid format
 
-3) POST `/api/v1/auth/claim-username`
+3) POST `/api/v1/profile/claim-username`
 - Description: One-time set `username` for current user (cannot change later)
 - Body
 ```json
@@ -72,7 +80,7 @@ Common conventions
 
 Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supabase client; server exposes session helpers only.
 
-### 2.2 Portfolios
+### 2.3 Portfolios
 1) GET `/api/v1/portfolios/me`
 - Description: Fetch portfolio owned by current user
 - Response 200
@@ -125,7 +133,7 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 - Response 200 `{ "data": { "is_published": false, "published_at": null } }`
 - Errors: 403 not owner
 
-### 2.3 Sections
+### 2.4 Sections
 1) GET `/api/v1/portfolios/:portfolioId/sections`
 - Description: List sections for a portfolio with ordering
 - Query: `page`, `per_page`, `sort` in {"position","name","created_at"}, `order`
@@ -169,7 +177,7 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 - Response 204
 - Errors: 409 cannot_delete_last_required
 
-### 2.4 Components
+### 2.5 Components
 Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `image`, `bio`.
 
 1) GET `/api/v1/sections/:sectionId/components`
@@ -214,7 +222,7 @@ Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `image`
 - Description: Remove component
 - Response 204
 
-### 2.5 Imports — GitHub
+### 2.6 Imports — GitHub
 1) GET `/api/v1/imports/github/repos`
 - Description: List authenticated user repos (via GitHub OAuth access token stored client-side or exchanged server-side)
 - Query: `visibility` (all|public|private), `q`, `page`, `per_page`
@@ -240,7 +248,7 @@ Component types (enum): `text`, `card`, `pills`, `social_links`, `list`, `image`
 ```
 - Errors: 409 component_limit_reached, 422 validation
 
-### 2.6 Imports — LinkedIn
+### 2.7 Imports — LinkedIn
 POST `/api/v1/imports/linkedin/parse`
 - Description: Parse LinkedIn profile URL using AI, return structured JSON and optionally create components
 - Body
@@ -253,7 +261,7 @@ POST `/api/v1/imports/linkedin/parse`
 ```
 - Errors: 422 invalid url, 429 model_rate_limited
 
-### 2.7 SSR consumption
+### 2.8 SSR consumption
 GET `/api/v1/ssr/portfolios/:username`
 - Description: Server-side only endpoint for SSR rendering of published portfolios (not accessible from client)
 - Query: none
@@ -274,7 +282,7 @@ GET `/api/v1/ssr/portfolios/:username`
 ```
 - Errors: 401 unauthorized, 404 not_found, 403 if not published
 
-### 2.8 Error intake
+### 2.9 Error intake
 POST `/api/v1/errors`
 - Description: Insert-only logging intake for authenticated clients and server subsystems (mirrors `public.log_app_error` RPC).
 - Body
@@ -298,7 +306,7 @@ POST `/api/v1/errors`
 
 (Admin/service-only management of errors — list/query/cleanup — should be internal using service role and not exposed publicly in MVP.)
 
-### 2.9 System
+### 2.10 System
 - GET `/api/v1/health` → `{ "data": { "status": "ok", "time": "iso" } }`
 - GET `/api/v1/version` → `{ "data": { "version": "semver", "commit": "sha" } }`
 
@@ -423,9 +431,11 @@ Summarized types for reference; actual responses follow examples above.
 
 
 ## 9. TODO List
-- [x] GET /api/v1/auth/session
-- [x] GET /api/v1/auth/username-availability
-- [x] POST /api/v1/auth/claim-username
+- [x] POST /api/v1/auth/signin
+- [x] POST /api/v1/auth/signout
+- [x] GET /api/v1/auth/callback
+- [x] GET /api/v1/profile/username-availability
+- [x] POST /api/v1/profile/claim-username
 - [x] GET /api/v1/portfolios/me
 - [x] POST /api/v1/portfolios
 - [x] PATCH /api/v1/portfolios/:id
