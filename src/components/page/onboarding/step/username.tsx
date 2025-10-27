@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Code } from "@/components/ui/code";
 import { useStepper } from "@/components/ui/stepper";
 
 import UsernameAvailabilityForm from "@/components/feature/onboarding/username-availabilty-form";

@@ -5,13 +5,11 @@ import { EditorContent } from "@/components/page/dashboard/editor-content";
 
 const { user } = Astro.locals;
 
-console.log(user);
-
 if (!user) {
   return Astro.redirect("/signin");
 }
 
-if (!user.user_metadata.is_onboarded) {
+if (user && !user.is_onboarded) {
   return Astro.redirect("/onboarding");
 }
 ---

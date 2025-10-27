@@ -139,6 +139,7 @@ export class LinkedInService {
           validation_error: "URL does not match LinkedIn profile pattern",
         },
         portfolio_id: undefined,
+        user_id: userId,
       });
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Invalid LinkedIn profile URL format");
     }

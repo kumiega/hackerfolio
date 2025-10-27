@@ -298,3 +298,14 @@ export interface ComponentDataMap {
 export type ComponentDataByType<T extends ComponentType> = ComponentDataMap[T];
 
 export type QueryState = "idle" | "loading" | "success" | "error";
+
+export interface User {
+  user_id: string;
+  profile_id: string;
+  email: string;
+  username: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  is_onboarded: boolean;
+}

@@ -4,9 +4,6 @@ import { GitHubImportStep } from "@/components/page/onboarding/step/github";
 import { LinkedInImportStep } from "@/components/page/onboarding/step/linkedin";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { StepperProvider, useStepper } from "@/components/ui/stepper";
-import { supabaseClient } from "@/db/supabase.client";
-import { repositories } from "@/lib/repositories";
-import { useEffect } from "react";
 
 const steps = [
   {

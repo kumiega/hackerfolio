@@ -18,8 +18,8 @@ const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 30;
 const DEBOUNCE_DELAY = 500;
 const DOMAIN_SUFFIX = ".coderpage.dev";
-const AVAILABILITY_API_URL = "/api/v1/auth/username-availability";
-const CLAIM_API_URL = "/api/v1/auth/claim-username";
+const AVAILABILITY_API_URL = "/api/v1/profiles/username-availability";
+const CLAIM_API_URL = "/api/v1/profiles/claim-username";
 
 // Utility functions
 const sanitizeUsername = (value: string): string => {
@@ -276,7 +276,13 @@ function UsernameAvailabilityForm({ onSubmit }: { onSubmit: (data: UsernameFormD
         )}
       />
       <Button disabled={!form.formState.isValid || !isAvailable || !!currentError || isLoading} type="submit">
-        {claimState === "loading" ? "Claiming username..." : "Next step"}
+        {claimState === "loading" ? (
+          <>
+            <Spinner /> Claiming username...
+          </>
+        ) : (
+          "Next step"
+        )}
       </Button>
     </form>
   );

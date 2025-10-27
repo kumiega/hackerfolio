@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import type { AuthSessionDto, LinkedInParseResultDto, ComponentDto } from "@/types";
+import type { AuthSessionDto, LinkedInParseResultDto, ComponentDto, User } from "@/types";
 import { AuthService } from "@/lib/services/auth.service";
 import { LinkedInService } from "@/lib/services/linkedin.service";
 import { ComponentService } from "@/lib/services/component.service";
@@ -39,28 +39,19 @@ export const POST: APIRoute = async (context) => {
   const { locals, request } = context;
   const supabase = locals.supabase;
   const requestId = locals.requestId || crypto.randomUUID();
-  let authenticatedUser: AuthSessionDto | null = null;
+  const user: User | null = locals.user;
 
   try {
-    // Step 1: Authentication check
-    authenticatedUser = await AuthService.getCurrentSession(supabase);
-    if (!authenticatedUser) {
+    if (!user) {
       return createErrorResponse("UNAUTHENTICATED", requestId);
     }
 
-    // Step 2: Rate limiting check
     try {
-      await RateLimiter.enforceRateLimit(
-        supabase,
-        authenticatedUser.user.id,
-        "linkedin_parse",
-        RATE_LIMITS.LINKEDIN_PARSE
-      );
+      await RateLimiter.enforceRateLimit(supabase, user.user_id, "linkedin_parse", RATE_LIMITS.LINKEDIN_PARSE);
     } catch (rateLimitError) {
       return createErrorResponse("VALIDATION_ERROR", requestId, (rateLimitError as Error).message);
     }
 
-    // Step 3: Parse and validate request body
     let requestBody: unknown;
     try {
       requestBody = await request.json();
@@ -68,7 +59,6 @@ export const POST: APIRoute = async (context) => {
       return createErrorResponse("INVALID_JSON", requestId);
     }
 
-    // Step 4: Validate request data using Zod schema
     const validation = linkedinParseCommandSchema.safeParse(requestBody);
     if (!validation.success) {
       return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid request data", {
@@ -77,14 +67,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     const command = validation.data;
-
-    // Step 5: Parse LinkedIn profile with AI
-    const profile = await LinkedInService.parseProfileWithAI(
-      supabase,
-      command.url,
-      authenticatedUser.user.id,
-      requestId
-    );
+    const profile = await LinkedInService.parseProfileWithAI(command.url, user.user_id, requestId);
 
     // Step 6: Handle optional component creation
     let createdComponents: ComponentDto[] = [];
@@ -107,12 +90,9 @@ export const POST: APIRoute = async (context) => {
       // Create bio component from profile data
       try {
         const bioData = LinkedInService.convertProfileToBioComponent(profile);
-        createdComponents = await ComponentService.createComponents(
-          supabase,
-          command.section_id,
-          authenticatedUser.user.id,
-          [{ type: "bio", data: bioData }]
-        );
+        createdComponents = await ComponentService.createComponents(command.section_id, user.user_id, [
+          { type: "bio", data: bioData },
+        ]);
       } catch (componentError) {
         // Log component creation error but don't fail the entire request
         await logError(supabase, {
@@ -152,7 +132,7 @@ export const POST: APIRoute = async (context) => {
       requestId,
       endpoint: "POST /api/v1/imports/linkedin/parse",
       route: request.url,
-      userId: authenticatedUser?.user?.id,
+      userId: user?.user_id,
     });
   }
 };

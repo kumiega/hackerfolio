@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useStepper } from "@/components/ui/stepper";
-import { supabaseClient } from "@/db/supabase.client";
+import { createClientBrowser } from "@/db/supabase.client";
 
 import { repositories } from "@/lib/repositories";
 
@@ -9,7 +9,8 @@ function QuickStartStep() {
   const userId = data.userId;
 
   const handleSkip = async () => {
-    repositories.initialize(supabaseClient);
+    const supabase = createClientBrowser();
+    repositories.initialize(supabase);
     await repositories.userProfiles.update(userId, { is_onboarded: true });
     window.location.href = "/dashboard";
   };

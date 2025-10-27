@@ -1,4 +1,4 @@
-import { createServerClient, parseCookieHeader } from "@supabase/ssr";
+import { createBrowserClient, createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY } from "astro:env/client";
 import type { AstroCookies } from "astro";
 
@@ -20,4 +20,8 @@ export const createClientSSR = ({ request, cookies }: { request: Request; cookie
   });
 };
 
-export type SupabaseClientSSR = ReturnType<typeof createClientSSR>;
+export const createClientBrowser = () => {
+  return createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY);
+};
+
+export type SupabaseClient = ReturnType<typeof createClientSSR> | ReturnType<typeof createClientBrowser>;

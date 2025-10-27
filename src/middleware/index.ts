@@ -12,6 +12,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
   });
 
   repositories.initialize(supabase);
+  locals.supabase = supabase;
+  locals.requestId = crypto.randomUUID();
 
   /**
    * Do not run code between createServerClient and supabase.auth.getUser(). A simple mistake could make it very hard to debug issues with users being randomly logged out.
@@ -22,32 +24,48 @@ export const onRequest = defineMiddleware(async (context, next) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  /**
-   * List of all routes that don't require authentication
-   */
-  const publicRoutes = ["/", "/signin", "/api/v1/auth/signin", "/api/v1/auth/callback"];
+  // Routes that are public but should check for user (homepage, etc.)
+  const publicWithOptionalAuth = ["/"];
 
-  if (publicRoutes.includes(url.pathname)) {
+  // Routes that are completely public (signin, callback)
+  const publicNoAuth = ["/signin", "/api/v1/auth/signin", "/api/v1/auth/callback"];
+
+  // For completely public routes, skip user fetching
+  if (publicNoAuth.includes(url.pathname)) {
     return next();
   }
 
-  /**
-   * If user is logging out, just skip this middleware
-   */
-  if (url.pathname === "/api/auth/signout" || url.pathname === "/_actions/auth.signOut/") {
+  // For all other routes (including publicWithOptionalAuth), fetch user if exists
+  if (user) {
+    const profile = await repositories.userProfiles.findById(user.id);
+
+    if (profile) {
+      locals.user = {
+        user_id: user.id,
+        profile_id: profile.id || "",
+        email: user.email || "",
+        username: profile.username,
+        avatar_url: profile.avatar_url,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+        is_onboarded: profile.is_onboarded,
+      };
+    }
+  }
+
+  // If it's a public route with optional auth, continue
+  if (publicWithOptionalAuth.includes(url.pathname)) {
     return next();
   }
 
-  if (!user) {
+  // Protected routes - require authentication
+  if (!user || !locals.user) {
     if (url.pathname.startsWith("/api")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
     }
-
     return redirect("/signin");
   }
 
@@ -67,16 +85,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
       return new Response("Forbidden", { status: 403 });
     }
   }
-
-  const profile = await repositories.userProfiles.findById(user?.id);
-
-  if (!profile) {
-    return redirect("/signin");
-  }
-
-  locals.supabase = supabase;
-  locals.user = user;
-  locals.requestId = crypto.randomUUID();
 
   return next();
 });
