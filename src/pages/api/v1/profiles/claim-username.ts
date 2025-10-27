@@ -75,7 +75,7 @@ export const POST: APIRoute = async (context) => {
     return handleApiError(error, {
       supabase,
       requestId,
-      endpoint: "POST /api/v1/auth/claim-username",
+      endpoint: "POST /api/v1/profiles/claim-username",
       route: request.url,
     });
   }

@@ -56,8 +56,8 @@ Common conventions
 ```
 - Errors: 401 unauthorized
 
-### 2.2 Profile
-2) GET `/api/v1/profile/username-availability`
+### 2.2 Profiles
+2) GET `/api/v1/profiles/username-availability`
 - Description: Check username availability in real-time
 - Query: `username` (required)
 - Response 200
@@ -66,7 +66,7 @@ Common conventions
 ```
 - Errors: 400 invalid format
 
-3) POST `/api/v1/profile/claim-username`
+3) POST `/api/v1/profiles/claim-username`
 - Description: One-time set `username` for current user (cannot change later)
 - Body
 ```json
@@ -434,9 +434,9 @@ Summarized types for reference; actual responses follow examples above.
 - [x] POST /api/v1/auth/signin
 - [x] POST /api/v1/auth/signout
 - [x] GET /api/v1/auth/callback
-- [x] GET /api/v1/profile/username-availability
-- [x] POST /api/v1/profile/claim-username
-- [x] GET /api/v1/portfolios/me
+- [x] GET /api/v1/profiles/username-availability
+- [x] POST /api/v1/profiles/claim-username
+- [x] GET /api/v1/portfolio/me
 - [x] POST /api/v1/portfolios
 - [x] PATCH /api/v1/portfolios/:id
 - [x] POST /api/v1/portfolios/:id/publish
