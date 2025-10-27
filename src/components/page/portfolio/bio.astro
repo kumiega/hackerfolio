@@ -6,20 +6,16 @@ interface Props {
   title: string;
   description: string;
   avatarSrc: string;
-  avatarAlt: string;
-  email?: string;
-  github?: string;
-  linkedin?: string;
-  twitter?: string;
+  links: Record<string, string>;
 }
 
-const { name, title, description, avatarSrc, avatarAlt, email, github, linkedin, twitter } = Astro.props;
+const { name, title, description, avatarSrc, links } = Astro.props;
 ---
 
 <section class="portfolio-intro" aria-labelledby="portfolio-intro-heading">
   <div class="relative max-w-max mb-8">
     <div class="bg-linear-340 from-primary to-transparent to-50% absolute top-0 left-0 h-full w-full z-10"></div>
-    <Image src={avatarSrc} height={64} width={64} alt={avatarAlt} class="w-24 h-24" />
+    <Image src={avatarSrc} height={64} width={64} alt="" class="w-24 h-24" />
   </div>
 
   <h1 id="portfolio-intro-heading" class="text-2xl font-bold mb-2">{name}</h1>
@@ -35,50 +31,17 @@ const { name, title, description, avatarSrc, avatarAlt, email, github, linkedin,
 
   <nav class="flex flex-wrap" aria-label="Social links">
     {
-      email && (
-        <a class="link-button" href={`mailto:${email}`} aria-label={`Send email to ${name}`}>
-          Email
-        </a>
-      )
-    }
-    {
-      github && (
+      Object.entries(links).map(([platform, url]) => (
         <a
           class="link-button"
-          href={github}
+          href={url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`${name}'s GitHub profile`}
+          aria-label={`${name}'s ${platform} profile`}
         >
-          GitHub
+          {platform}
         </a>
-      )
-    }
-    {
-      linkedin && (
-        <a
-          class="link-button"
-          href={linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`${name}'s LinkedIn profile`}
-        >
-          LinkedIn
-        </a>
-      )
-    }
-    {
-      twitter && (
-        <a
-          class="link-button"
-          href={twitter}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={`${name}'s X profile`}
-        >
-          X
-        </a>
-      )
+      ))
     }
   </nav>
 </section>

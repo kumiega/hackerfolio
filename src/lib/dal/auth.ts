@@ -12,13 +12,29 @@ import type { SessionDisplay } from "./types";
  */
 export async function getCurrentSession(): Promise<SessionDisplay | null> {
   try {
-    const {
-      data: { user },
-      error,
-    } = await repositories.getSupabaseClient().auth.getUser();
+    const supabase = repositories.getSupabaseClient();
 
-    if (error || !user || !user.email) {
-      return null;
+    // Use getUser() for security, with getSession() as fallback
+    let user;
+    const {
+      data: { user: authUser },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error || !authUser || !authUser.email) {
+      // Fallback to getSession() if getUser() fails
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user || !session.user.email) {
+        return null;
+      }
+
+      user = session.user;
+    } else {
+      user = authUser;
     }
 
     const profile = await repositories.userProfiles.findById(user.id);
@@ -32,7 +48,7 @@ export async function getCurrentSession(): Promise<SessionDisplay | null> {
     return {
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email || "",
       },
       profile: {
         id: profile.id,

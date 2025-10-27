@@ -1,13 +1,19 @@
 ---
 import Layout from "@/layouts/layout-portfolio.astro";
 import BioSection from "@/components/page/portfolio/bio.astro";
-import TechnologiesSection from "@/components/page/portfolio/technologies.astro";
-import ProjectsSection from "@/components/page/portfolio/projects.astro";
+import PillsSection from "@/components/page/portfolio/pills.astro";
+import CardsSection from "@/components/page/portfolio/cards.astro";
 import LinksListSection from "@/components/page/portfolio/links-list.astro";
 import Footer from "@/components/page/portfolio/footer.astro";
 import PixelBlast from "@/components/ui/pixel-blast";
 
 import "@/styles/portfolio.css";
+
+interface Project {
+  name: string;
+  description: string;
+  url?: string;
+}
 
 const technologies = [
   "react.js",
@@ -26,7 +32,7 @@ const technologies = [
   "wordpress",
 ];
 
-const projects = [
+const projects: Project[] = [
   {
     name: "Hackerfolio",
     description: "Generate professional portfolio with AI easy way.",
@@ -44,45 +50,80 @@ const projects = [
   },
 ];
 
-const socialLinks = [
-  {
-    platform: "GitHub",
-    url: "https://github.com/markcoderfast",
-    label: "Link to my GitHub profile",
+const mockData = {
+  bio: {
+    name: "Mark Coderfast",
+    title: "Full-stack developer at Google",
+    description:
+      "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
+    avatarSrc: "/images/avatar.jpg",
+    links: {
+      email: "mark@coderfast.com",
+      github: "https://github.com/markcoderfast",
+      linkedin: "https://linkedin.com/in/markcoderfast",
+      twitter: "https://twitter.com/markcoderfast",
+    },
   },
-  {
-    platform: "LinkedIn",
-    url: "https://linkedin.com/in/markcoderfast",
-    label: "Link to my LinkedIn profile",
-  },
-  {
-    platform: "X",
-    url: "https://twitter.com/markcoderfast",
-    label: "Link to my X profile",
-  },
-];
+  sections: [
+    {
+      type: "pills",
+      data: {
+        title: "Tech stack",
+        description: "Technologies that I used to work with:",
+        items: technologies,
+      },
+    },
+    {
+      type: "cards",
+      data: {
+        title: "My projects",
+        items: projects,
+      },
+    },
+    {
+      type: "links-list",
+      data: {
+        title: "My other places",
+        items: [
+          {
+            url: "https://markcoderfast.com",
+            label: "My blog",
+          },
+          {
+            url: "https://google.com",
+            label: "My current company",
+          },
+          {
+            url: "https://twitter.com/markcoderfast",
+            label: "My Twitter",
+          },
+        ],
+      },
+    },
+  ],
+};
 ---
 
 <Layout title="Portfolio - Hackerfolio">
   <div class="max-w-[480px] mx-auto pt-24 px-5 relative z-[1]">
     <BioSection
-      name="Mark Coderfast"
-      title="Full-stack developer at Google"
-      description="I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012."
-      avatarSrc="/images/avatar.jpg"
-      avatarAlt="Mark Coderfast"
-      email="mark@coderfast.com"
-      github="https://github.com/markcoderfast"
-      linkedin="https://linkedin.com/in/markcoderfast"
-      twitter="https://twitter.com/markcoderfast"
+      name={mockData.bio.name}
+      title={mockData.bio.title}
+      description={mockData.bio.description}
+      avatarSrc={mockData.bio.avatarSrc}
+      links={mockData.bio.links}
     />
 
     <main>
-      <TechnologiesSection technologies={technologies} />
+      <PillsSection
+        items={mockData.sections[0].data.items as string[]}
+        title={mockData.sections[0].data.title}
+        description={mockData.sections[0].data.description as string}
+      />
 
-      <ProjectsSection projects={projects} />
+      <CardsSection items={mockData.sections[1].data.items as Project[]} title={mockData.sections[1].data.title} />
 
-      <LinksListSection links={socialLinks} />
+      <LinksListSection items={mockData.sections[2].data.items} title={mockData.sections[2].data.title} />
     </main>
   </div>
   <div class="absolute top-0 left-0 h-[33vh] w-full">

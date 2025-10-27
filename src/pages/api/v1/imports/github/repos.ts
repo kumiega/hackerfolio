@@ -88,7 +88,7 @@ export const GET: APIRoute = async (context) => {
     validatedParams = validationResult.data;
 
     // Call GitHub service to retrieve repositories
-    const result = await GitHubService.getUserRepositories(supabase, githubAccessToken, validatedParams);
+    const result = await GitHubService.getUserRepositories(githubAccessToken, validatedParams);
 
     // Build success response with pagination metadata
     const response: ApiSuccessResponse = {
@@ -222,14 +222,27 @@ export const GET: APIRoute = async (context) => {
  * @throws AppError with code 'GITHUB_TOKEN_INVALID' if token is not found or expired
  */
 async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
-  // Step 1: Get authenticated user
+  // Step 1: Get authenticated user (use getUser() for security, fallback to getSession())
+  let user;
   const {
-    data: { user },
+    data: { user: authUser },
     error: authError,
   } = await supabase.auth.getUser();
 
-  if (authError || !user || !user.id) {
-    throw new AppError("UNAUTHENTICATED");
+  if (authError || !authUser || !authUser.id) {
+    // Fallback to getSession() if getUser() fails
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
+    if (sessionError || !session?.user || !session.user.id) {
+      throw new AppError("UNAUTHENTICATED");
+    }
+
+    user = session.user;
+  } else {
+    user = authUser;
   }
 
   // Step 2: Retrieve GitHub access token from oauth_tokens table

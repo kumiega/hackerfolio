@@ -1,29 +1,30 @@
 ---
-interface SocialLink {
-  platform: string;
+interface Link {
   url: string;
   label: string;
 }
 
 interface Props {
-  links: SocialLink[];
+  items: Link[];
+  title: string;
 }
 
-const { links } = Astro.props;
+const { items, title } = Astro.props;
 ---
 
 <section aria-labelledby="other-places-heading">
   <h2 id="other-places-heading" class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
-    <span class="text-primary" aria-hidden="true">▷</span> My other places
+    <span class="text-primary" aria-hidden="true">▷</span>
+    {title}
   </h2>
 
   <nav aria-label="Other online profiles">
     <ul class="link-list" role="list">
       {
-        links.map((link) => (
+        items.map((item) => (
           <li class="link-list-item">
-            <a href={link.url} class="hover:text-primary" target="_blank" rel="noopener noreferrer">
-              {link.label}{" "}
+            <a href={item.url} class="hover:text-primary" target="_blank" rel="noopener noreferrer">
+              {item.label}{" "}
               <span aria-hidden="true" class="list-link-arrow">
                 ↗
               </span>

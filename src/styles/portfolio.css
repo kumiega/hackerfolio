@@ -14,7 +14,6 @@
     footer {
         @apply text-[12px] font-mono mt-24 py-3 bg-neutral-200;
     }
-
 }
 
 .link-button {

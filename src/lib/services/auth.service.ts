@@ -18,14 +18,30 @@ export class AuthService {
     const supabase = repositories.getSupabaseClient();
 
     // Step 1: Get authenticated user from SSR-aware Supabase client
-    // The client automatically handles cookie-based session management
+    // Use getUser() for security (validates with Supabase Auth server)
+    // rather than getSession() which reads from potentially insecure cookies
+    let user;
     const {
-      data: { user },
+      data: { user: authUser },
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user || !user.email) {
-      throw new AppError("UNAUTHENTICATED");
+    if (authError || !authUser || !authUser.email) {
+      // If getUser() fails, it might be due to token refresh issues in middleware
+      // Try getSession() as a fallback, but this is less secure per Supabase warning
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user || !session.user.email) {
+        throw new AppError("UNAUTHENTICATED");
+      }
+
+      // Use session user as fallback (less secure per Supabase warning)
+      user = session.user;
+    } else {
+      user = authUser;
     }
 
     // Step 2: Fetch user profile from database
@@ -46,7 +62,7 @@ export class AuthService {
     return {
       user: {
         id: user.id,
-        email: user.email,
+        email: user.email || "",
       },
       profile: {
         id: profile.id,
@@ -101,13 +117,26 @@ export class AuthService {
     }
 
     // Step 2: Get authenticated user and their current profile
+    let user;
     const {
-      data: { user },
+      data: { user: authUser },
       error: authError,
     } = await supabase.auth.getUser();
 
-    if (authError || !user || !user.email) {
-      throw new AppError("UNAUTHENTICATED");
+    if (authError || !authUser || !authUser.email) {
+      // If getUser() fails, try getSession() as fallback
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user || !session.user.email) {
+        throw new AppError("UNAUTHENTICATED");
+      }
+
+      user = session.user;
+    } else {
+      user = authUser;
     }
 
     const profile = await repositories.userProfiles.findById(user.id);

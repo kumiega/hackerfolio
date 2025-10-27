@@ -13,8 +13,7 @@ try {
   sessionData = await AuthService.getCurrentSession();
   isAuthenticated = true;
   userEmail = sessionData.user.email;
-} catch (error) {
-  console.error("Error getting current session:", error);
+} catch {
   isAuthenticated = false;
 }
 ---

@@ -3,7 +3,7 @@ import Layout from "../layouts/layout-base.astro";
 import { Logo } from "@/components/ui/logo";
 import { OnboardingSteps } from "@/components/page/onboarding/steps";
 
-import { getCurrentSession, hasUsername, type SessionDisplay } from "@/lib/dal";
+import { getCurrentSession, type SessionDisplay } from "@/lib/dal";
 
 let sessionData: SessionDisplay | null = await getCurrentSession();
 
@@ -11,7 +11,7 @@ if (!sessionData) {
   throw new Error("Session data not found");
 }
 
-if (await hasUsername(sessionData.user.id)) {
+if (sessionData.profile.is_onboarded) {
   return Astro.redirect("/dashboard");
 }
 ---
@@ -52,7 +52,7 @@ if (await hasUsername(sessionData.user.id)) {
       </div>
     </div>
     <div class="p-24">
-      <OnboardingSteps client:load />
+      <OnboardingSteps client:load userId={sessionData.user.id} />
     </div>
   </div>
 </Layout>

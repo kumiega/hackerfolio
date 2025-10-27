@@ -26,14 +26,23 @@ export const onRequest: MiddlewareHandler = async (context, next) => {
       },
       setAll(cookiesToSet) {
         // Set cookies in the response - only if response hasn't been sent yet
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          try {
             context.cookies.set(name, value, options);
-          });
-        } catch (error) {
-          // Ignore cookie setting errors if response has already been sent
-          console.warn("Failed to set cookies:", error);
-        }
+          } catch (error) {
+            // Handle ResponseSentError specifically - this happens when Supabase tries to
+            // update cookies asynchronously after the response has been sent (e.g., token refresh)
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            if (errorMessage.includes("ResponseSentError") || errorMessage.includes("response has already been sent")) {
+              // Silently ignore - this is expected behavior in SSR when auth operations
+              // complete after the response has been sent
+              return;
+            }
+
+            // For other cookie errors, log them but don't fail the request
+            console.warn("Failed to set cookie:", error);
+          }
+        });
       },
     },
   });
