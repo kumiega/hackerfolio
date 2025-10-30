@@ -10,6 +10,7 @@ import { debounce } from "es-toolkit/function";
 import type { QueryState } from "@/types";
 import { usernameSchema } from "@/lib/schemas/username.schemas";
 import { Field, FieldContent, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import { useStepper } from "@/components/ui/stepper";
 
 type UsernameFormData = z.infer<typeof usernameSchema>;
 
@@ -186,7 +187,8 @@ const useUsernameClaim = () => {
   };
 };
 
-function UsernameAvailabilityForm({ onSubmit }: { onSubmit: (data: UsernameFormData) => void }) {
+function UsernameAvailabilityForm() {
+  const { navigateTo } = useStepper();
   const { state, error: availabilityError, isAvailable, checkAvailability, resetError } = useUsernameAvailability();
   const { state: claimState, error: claimError, claimUsername } = useUsernameClaim();
 
@@ -223,7 +225,7 @@ function UsernameAvailabilityForm({ onSubmit }: { onSubmit: (data: UsernameFormD
   const handleFormSubmit = form.handleSubmit(async (data) => {
     const result = await claimUsername(data.username);
     if (result.success) {
-      onSubmit(data);
+      navigateTo("quick-start");
     }
   });
 

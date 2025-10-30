@@ -22,7 +22,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
          * ! This redirect URL should be added to the redirect allow list of Supabase in its env variables.
          * ! https://supabase.com/docs/guides/auth/redirect-urls
          */
-        redirectTo: "http://127.0.0.1:3000/api/v1/auth/callback",
+        redirectTo: "http://127.0.0.1:3000/api/v1/auth/callback/github",
       },
     });
 

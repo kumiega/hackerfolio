@@ -68,6 +68,13 @@ export const linkedinParseResultDtoSchema = z.object({
   created_components: z.array(z.object({}).passthrough()), // Allow any component structure
 });
 
+export const linkedinAuthCommandSchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(100, "Full name must be 100 characters or less"),
+  headline: z.string().max(120, "Headline must be 120 characters or less"),
+  aboutMe: z.string().max(2000, "About me must be 2000 characters or less"),
+  experience: z.string().max(3000, "Experience must be 3000 characters or less"),
+});
+
 // Export inferred types
 export type LinkedInProfileUrl = z.infer<typeof linkedinProfileUrlSchema>;
 export type LinkedInParseCommand = z.infer<typeof linkedinParseCommandSchema>;
