@@ -20,23 +20,26 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
 2. Onboarding
    - Wybór unikalnego username (subdomena username.hackerfolio.test)
    - Opcjonalny quick start wizard: import z GitHub lub start od zera
-3. Zarządzanie sekcjami (CRUD)
-   - Tworzenie, lista, edycja (nazwa, kolejność drag-and-drop, widoczność), usuwanie
-   - Limit max 10 sekcji na portfolio
-4. System komponentów
-   - 6 typów: Text, Project Card, Pills, Social media links, List, Image
+3. Zarządzanie sekcjami i komponentami
+   - Sekcje zawierają komponenty w strukturze JSONB
+   - Edycja nazwy sekcji, kolejność drag-and-drop, widoczność
+   - 6 typów komponentów: Text, Project Card, Pills, Links, List, Image
    - Formularze w drawerze, auto-save
-   - Limit max 15 komponentów w portfolio
+   - Limit max 10 sekcji i max 15 komponentów na portfolio
 5. Import z GitHub
    - Wybór 3–10 repozytoriów
    - Generacja kart projektów z README oraz wykrytymi technologiami
 6. Import z LinkedIn
-   - Wklejenie linku, AI parse (GPT-4o-mini) do struktur JSON
+   - Ręczne wprowadzenie danych przez formularz (nazwa, headline, doświadczenie, edukacja)
+   - AI generuje strukturę portfolio na podstawie wprowadzonych danych
    - Podgląd i edycja przed importem
-7. Generowanie i publikacja
-   - SSR na {username}.hackerfolio.test
-   - Walidacja min. 1 sekcja przed publikacją
-   - Obsługa publikacji zmian
+7. Wersja robocza i publikacja
+   - System draft/publish: użytkownik edytuje wersję roboczą (draft_data)
+   - Publikacja kopiuje draft_data → published_data
+   - Draft widoczny tylko dla właściciela w /preview/{username}
+   - Opublikowane portfolio widoczne publicznie na {username}.hackerfolio.test
+   - Walidacja min. 1 sekcja i 1 komponent przed publikacją
+   - Możliwość publikacji nowych zmian (nadpisanie published_data)
 8. Dashboard
    - Split view: lista sekcji (lewa) + edytor komponentów (prawa)
    - Drag-and-drop, toggle visibility, podgląd w nowej karcie
@@ -91,80 +94,52 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
 
 - ID: US-005  
   Tytuł: Import z LinkedIn  
-  Opis: Użytkownik wkleja link do profilu LinkedIn, a AI parsuje dane  
+  Opis: Użytkownik wprowadza dane z LinkedIn przez formularz, AI generuje strukturę portfolio  
   Kryteria akceptacji:
 
-  - Po wklejeniu linku AI zwraca strukturę JSON z danymi personalnymi i doświadczeniem
-  - Użytkownik może edytować dane przed importem
+  - Formularz pozwala wprowadzić nazwę, headline, doświadczenie zawodowe i edukację
+  - AI generuje sekcje i komponenty na podstawie wprowadzonych danych
+  - Użytkownik może edytować wygenerowaną strukturę przed zapisaniem
 
 - ID: US-006  
-  Tytuł: Tworzenie sekcji  
-  Opis: Użytkownik może dodać nową sekcję do portfolio  
+  Tytuł: Zarządzanie sekcjami i komponentami  
+  Opis: Użytkownik edytuje portfolio przez dodawanie/edycję/usuwanie sekcji i komponentów  
   Kryteria akceptacji:
 
-  - Nowa sekcja pojawia się w panelu po lewej
-  - Domyślna nazwa „Nowa sekcja” może być zmieniona
+  - Użytkownik może dodać nową sekcję z domyślną nazwą „Nowa sekcja"
+  - Może zmienić nazwę, kolejność (drag-and-drop) i widoczność sekcji
+  - Może dodać komponent do sekcji wybierając typ i wypełniając formularz
+  - Może edytować istniejące komponenty z auto-save
+  - Może usunąć sekcje i komponenty
+  - System waliduje limity: max 10 sekcji, max 15 komponentów
+  - Wszystkie zmiany zapisują się do draft_data
 
 - ID: US-007  
-  Tytuł: Edycja i porządkowanie sekcji  
-  Opis: Użytkownik zmienia nazwę, kolejność drag-and-drop i widoczność sekcji  
+  Tytuł: Podgląd wersji roboczej  
+  Opis: Użytkownik otwiera podgląd wersji roboczej w nowej karcie  
   Kryteria akceptacji:
 
-  - Zmiany kolejności i nazwy zapisują się automatycznie
-  - Toggle widoczności odzwierciedla się w podglądzie
-
-- ID: US-008  
-  Tytuł: Usuwanie sekcji  
-  Opis: Użytkownik usuwa wybraną sekcję  
-  Kryteria akceptacji:
-
-  - Po potwierdzeniu sekcja zostaje usunięta
-  - System nie pozwala usunąć ostatniej sekcji przed publikacją
-
-- ID: US-009  
-  Tytuł: Dodawanie komponentu  
-  Opis: Użytkownik dodaje komponent do sekcji za pomocą przycisku „Add Component”  
-  Kryteria akceptacji:
-
-  - Formularz drawer pozwala wybrać typ i wypełnić wymagane pola
-  - Nowy komponent pojawia się w wybranej sekcji
-
-- ID: US-010  
-  Tytuł: Edycja komponentu  
-  Opis: Użytkownik edytuje istniejący komponent w formularzu drawer  
-  Kryteria akceptacji:
-
-  - Zmiany zapisywane są automatycznie
-  - Walidacja limitów znaków oraz rozmiaru obrazów
-
-- ID: US-011  
-  Tytuł: Usuwanie komponentu  
-  Opis: Użytkownik usuwa komponent z sekcji  
-  Kryteria akceptacji:
-
-  - Po potwierdzeniu komponent znika z widoku i bazy danych
-
-- ID: US-012  
-  Tytuł: Podgląd portfolio  
-  Opis: Użytkownik otwiera publiczny podgląd w nowej karcie  
-  Kryteria akceptacji:
-
-  - Link /preview/{username} otwiera aktualny stan portfolio
+  - Link /preview/{username} otwiera aktualny stan draft_data
+  - Podgląd widoczny tylko dla zalogowanego właściciela
   - Strona renderowana jest poprzez SSR
 
-- ID: US-013  
+- ID: US-008  
   Tytuł: Publikacja portfolio  
-  Opis: Użytkownik publikuje portfolio klikając „Publish”  
+  Opis: Użytkownik publikuje portfolio klikając „Publish"  
   Kryteria akceptacji:
 
-  - System waliduje minimum jednej sekcji z co najmniej jednym komponentem
-  - is_published ustawione na true, portfolio staje się publiczne
+  - System waliduje minimum jednej sekcji z co najmniej jednym komponentem w draft_data
+  - Publikacja kopiuje draft_data → published_data i ustawia last_published_at
+  - Portfolio staje się publicznie dostępne na {username}.hackerfolio.test
+  - Użytkownik może publikować kolejne zmiany (published_data zostaje nadpisane)
 
-- ID: US-014  
+- ID: US-009  
   Tytuł: Ograniczenia sekcji i komponentów  
   Opis: System zapobiega przekroczeniu limitów 10 sekcji i 15 komponentów  
   Kryteria akceptacji:
+
   - Użytkownik otrzymuje komunikat przy próbie przekroczenia limitu
+  - Walidacja odbywa się na poziomie aplikacji przy zapisie draft_data
 
 ## 6. Metryki sukcesu
 

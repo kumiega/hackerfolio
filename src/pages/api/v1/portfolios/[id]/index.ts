@@ -9,25 +9,43 @@ import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 export const prerender = false;
 
 /**
- * Zod schema for portfolio update validation
+ * Zod schema for portfolio update validation (draft_data)
+ * Validates the JSONB structure with sections and components
  */
+const componentSchema = z.object({
+  id: z.string().uuid(),
+  type: z.enum(["text", "card", "pills", "social_links", "list", "image", "bio"]),
+  data: z.record(z.any()),
+});
+
+const sectionSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).max(150),
+  slug: z.string(),
+  description: z.string(),
+  visible: z.boolean(),
+  components: z.array(componentSchema),
+});
+
 const updatePortfolioSchema = z.object({
-  title: z.string().min(1).max(100).trim(),
-  description: z.string().nullable().optional(),
+  draft_data: z.object({
+    sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed"),
+  }),
 });
 
 /**
  * PATCH /api/v1/portfolios/[id]
  *
- * Updates mutable fields of an existing portfolio. This endpoint requires user authentication
- * and ensures that only the portfolio owner can make updates. The endpoint validates input data
- * and returns the updated portfolio object upon successful update.
+ * Updates portfolio draft_data with sections and components. This endpoint requires user authentication
+ * and ensures that only the portfolio owner can make updates. Validates JSONB structure and enforces
+ * limits (max 10 sections, max 15 components total).
  *
- * @param request.body - Portfolio update data (title required, description optional)
+ * @param request.body - Portfolio update data with draft_data
  * @returns 200 - Updated portfolio data
  * @returns 401 - User not authenticated
  * @returns 403 - User is not the portfolio owner
  * @returns 404 - Portfolio not found
+ * @returns 409 - Exceeds limits (sections or components)
  * @returns 422 - Validation errors
  * @returns 500 - Internal server error
  */
@@ -62,9 +80,8 @@ export const PATCH: APIRoute = async (context) => {
 
     const command: UpdatePortfolioCommand = validationResult.data;
 
-    // Step 4: Update portfolio via service
+    // Step 4: Update portfolio via service (includes limit validation)
     const updatedPortfolio = await PortfolioService.updatePortfolio(
-      supabase,
       portfolioId,
       authenticatedUser.user.id,
       command

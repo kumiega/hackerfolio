@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
 import type { ApiSuccessResponse, ApiErrorResponse, PortfolioDto } from "@/types";
 import { PortfolioService } from "@/lib/services/portfolio.service";
-import { AuthService } from "@/lib/services/auth.service";
 import { logError } from "@/lib/error-utils";
 
 // Disable prerendering for this API route
@@ -26,10 +25,22 @@ export const GET: APIRoute = async (context) => {
 
   try {
     // Step 1: Authentication check
-    const authenticatedUser = await AuthService.getCurrentSession(supabase);
+    if (!locals.user) {
+      const errorResponse: ApiErrorResponse = {
+        error: {
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+          requestId,
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Step 2: Fetch user's portfolio
-    const portfolio = await PortfolioService.getUserPortfolio(supabase, authenticatedUser.user.id);
+    const portfolio = await PortfolioService.getUserPortfolio(locals.user.user_id);
 
     // Step 3: Handle case where portfolio doesn't exist
     if (!portfolio) {

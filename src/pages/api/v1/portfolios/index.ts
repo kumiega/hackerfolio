@@ -12,8 +12,9 @@ export const prerender = false;
  * Zod schema for portfolio creation validation
  */
 const createPortfolioSchema = z.object({
-  title: z.string().min(1).max(100).trim(),
-  description: z.string().nullable().optional(),
+  draft_data: z.object({
+    sections: z.array(z.any()).optional(),
+  }).optional(),
 });
 
 /**

@@ -1,11 +1,11 @@
 // Shared types for backend and frontend (Entities, DTOs)
-import type { Tables, TablesInsert, TablesUpdate, Enums } from "./db/database.types";
+import type { Tables, TablesInsert, TablesUpdate } from "./db/database.types";
 
 // ============================================================================
-// Enums (mirroring database enums)
+// Enums (mirroring component types)
 // ============================================================================
 
-export type ComponentType = Enums<"component_type">;
+export type ComponentType = "text" | "card" | "pills" | "social_links" | "list" | "image" | "bio";
 
 // ============================================================================
 // Component Data Types (type-specific data structures)
@@ -73,6 +73,29 @@ export type ComponentData =
   | OrderedListComponentData;
 
 // ============================================================================
+// JSONB Portfolio Structure (used in draft_data and published_data)
+// ============================================================================
+
+export interface Component {
+  id: string;
+  type: ComponentType;
+  data: ComponentData;
+}
+
+export interface Section {
+  id: string;
+  title: string;
+  slug: string;
+  description: string;
+  visible: boolean;
+  components: Component[];
+}
+
+export interface PortfolioData {
+  sections: Section[];
+}
+
+// ============================================================================
 // Response DTOs
 // ============================================================================
 
@@ -99,21 +122,21 @@ export interface UsernameAvailabilityDto {
 export type UserProfileDto = Pick<Tables<"user_profiles">, "id" | "username">;
 
 // Portfolio endpoints
-export type PortfolioDto = Pick<
-  Tables<"portfolios">,
-  "id" | "user_id" | "is_published" | "published_at" | "title" | "description" | "created_at"
->;
-
-export interface PublishStatusDto {
-  is_published: boolean;
-  published_at: string | null;
+export interface PortfolioDto {
+  id: string;
+  user_id: string;
+  draft_data: PortfolioData;
+  published_data: PortfolioData | null;
+  created_at: string;
+  updated_at: string;
+  last_published_at: string | null;
 }
 
-// Section endpoints
-export type SectionDto = Omit<Tables<"sections">, "portfolio_id" | "created_at" | "updated_at">;
-
-// Component endpoints
-export type ComponentDto = Omit<Tables<"components">, "section_id" | "created_at" | "updated_at">;
+export interface PublishStatusDto {
+  id: string;
+  published_data: PortfolioData;
+  last_published_at: string;
+}
 
 // Import endpoints - GitHub
 export interface GitHubRepoDto {
@@ -125,34 +148,47 @@ export interface GitHubRepoDto {
 }
 
 export interface GenerateProjectCardsResultDto {
-  created: number;
-  components: ComponentDto[];
+  components: Component[];
 }
 
 // Import endpoints - LinkedIn
-export interface LinkedInProfile {
+export interface LinkedInDataInput {
   name: string;
   headline: string;
+  about?: string;
   experience: {
     title: string;
     company: string;
+    start_date?: string;
+    end_date?: string | null;
+    description?: string;
   }[];
+  education?: {
+    school: string;
+    degree?: string;
+    field?: string;
+    start_date?: string;
+    end_date?: string;
+  }[];
+  skills?: string[];
 }
 
-export interface LinkedInParseResultDto {
-  profile: LinkedInProfile;
-  created_components: ComponentDto[];
+export interface LinkedInGenerateResultDto {
+  sections: Section[];
 }
 
 // Public endpoints
-export interface PublicSectionDto extends SectionDto {
-  components: ComponentDto[];
-}
-
 export interface PublicPortfolioDto {
   username: string;
-  portfolio: Pick<PortfolioDto, "title" | "description" | "published_at">;
-  sections: PublicSectionDto[];
+  published_data: PortfolioData;
+  last_published_at: string;
+}
+
+// Preview endpoints
+export interface PreviewPortfolioDto {
+  username: string;
+  draft_data: PortfolioData;
+  updated_at: string;
 }
 
 // Error intake
@@ -181,42 +217,22 @@ export interface ClaimUsernameCommand {
 }
 
 // Portfolio commands
-export type CreatePortfolioCommand = Pick<TablesInsert<"portfolios">, "title" | "description">;
-
-export type UpdatePortfolioCommand = Partial<Pick<TablesUpdate<"portfolios">, "title" | "description">>;
-
-// Section commands
-export type CreateSectionCommand = Pick<TablesInsert<"sections">, "name" | "visible">;
-
-export type UpdateSectionCommand = Partial<Pick<TablesUpdate<"sections">, "name" | "visible">>;
-
-export interface ReorderCommand {
-  position: number;
+export interface CreatePortfolioCommand {
+  draft_data?: PortfolioData;
 }
 
-// Component commands
-export interface CreateComponentCommand {
-  type: ComponentType;
-  data: ComponentData;
-}
-
-export interface UpdateComponentCommand {
-  data: ComponentData;
+export interface UpdatePortfolioCommand {
+  draft_data: PortfolioData;
 }
 
 // Import commands - GitHub
 export interface GenerateProjectCardsCommand {
-  section_id: string;
   repo_urls: string[];
   limit?: number; // default 10
 }
 
 // Import commands - LinkedIn
-export interface LinkedInParseCommand {
-  url: string;
-  create_components?: boolean; // default false
-  section_id?: string; // required if create_components is true
-}
+export interface LinkedInGenerateCommand extends LinkedInDataInput {}
 
 // Error intake command
 export interface ErrorIntakeCommand {

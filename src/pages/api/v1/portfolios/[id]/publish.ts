@@ -12,17 +12,16 @@ export const prerender = false;
 /**
  * POST /api/v1/portfolios/:id/publish
  *
- * Publishes a portfolio if it meets the minimum requirements.
- * The portfolio must have at least one section and one component total.
- * Upon successful publication, the portfolio's is_published flag is set to true
- * and published_at timestamp is updated to the current time.
+ * Publishes a portfolio by copying draft_data to published_data.
+ * The database function validates that draft_data has at least one section and one component.
+ * Upon successful publication, published_data is updated and last_published_at timestamp is set.
  *
  * @param id - Portfolio UUID from URL path parameter (required, valid UUID format)
- * @returns 200 - Portfolio successfully published with updated status
+ * @returns 200 - Portfolio successfully published with published_data
  * @returns 400 - Invalid portfolio ID format or request body provided
  * @returns 401 - User not authenticated or profile not found
  * @returns 404 - Portfolio does not exist or user does not own it
- * @returns 409 - Portfolio does not meet publication requirements (missing sections/components)
+ * @returns 409 - Portfolio does not meet publication requirements (missing sections/components in draft_data)
  * @returns 500 - Internal server error
  *
  * Test Scenarios:
@@ -33,9 +32,8 @@ export const prerender = false;
  * - 401: Invalid/expired token → returns unauthorized
  * - 404: Non-existent portfolio ID → returns not found
  * - 404: Portfolio belongs to different user → returns not found
- * - 409: Portfolio has no sections → returns unmet requirements
- * - 409: Portfolio has sections but no components → returns unmet requirements
- * - 409: Portfolio already published → should succeed (idempotent)
+ * - 409: draft_data has no sections → returns unmet requirements
+ * - 409: draft_data has sections but no components → returns unmet requirements
  * - 500: Database connection error → returns internal error
  */
 export const POST: APIRoute = async (context) => {
@@ -65,8 +63,8 @@ export const POST: APIRoute = async (context) => {
     // Step 3: Authentication check
     authenticatedUser = await AuthService.getCurrentSession(supabase);
 
-    // Step 4: Publish portfolio
-    const publishStatus = await PortfolioService.publishPortfolio(supabase, portfolioId, authenticatedUser.user.id);
+    // Step 4: Publish portfolio (calls DB function that copies draft_data to published_data)
+    const publishStatus = await PortfolioService.publishPortfolio(portfolioId, authenticatedUser.user.id);
 
     // Step 5: Return success response
     const response: ApiSuccessResponse<PublishStatusDto> = {

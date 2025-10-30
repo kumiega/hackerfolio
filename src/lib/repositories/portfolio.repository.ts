@@ -1,9 +1,11 @@
-import type { Database } from "@/db/database.types";
 import { BaseRepository } from "./base.repository";
+import { AppError } from "@/lib/error-handler";
+import type { PortfolioDto } from "@/types";
 
-type PortfolioRow = Database["public"]["Tables"]["portfolios"]["Row"];
-type PortfolioInsert = Database["public"]["Tables"]["portfolios"]["Insert"];
-type PortfolioUpdate = Database["public"]["Tables"]["portfolios"]["Update"];
+// Temporary type definitions until Database types are regenerated
+type PortfolioRow = PortfolioDto;
+type PortfolioInsert = Omit<PortfolioDto, "id" | "created_at" | "updated_at" | "last_published_at">;
+type PortfolioUpdate = Partial<Pick<PortfolioDto, "draft_data" | "published_data" | "last_published_at">>;
 
 type PortfolioWithUserProfile = PortfolioRow & {
   user_profiles: {
@@ -126,7 +128,7 @@ export class PortfolioRepository extends BaseRepository {
   }
 
   /**
-   * Find all published portfolios
+   * Find all published portfolios (portfolios with non-null published_data)
    *
    * @returns Promise<PortfolioRow[]> - Array of published portfolios
    */
@@ -136,8 +138,8 @@ export class PortfolioRepository extends BaseRepository {
         await this.supabase
           .from(this.tableName)
           .select("*")
-          .eq("is_published", true)
-          .order("published_at", { ascending: false }),
+          .not("published_data", "is", null)
+          .order("last_published_at", { ascending: false }),
       "Failed to find published portfolios"
     );
   }
@@ -153,28 +155,22 @@ export class PortfolioRepository extends BaseRepository {
       async () =>
         await this.supabase
           .from(this.tableName)
-          .select(
-            `
-          *,
-          user_profiles!inner(username)
-        `
-          )
+          .select("*, user_profiles!inner(username)")
           .eq("user_profiles.username", username)
-          .eq("is_published", true)
+          .not("published_data", "is", null)
           .single(),
       "Failed to find published portfolio by username",
       { username }
     );
 
-    // Extract just the portfolio data, ignoring the joined user_profiles
+    // Return the full portfolio row (now includes draft_data and published_data)
     return result
       ? {
           id: result.id,
           user_id: result.user_id,
-          title: result.title,
-          description: result.description,
-          is_published: result.is_published,
-          published_at: result.published_at,
+          draft_data: result.draft_data,
+          published_data: result.published_data,
+          last_published_at: result.last_published_at,
           created_at: result.created_at,
           updated_at: result.updated_at,
         }
@@ -182,29 +178,29 @@ export class PortfolioRepository extends BaseRepository {
   }
 
   /**
-   * Publish a portfolio
+   * Publish a portfolio by calling the database function
+   * This function validates requirements (≥1 section, ≥1 component) and copies draft_data to published_data
    *
    * @param portfolioId - Portfolio ID to publish
-   * @returns Promise<PortfolioRow> - Updated portfolio with publish status
+   * @returns Promise<PortfolioRow> - Updated portfolio with published_data
    */
   async publish(portfolioId: string): Promise<PortfolioRow> {
-    return this.update(portfolioId, {
-      is_published: true,
-      published_at: new Date().toISOString(),
+    const { data, error } = await this.supabase.rpc("publish_portfolio", {
+      portfolio_id: portfolioId,
     });
-  }
 
-  /**
-   * Unpublish a portfolio
-   *
-   * @param portfolioId - Portfolio ID to unpublish
-   * @returns Promise<PortfolioRow> - Updated portfolio with unpublished status
-   */
-  async unpublish(portfolioId: string): Promise<PortfolioRow> {
-    return this.update(portfolioId, {
-      is_published: false,
-      published_at: null,
-    });
+    if (error) {
+      throw new AppError("DATABASE_ERROR", "Failed to publish portfolio via DB function", {
+        portfolioId,
+        cause: error,
+      });
+    }
+
+    if (!data) {
+      throw new AppError("DATABASE_ERROR", "No data returned from publish function", { portfolioId });
+    }
+
+    return data as PortfolioRow;
   }
 
   /**
@@ -218,12 +214,7 @@ export class PortfolioRepository extends BaseRepository {
       async () =>
         await this.supabase
           .from(this.tableName)
-          .select(
-            `
-          *,
-          user_profiles!inner(username)
-        `
-          )
+          .select("*, user_profiles!inner(username)")
           .eq("id", portfolioId)
           .single(),
       "Failed to find portfolio with username",
@@ -236,12 +227,11 @@ export class PortfolioRepository extends BaseRepository {
       portfolio: {
         id: result.id,
         user_id: result.user_id,
-        title: result.title,
-        description: result.description,
-        is_published: result.is_published,
-        published_at: result.published_at,
+        draft_data: result.draft_data,
+        published_data: result.published_data,
         created_at: result.created_at,
         updated_at: result.updated_at,
+        last_published_at: result.last_published_at,
       },
       username: result.user_profiles.username,
     };
