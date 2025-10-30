@@ -59,41 +59,64 @@ npx shadcn@latest add accordion
 
 Ważne: `npx shadcn-ui@latest` zostało wycofane, korzystaj z `npx shadcn@latest`
 
-Niektóre popularne komponenty to:
+Dostępnekomponenty to:
 
 - Accordion
+- Alert Dialog
 - Alert
-- AlertDialog
-- AspectRatio
+- Aspect Ratio
 - Avatar
+- Badge
+- Breadcrumb
+- Button Group
+- Button
 - Calendar
+- Card
+- Carousel
+- Chart
 - Checkbox
 - Collapsible
+- Combobox
 - Command
-- ContextMenu
-- DataTable
-- DatePicker
+- Context Menu
+- Data Table
+- Date Picker
+- Dialog
+- Drawer
 - Dropdown Menu
+- Empty
+- Field
 - Form
 - Hover Card
+- Input Group
+- Input OTP
+- Input
+- Item
+- Kbd
+- Label
 - Menubar
+- Native Select
 - Navigation Menu
+- Pagination
 - Popover
 - Progress
 - Radio Group
-- ScrollArea
+- Resizable
+- Scroll Area
 - Select
 - Separator
 - Sheet
+- Sidebar
 - Skeleton
 - Slider
+- Sonner
+- Spinner
 - Switch
 - Table
+- Tabs
 - Textarea
-- Sonner (previously Toast)
+- Toast
+- Toggle Group
 - Toggle
 - Tooltip
-
-## Component Styling
-
-Ten projekt wykorzystuje wariant stylu „new-york” z kolorem bazowym "neutral" i zmiennymi CSS do tworzenia motywów, zgodnie z konfiguracją w sekcji `components.json`.
+- Typography
