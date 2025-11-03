@@ -19,10 +19,12 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       options: {
         scopes: "public_repo, read:user, user:email",
         /**
-         * ! This redirect URL should be added to the redirect allow list of Supabase in its env variables.
+         * ! The redirect URL should be added to the redirect allow list in Supabase Auth settings.
+         * ! For local development: http://127.0.0.1:3000/api/v1/auth/callback/github
+         * ! For production: https://yourdomain.com/api/v1/auth/callback/github
          * ! https://supabase.com/docs/guides/auth/redirect-urls
          */
-        redirectTo: "http://127.0.0.1:3000/api/v1/auth/callback/github",
+        redirectTo: `${new URL(request.url).origin}/api/v1/auth/callback/github`,
       },
     });
 

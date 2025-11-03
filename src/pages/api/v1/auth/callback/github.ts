@@ -12,13 +12,24 @@ export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) 
 
   const supabase = createClientSSR({ request, cookies });
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  console.log("🔄 Exchanging code for session...");
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
+    console.error("❌ Session exchange failed:", {
+      message: error.message,
+      status: error.status,
+      name: error.name,
+    });
+
+    // Try to get more details about the error
     return new Response(
       JSON.stringify({
         error: error.message,
         status: error.status,
+        name: error.name,
+        code: (error as any)?.code,
+        hint: (error as any)?.hint,
       }),
       {
         status: 401,
@@ -28,6 +39,8 @@ export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) 
       }
     );
   }
+
+  console.log("✅ Session exchange successful:", data?.user?.id);
 
   return redirect("/dashboard");
 };

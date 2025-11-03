@@ -90,6 +90,16 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
     "id": "uuid",
     "user_id": "uuid",
     "draft_data": {
+      "full_name": "string",
+      "position": "string",
+      "bio": [
+        {
+          "id": "uuid",
+          "type": "text|image|social_links",
+          "data": {}
+        }
+      ],
+      "avatar_url": "string|null",
       "sections": [
         {
           "id": "uuid",
@@ -122,6 +132,10 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 ```json
 {
   "draft_data": {
+    "full_name": "",
+    "position": "",
+    "bio": [],
+    "avatar_url": null,
     "sections": []
   }
 }
@@ -135,15 +149,19 @@ Notes: Authentication flows (GitHub OAuth, email/password) are handled by Supaba
 ```json
 {
   "draft_data": {
+    "full_name": "John Doe",
+    "position": "Software Engineer",
+    "bio": [...],
+    "avatar_url": "https://...",
     "sections": [...]
   }
 }
 ```
 - Response 200 portfolio
-- Errors: 403 not owner, 422 validation, 409 if exceeds limits (10 sections, 15 components)
+- Errors: 403 not owner, 422 validation, 409 if exceeds limits (10 sections, 15 components total including bio)
 
 4) POST `/api/v1/portfolios/:id/publish`
-- Description: Publish portfolio by copying draft_data → published_data (validates ≥1 section and ≥1 component)
+- Description: Publish portfolio by copying draft_data → published_data (validates ≥1 section and ≥1 component total in sections or bio)
 - Response 200
 ```json
 {

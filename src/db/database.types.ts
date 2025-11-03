@@ -95,44 +95,6 @@ export interface Database {
           },
         ];
       };
-      components: {
-        Row: {
-          created_at: string;
-          data: Json;
-          id: string;
-          position: number;
-          section_id: string;
-          type: Database["public"]["Enums"]["component_type"];
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          data: Json;
-          id?: string;
-          position: number;
-          section_id: string;
-          type: Database["public"]["Enums"]["component_type"];
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          data?: Json;
-          id?: string;
-          position?: number;
-          section_id?: string;
-          type?: Database["public"]["Enums"]["component_type"];
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "components_section_id_fkey";
-            columns: ["section_id"];
-            isOneToOne: false;
-            referencedRelation: "sections";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       oauth_tokens: {
         Row: {
           access_token: string;
@@ -175,31 +137,28 @@ export interface Database {
       portfolios: {
         Row: {
           created_at: string;
-          description: string | null;
+          draft_data: Json;
           id: string;
-          is_published: boolean;
-          published_at: string | null;
-          title: string;
+          last_published_at: string | null;
+          published_data: Json | null;
           updated_at: string;
           user_id: string;
         };
         Insert: {
           created_at?: string;
-          description?: string | null;
+          draft_data?: Json;
           id?: string;
-          is_published?: boolean;
-          published_at?: string | null;
-          title: string;
+          last_published_at?: string | null;
+          published_data?: Json | null;
           updated_at?: string;
           user_id: string;
         };
         Update: {
           created_at?: string;
-          description?: string | null;
+          draft_data?: Json;
           id?: string;
-          is_published?: boolean;
-          published_at?: string | null;
-          title?: string;
+          last_published_at?: string | null;
+          published_data?: Json | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -243,70 +202,23 @@ export interface Database {
         };
         Relationships: [];
       };
-      sections: {
-        Row: {
-          created_at: string;
-          id: string;
-          name: string;
-          portfolio_id: string;
-          position: number;
-          updated_at: string;
-          visible: boolean;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-          portfolio_id: string;
-          position: number;
-          updated_at?: string;
-          visible?: boolean;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-          portfolio_id?: string;
-          position?: number;
-          updated_at?: string;
-          visible?: boolean;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "sections_portfolio_id_fkey";
-            columns: ["portfolio_id"];
-            isOneToOne: false;
-            referencedRelation: "portfolios";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       user_profiles: {
         Row: {
-          avatar_url: string | null;
           created_at: string;
-          email: string | null;
-          full_name: string | null;
           id: string;
           is_onboarded: boolean;
           updated_at: string;
           username: string | null;
         };
         Insert: {
-          avatar_url?: string | null;
           created_at?: string;
-          email?: string | null;
-          full_name?: string | null;
           id: string;
           is_onboarded?: boolean;
           updated_at?: string;
           username?: string | null;
         };
         Update: {
-          avatar_url?: string | null;
           created_at?: string;
-          email?: string | null;
-          full_name?: string | null;
           id?: string;
           is_onboarded?: boolean;
           updated_at?: string;
@@ -365,13 +277,28 @@ export interface Database {
           isSetofReturn: false;
         };
       };
+      publish_portfolio: {
+        Args: { portfolio_id: string };
+        Returns: {
+          created_at: string;
+          draft_data: Json;
+          id: string;
+          last_published_at: string | null;
+          published_data: Json | null;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "portfolios";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       set_username: {
         Args: { username_input: string };
         Returns: {
-          avatar_url: string | null;
           created_at: string;
-          email: string | null;
-          full_name: string | null;
           id: string;
           is_onboarded: boolean;
           updated_at: string;
@@ -386,7 +313,6 @@ export interface Database {
       };
     };
     Enums: {
-      component_type: "text" | "card" | "pills" | "social_links" | "list" | "image" | "bio";
       error_severity: "debug" | "info" | "warn" | "error" | "fatal";
       error_source: "frontend" | "api" | "edge" | "worker" | "db" | "other";
     };
@@ -509,7 +435,6 @@ export const Constants = {
   },
   public: {
     Enums: {
-      component_type: ["text", "card", "pills", "social_links", "list", "image", "bio"],
       error_severity: ["debug", "info", "warn", "error", "fatal"],
       error_source: ["frontend", "api", "edge", "worker", "db", "other"],
     },

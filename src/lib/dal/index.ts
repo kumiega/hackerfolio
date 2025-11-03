@@ -15,6 +15,4 @@
 export * from "./user";
 export * from "./portfolio";
 export * from "./auth";
-export * from "./section";
-export * from "./component";
 export * from "./types";

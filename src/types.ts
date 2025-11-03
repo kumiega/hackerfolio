@@ -92,6 +92,10 @@ export interface Section {
 }
 
 export interface PortfolioData {
+  full_name: string;
+  position: string;
+  bio: Component[];
+  avatar_url: string | null;
   sections: Section[];
 }
 

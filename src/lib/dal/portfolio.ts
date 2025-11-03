@@ -17,14 +17,7 @@ export async function getUserPortfolio(userId: string): Promise<PortfolioDisplay
     const portfolio = await repositories.portfolios.findByUserId(userId);
     if (!portfolio) return null;
 
-    return {
-      id: portfolio.id,
-      title: portfolio.title,
-      description: portfolio.description,
-      is_published: portfolio.is_published,
-      published_at: portfolio.published_at,
-      created_at: portfolio.created_at,
-    };
+    return portfolio;
   } catch (error) {
     if (error instanceof AppError && error.code === "DATABASE_ERROR") {
       return null;
@@ -41,40 +34,21 @@ export async function getUserPortfolio(userId: string): Promise<PortfolioDisplay
  */
 export async function getPublicPortfolioByUsername(username: string): Promise<PublicPortfolioDisplay | null> {
   try {
-    // Query portfolio with user profile, sections, and components in a single optimized query
-    // Only return published portfolios with visible sections
+    // Query portfolio with user profile and published data
+    // Only return published portfolios
     const { data, error } = await repositories
       .getSupabaseClient()
       .from("portfolios")
       .select(
         `
         id,
-        user_id,
-        is_published,
-        published_at,
-        title,
-        description,
-        created_at,
-        user_profiles!inner(username),
-        sections!inner(
-          id,
-          name,
-          position,
-          visible,
-          components(
-            id,
-            type,
-            position,
-            data
-          )
-        )
+        last_published_at,
+        published_data,
+        user_profiles!inner(username)
       `
       )
-      .eq("is_published", true)
+      .not("published_data", "is", null)
       .eq("user_profiles.username", username)
-      .eq("sections.visible", true)
-      .order("sections.position", { ascending: true })
-      .order("sections.components.position", { ascending: true })
       .single();
 
     // Handle database errors
@@ -93,39 +67,47 @@ export async function getPublicPortfolioByUsername(username: string): Promise<Pu
     if (!data) return null;
 
     // Extract username from the joined user_profiles
-    const profileUsername = Array.isArray(data.user_profiles)
-      ? data.user_profiles[0]?.username
-      : data.user_profiles?.username;
+    const userProfiles = data.user_profiles as { username: string } | { username: string }[];
+    const profileUsername = Array.isArray(userProfiles) ? userProfiles[0]?.username : userProfiles?.username;
 
-    // Transform sections to include components
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const sections = Array.isArray(data.sections)
-      ? data.sections.map((section: any) => {
-          const components = Array.isArray(section.components)
-            ? section.components.map((component: any) => ({
-                id: component.id,
-                type: component.type,
-                position: component.position,
-                data: component.data,
-              }))
-            : [];
-          return {
-            id: section.id,
-            name: section.name,
-            position: section.position,
-            components,
-          };
-        })
-      : [];
-    /* eslint-enable @typescript-eslint/no-explicit-any */
+    // Extract data from published_data JSONB
+    const publishedData = data.published_data as {
+      full_name?: string;
+      position?: string;
+      bio?: {
+        id: string;
+        type: string;
+        data: Record<string, unknown>;
+      }[];
+      avatar_url?: string | null;
+      sections?: {
+        id: string;
+        title: string;
+        slug: string;
+        description: string;
+        visible: boolean;
+        components: {
+          id: string;
+          type: string;
+          data: Record<string, unknown>;
+        }[];
+      }[];
+    } | null;
+
+    const sections = publishedData?.sections || [];
+
+    // Filter to only visible sections for public display
+    const visibleSections = sections.filter((section) => section.visible !== false);
 
     return {
       id: data.id,
-      title: data.title,
-      description: data.description,
-      published_at: data.published_at,
+      full_name: publishedData?.full_name || "",
+      position: publishedData?.position || "",
+      bio: publishedData?.bio || [],
+      avatar_url: publishedData?.avatar_url || null,
+      published_at: data.last_published_at,
       username: profileUsername || "",
-      sections,
+      sections: visibleSections,
     };
   } catch (error) {
     if (error instanceof AppError && error.code === "DATABASE_ERROR") {

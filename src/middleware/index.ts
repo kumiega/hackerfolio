@@ -28,7 +28,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const publicWithOptionalAuth = ["/"];
 
   // Routes that are completely public (signin, callback)
-  const publicNoAuth = ["/signin", "/api/v1/auth/signin", "/api/v1/auth/callback"];
+  const publicNoAuth = ["/signin", "/api/v1/auth/signin", "/api/v1/auth/callback/github"];
 
   // For completely public routes, skip user fetching
   if (publicNoAuth.includes(url.pathname)) {

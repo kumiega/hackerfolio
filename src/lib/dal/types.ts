@@ -2,6 +2,8 @@
  * Type definitions for DAL return values
  */
 
+import type { PortfolioData } from "@/types";
+
 export interface UserProfileDisplay {
   id: string;
   username: string | null;
@@ -11,27 +13,35 @@ export interface UserProfileDisplay {
 
 export interface PortfolioDisplay {
   id: string;
-  title: string;
-  description: string | null;
-  is_published: boolean;
-  published_at: string | null;
+  user_id: string;
+  draft_data: PortfolioData;
+  published_data: PortfolioData | null;
   created_at: string;
+  updated_at: string;
+  last_published_at: string | null;
 }
 
 export interface PublicPortfolioDisplay {
   id: string;
-  title: string;
-  description: string | null;
+  full_name: string;
+  position: string;
+  bio: {
+    id: string;
+    type: string;
+    data: Record<string, unknown>;
+  }[];
+  avatar_url: string | null;
   published_at: string | null;
   username: string;
   sections: {
     id: string;
-    name: string;
-    position: number;
+    title: string;
+    slug: string;
+    description: string;
+    visible: boolean;
     components: {
       id: string;
       type: string;
-      position: number;
       data: Record<string, unknown>;
     }[];
   }[];

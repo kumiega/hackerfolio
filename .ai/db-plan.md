@@ -20,7 +20,7 @@ Constraints:
 ### 1.3 portfolios
 - id UUID PRIMARY KEY DEFAULT gen_random_uuid()
 - user_id UUID NOT NULL UNIQUE REFERENCES user_profiles(id) ON DELETE CASCADE
-- draft_data JSONB NOT NULL DEFAULT '{"sections": []}'
+- draft_data JSONB NOT NULL DEFAULT '{"full_name": "", "position": "", "bio": [], "avatar_url": null, "sections": []}'
 - published_data JSONB DEFAULT NULL
 - created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 - updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -29,6 +29,18 @@ Constraints:
 #### JSONB Structure (draft_data and published_data):
 ```json
 {
+  "full_name": "string",
+  "position": "string",
+  "bio": [
+    {
+      "id": "uuid",
+      "type": "text|image|social_links",
+      "data": {
+        // Component-specific data
+      }
+    }
+  ],
+  "avatar_url": "string|null",
   "sections": [
     {
       "id": "uuid",

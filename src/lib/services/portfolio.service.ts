@@ -74,9 +74,9 @@ export class PortfolioService {
     userId: string,
     command: UpdatePortfolioCommand
   ): Promise<PortfolioDto> {
-    // Step 1: Validate limits (max 10 sections, max 15 components)
-    const { sections } = command.draft_data;
-    
+    // Step 1: Validate limits (max 10 sections, max 15 components total including bio)
+    const { sections, bio } = command.draft_data;
+
     if (sections.length > 10) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, undefined, {
         userId,
@@ -84,11 +84,14 @@ export class PortfolioService {
       });
     }
 
-    const totalComponents = sections.reduce((sum, section) => sum + section.components.length, 0);
+    const bioComponents = bio?.length || 0;
+    const sectionComponents = sections.reduce((sum, section) => sum + section.components.length, 0);
+    const totalComponents = bioComponents + sectionComponents;
+
     if (totalComponents > 15) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, undefined, {
         userId,
-        details: "Maximum 15 components allowed per portfolio",
+        details: "Maximum 15 components allowed per portfolio (including bio components)",
       });
     }
 
