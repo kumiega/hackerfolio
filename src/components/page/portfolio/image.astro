@@ -1,0 +1,29 @@
+---
+import { Image } from "astro:assets";
+
+interface Props {
+  url: string;
+  alt: string;
+  title?: string;
+  maxSizeMB?: number;
+}
+
+const { url, alt, title } = Astro.props;
+---
+
+<section>
+  {
+    title && (
+      <h2 class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
+        <span class="text-primary" aria-hidden="true">
+          ▷
+        </span>
+        {title}
+      </h2>
+    )
+  }
+
+  <div class="mt-4">
+    <img src={url} alt={alt} class="w-full max-w-md h-auto rounded-lg shadow-sm" loading="lazy" />
+  </div>
+</section>

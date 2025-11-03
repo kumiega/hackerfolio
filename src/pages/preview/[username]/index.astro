@@ -1,129 +1,57 @@
 ---
 import Layout from "@/layouts/layout-portfolio.astro";
 import BioSection from "@/components/page/portfolio/bio.astro";
-import PillsSection from "@/components/page/portfolio/pills.astro";
-import CardsSection from "@/components/page/portfolio/cards.astro";
-import LinksListSection from "@/components/page/portfolio/links-list.astro";
+import SectionRenderer from "@/components/page/portfolio/section-renderer.astro";
 import Footer from "@/components/page/portfolio/footer.astro";
 import PixelBlast from "@/components/ui/pixel-blast";
 
 import "@/styles/portfolio.css";
 
-interface Project {
-  name: string;
-  description: string;
-  url?: string;
-}
+import { mockPortfolioData as data } from "@/lib/mock-data";
 
-const technologies = [
-  "react.js",
-  "next.js",
-  "vue.js",
-  "postgresql",
-  "aws",
-  "supabase",
-  "tailwindcss",
-  "shadcn",
-  "typescript",
-  "three.js",
-  "html",
-  "css",
-  "javascript",
-  "wordpress",
-];
+const socialLinks = data.bio
+  .filter((component) => component.type === "social_links")
+  .reduce(
+    (links, component) => {
+      const data = component.data as {
+        github?: string;
+        linkedin?: string;
+        x?: string;
+        website?: { name: string; url: string }[];
+      };
+      if (data.github) links.github = data.github;
+      if (data.linkedin) links.linkedin = data.linkedin;
+      if (data.x) links.twitter = data.x;
+      if (data.website) {
+        data.website.forEach((site) => {
+          if (site.name?.toLowerCase().includes("blog")) {
+            links.blog = site.url;
+          }
+        });
+      }
+      return links;
+    },
+    {} as Record<string, string>
+  );
 
-const projects: Project[] = [
-  {
-    name: "Hackerfolio",
-    description: "Generate professional portfolio with AI easy way.",
-    url: "#",
-  },
-  {
-    name: "Hackerfolio",
-    description: "Generate professional portfolio with AI easy way.",
-    url: "#",
-  },
-  {
-    name: "Hackerfolio",
-    description: "Generate professional portfolio with AI easy way.",
-    url: "#",
-  },
-];
-
-const mockData = {
-  bio: {
-    name: "Mark Coderfast",
-    title: "Full-stack developer at Google",
-    description:
-      "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
-    avatarSrc: "/images/avatar.jpg",
-    links: {
-      email: "mark@coderfast.com",
-      github: "https://github.com/markcoderfast",
-      linkedin: "https://linkedin.com/in/markcoderfast",
-      twitter: "https://twitter.com/markcoderfast",
-    },
-  },
-  sections: [
-    {
-      type: "pills",
-      data: {
-        title: "Tech stack",
-        description: "Technologies that I used to work with:",
-        items: technologies,
-      },
-    },
-    {
-      type: "cards",
-      data: {
-        title: "My projects",
-        items: projects,
-      },
-    },
-    {
-      type: "links-list",
-      data: {
-        title: "My other places",
-        items: [
-          {
-            url: "https://markcoderfast.com",
-            label: "My blog",
-          },
-          {
-            url: "https://google.com",
-            label: "My current company",
-          },
-          {
-            url: "https://twitter.com/markcoderfast",
-            label: "My Twitter",
-          },
-        ],
-      },
-    },
-  ],
-};
+const bioText = data.bio
+  .filter((component) => component.type === "text")
+  .map((component) => (component.data as { content: string }).content)
+  .join(" ");
 ---
 
 <Layout title="Portfolio - Hackerfolio">
   <div class="max-w-[480px] mx-auto pt-24 px-5 relative z-[1]">
     <BioSection
-      name={mockData.bio.name}
-      title={mockData.bio.title}
-      description={mockData.bio.description}
-      avatarSrc={mockData.bio.avatarSrc}
-      links={mockData.bio.links}
+      name={data.full_name}
+      title={data.position}
+      description={bioText}
+      avatarSrc={data.avatar_url || "/images/avatar.jpg"}
+      links={socialLinks}
     />
 
     <main>
-      <PillsSection
-        items={mockData.sections[0].data.items as string[]}
-        title={mockData.sections[0].data.title}
-        description={mockData.sections[0].data.description as string}
-      />
-
-      <CardsSection items={mockData.sections[1].data.items as Project[]} title={mockData.sections[1].data.title} />
-
-      <LinksListSection items={mockData.sections[2].data.items} title={mockData.sections[2].data.title} />
+      <SectionRenderer sections={data.sections} />
     </main>
   </div>
   <div class="absolute top-0 left-0 h-[33vh] w-full">

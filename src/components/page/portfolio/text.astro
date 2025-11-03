@@ -1,0 +1,25 @@
+---
+interface Props {
+  content: string;
+  title?: string;
+}
+
+const { content, title } = Astro.props;
+---
+
+<section>
+  {
+    title && (
+      <h2 class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
+        <span class="text-primary" aria-hidden="true">
+          ▷
+        </span>
+        {title}
+      </h2>
+    )
+  }
+
+  <div class="text-foreground text-base max-w-prose prose prose-sm prose-invert">
+    {content}
+  </div>
+</section>

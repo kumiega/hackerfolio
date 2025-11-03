@@ -1,0 +1,81 @@
+---
+import TextSection from "./text.astro";
+import PillsSection from "./pills.astro";
+import CardsSection from "./cards.astro";
+import LinksListSection from "./links-list.astro";
+import SocialLinksSection from "./social-links.astro";
+import ImageSection from "./image.astro";
+
+import type { Section } from "@/types";
+
+interface Props {
+  sections: Section[];
+}
+
+const { sections } = Astro.props;
+---
+
+{
+  sections
+    .filter((section) => section.visible)
+    .map((section) => (
+      <div>
+        {section.components.map((component) => {
+          const componentData = component.data;
+
+          switch (component.type) {
+            case "text":
+              return (
+                <TextSection
+                  title={(componentData.title as string) || section.title}
+                  content={(componentData.content as string) || ""}
+                />
+              );
+            case "pills":
+              return (
+                <PillsSection
+                  title={(componentData.title as string) || section.title}
+                  description={(componentData.description as string) || ""}
+                  items={(componentData.items as string[]) || []}
+                />
+              );
+            case "cards":
+              return (
+                <CardsSection
+                  title={(componentData.title as string) || section.title}
+                  items={(componentData.items as any[]) || []}
+                />
+              );
+            case "list":
+              return (
+                <LinksListSection
+                  title={(componentData.title as string) || section.title}
+                  items={(componentData.items as any[]) || []}
+                />
+              );
+            case "social_links":
+              return (
+                <SocialLinksSection
+                  title={(componentData.title as string) || section.title}
+                  github={componentData.github as string}
+                  linkedin={componentData.linkedin as string}
+                  x={componentData.x as string}
+                  website={componentData.website as any[]}
+                />
+              );
+            case "image":
+              return (
+                <ImageSection
+                  title={(componentData.title as string) || section.title}
+                  url={(componentData.url as string) || ""}
+                  alt={(componentData.alt as string) || ""}
+                  maxSizeMB={componentData.maxSizeMB as number}
+                />
+              );
+            default:
+              return null;
+          }
+        })}
+      </div>
+    ))
+}
