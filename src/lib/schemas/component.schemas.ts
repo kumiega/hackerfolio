@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ComponentType, ComponentData } from "@/types";
 
 /**
  * Schema for validating component ID parameter (UUID format)
@@ -9,43 +10,57 @@ export const componentIdSchema = z.string().uuid();
  * Schema for validating text component data
  */
 export const textComponentDataSchema = z.object({
-  content: z.string().max(2000, "Content must be 2000 characters or less"),
+  content: z.string().min(1, "Content is required").max(2000, "Content must be 2000 characters or less"),
 });
 
 /**
  * Schema for validating project card component data
  */
 export const projectCardComponentDataSchema = z.object({
-  repo_url: z.string().url("Repository URL must be a valid URL"),
-  title: z.string().max(100, "Title must be 100 characters or less"),
+  repo_url: z.string(),
+  title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less"),
   summary: z.string().max(500, "Summary must be 500 characters or less"),
-  tech: z.array(z.string()).max(20, "Maximum 20 technologies allowed"),
+  tech: z.array(z.string()).optional().default([]),
 });
 
 /**
  * Schema for validating tech list component data
  */
 export const techListComponentDataSchema = z.object({
-  items: z
-    .array(z.string().max(20, "Each tech item must be 20 characters or less"))
-    .max(30, "Maximum 30 tech items allowed"),
+  items: z.array(z.string().max(20, "Each item must be 20 characters or less")).max(30, "Maximum 30 items allowed"),
 });
 
 /**
  * Schema for validating social links component data
  */
 export const socialLinksComponentDataSchema = z.object({
-  github: z.string().optional(),
-  linkedin: z.string().optional(),
-  x: z.string().optional(),
+  github: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Invalid GitHub URL",
+    })
+    .optional(),
+  linkedin: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Invalid LinkedIn URL",
+    })
+    .optional(),
+  x: z
+    .string()
+    .refine((val) => val === "" || z.string().url().safeParse(val).success, {
+      message: "Invalid X/Twitter URL",
+    })
+    .optional(),
   website: z
     .array(
       z.object({
         name: z.string(),
-        url: z.string().url("Website URL must be valid"),
+        url: z.string().url("Invalid URL"),
       })
     )
-    .optional(),
+    .optional()
+    .default([]),
 });
 
 /**
@@ -54,8 +69,8 @@ export const socialLinksComponentDataSchema = z.object({
 export const linkListComponentDataSchema = z.object({
   items: z.array(
     z.object({
-      label: z.string().max(80, "Label must be 80 characters or less"),
-      url: z.string().url("URL must be valid"),
+      label: z.string().min(1, "Label is required").max(80, "Label must be 80 characters or less"),
+      url: z.string().url("Invalid URL"),
     })
   ),
 });
@@ -64,16 +79,16 @@ export const linkListComponentDataSchema = z.object({
  * Schema for validating image component data
  */
 export const imageComponentDataSchema = z.object({
-  url: z.string().url("Image URL must be valid"),
+  url: z.string().url("Image URL is required and must be a valid URL").min(1, "Image URL is required"),
   alt: z.string().max(120, "Alt text must be 120 characters or less"),
-  maxImageSizeMB: z.number().optional().default(2),
+  maxImageSizeMB: z.number().positive().optional(),
 });
 
 /**
  * Schema for validating bio component data
  */
 export const bioComponentDataSchema = z.object({
-  headline: z.string().max(120, "Headline must be 120 characters or less"),
+  headline: z.string().min(1, "Headline is required").max(120, "Headline must be 120 characters or less"),
   about: z.string().max(2000, "About text must be 2000 characters or less"),
 });
 
@@ -172,3 +187,63 @@ export const generateProjectCardsCommandSchema = z.object({
 
 export type ComponentListQuery = z.infer<typeof componentListQuerySchema>;
 export type GenerateProjectCardsCommand = z.infer<typeof generateProjectCardsCommandSchema>;
+
+// Schema map for component types - using z.ZodTypeAny to allow type flexibility
+const componentDataSchemas: Record<ComponentType, z.ZodTypeAny> = {
+  text: textComponentDataSchema,
+  card: projectCardComponentDataSchema,
+  pills: techListComponentDataSchema,
+  social_links: socialLinksComponentDataSchema,
+  list: linkListComponentDataSchema,
+  image: imageComponentDataSchema,
+  bio: bioComponentDataSchema,
+};
+
+/**
+ * Validates component data using Zod schemas
+ * @param type - The component type
+ * @param data - The component data to validate
+ * @returns null if valid, error message string if invalid
+ */
+export function validateComponentData(type: ComponentType, data: ComponentData): string | null {
+  const schema = componentDataSchemas[type];
+  if (!schema) {
+    return `Unknown component type: ${type}`;
+  }
+
+  try {
+    schema.parse(data);
+    return null;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      // Return the first error message
+      return error.issues[0]?.message || "Validation failed";
+    }
+    return "Validation failed";
+  }
+}
+
+/**
+ * Validates component data using Zod schemas (returns full ZodError for detailed errors)
+ * @param type - The component type
+ * @param data - The component data to validate
+ * @returns SafeParseResult with success/error details
+ */
+export function safeValidateComponentData(type: ComponentType, data: ComponentData) {
+  const schema = componentDataSchemas[type];
+  if (!schema) {
+    return {
+      success: false as const,
+      error: {
+        issues: [
+          {
+            code: "custom" as const,
+            message: `Unknown component type: ${type}`,
+          },
+        ],
+      },
+    };
+  }
+
+  return schema.safeParse(data);
+}

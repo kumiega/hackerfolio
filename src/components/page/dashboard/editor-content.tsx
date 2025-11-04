@@ -1,340 +1,430 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
-import { Plus, Save, Trash2, Edit3 } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  technologies: string[];
-  githubUrl: string;
-  liveUrl: string;
-}
+import { useState, useEffect, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  pointerWithin,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  type DragStartEvent,
+  type DragEndEvent,
+  type CollisionDetection,
+} from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import type { Component, Section, PortfolioData } from "@/types";
+import { mockPortfolioData } from "@/lib/mock-data/portfolio.mock";
+import { BioSection } from "./components/bio-section";
+import { EmptySections } from "./components/empty-sections";
+import { DragOverlayContent } from "./components/drag-overlay-content";
+import { SectionContent } from "./components/section-content";
+import { EditorHeader } from "./components/editor-header";
+import { validateComponentData } from "@/lib/schemas/component.schemas";
 
 export function EditorContent() {
-  const [profile, setProfile] = useState({
-    name: "",
-    title: "",
-    bio: "",
-    email: "",
-    location: "",
-  });
+  const [portfolioData, setPortfolioData] = useState<PortfolioData>(mockPortfolioData);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
+  const [addingComponentSectionId, setAddingComponentSectionId] = useState<string | null>(null);
 
-  const [projects, setProjects] = useState<Project[]>([
-    {
-      id: "1",
-      title: "Sample Project",
-      description: "A sample project to demonstrate the portfolio editor",
-      technologies: ["React", "TypeScript", "Tailwind CSS"],
-      githubUrl: "https://github.com/example/project",
-      liveUrl: "https://example-project.com",
-    },
-  ]);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3, // Reduced from 8 to 3 for easier dragging
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
-  const [editingProject, setEditingProject] = useState<string | null>(null);
-  const [newProject, setNewProject] = useState<Partial<Project>>({
-    title: "",
-    description: "",
-    technologies: [],
-    githubUrl: "",
-    liveUrl: "",
-  });
-
-  const handleProfileChange = (field: string, value: string) => {
-    setProfile((prev) => ({ ...prev, [field]: value }));
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
   };
 
-  const handleSaveProfile = () => {
-    // TODO: Implement API call to save profile
-    console.log("Saving profile:", profile);
-  };
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  const handleAddProject = () => {
-    if (newProject.title && newProject.description) {
-      const project: Project = {
-        id: Date.now().toString(),
-        title: newProject.title,
-        description: newProject.description,
-        technologies: newProject.technologies || [],
-        githubUrl: newProject.githubUrl || "",
-        liveUrl: newProject.liveUrl || "",
-      };
-      setProjects((prev) => [...prev, project]);
-      setNewProject({
-        title: "",
-        description: "",
-        technologies: [],
-        githubUrl: "",
-        liveUrl: "",
+    if (!over || active.id === over.id) {
+      setActiveId(null);
+      return;
+    }
+
+    const activeType = active.data.current?.type;
+    const overType = over.data.current?.type;
+
+    // Helper to find which section contains a component
+    const findComponentSection = (componentId: string) => {
+      return portfolioData.sections.find((section) => section.components.some((comp) => comp.id === componentId));
+    };
+
+    if (activeType === "section" && overType === "section") {
+      // Reordering sections
+      setPortfolioData((prev) => {
+        const oldIndex = prev.sections.findIndex((section) => section.id === active.id);
+        const newIndex = prev.sections.findIndex((section) => section.id === over.id);
+
+        if (oldIndex === -1 || newIndex === -1) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          sections: arrayMove(prev.sections, oldIndex, newIndex),
+        };
+      });
+    } else if (activeType === "component" && overType === "component") {
+      // Reordering or moving components
+      const activeSection = findComponentSection(active.id as string);
+      const overSection = findComponentSection(over.id as string);
+
+      if (!activeSection || !overSection) {
+        setActiveId(null);
+        return;
+      }
+
+      if (activeSection.id === overSection.id) {
+        // Same section - reorder
+        setPortfolioData((prev) => ({
+          ...prev,
+          sections: prev.sections.map((section) => {
+            if (section.id === activeSection.id) {
+              const oldIndex = section.components.findIndex((comp) => comp.id === active.id);
+              const newIndex = section.components.findIndex((comp) => comp.id === over.id);
+              return {
+                ...section,
+                components: arrayMove(section.components, oldIndex, newIndex),
+              };
+            }
+            return section;
+          }),
+        }));
+      } else {
+        // Different sections - move component
+        setPortfolioData((prev) => {
+          const componentToMove = activeSection.components.find((comp) => comp.id === active.id);
+          if (!componentToMove) return prev;
+
+          const overComponentIndex = overSection.components.findIndex((comp) => comp.id === over.id);
+
+          return {
+            ...prev,
+            sections: prev.sections.map((section) => {
+              if (section.id === activeSection.id) {
+                // Remove from source
+                return {
+                  ...section,
+                  components: section.components.filter((comp) => comp.id !== active.id),
+                };
+              }
+              if (section.id === overSection.id) {
+                // Add to target at the position of the over component
+                const newComponents = [...section.components];
+                newComponents.splice(overComponentIndex, 0, componentToMove);
+                return {
+                  ...section,
+                  components: newComponents,
+                };
+              }
+              return section;
+            }),
+          };
+        });
+      }
+    } else if (activeType === "component" && overType === "section") {
+      // Dropping component directly onto a section (likely empty section)
+      const activeSection = findComponentSection(active.id as string);
+
+      // Handle both regular section IDs and droppable-{sectionId} format
+      const targetSectionId =
+        over.data.current?.sectionId ||
+        (typeof over.id === "string" && over.id.startsWith("droppable-") ? over.id.replace("droppable-", "") : over.id);
+
+      const targetSection = portfolioData.sections.find((s) => s.id === targetSectionId);
+
+      if (!activeSection || !targetSection) {
+        setActiveId(null);
+        return;
+      }
+
+      // Don't move if dropping on the same section
+      if (activeSection.id === targetSection.id) {
+        setActiveId(null);
+        return;
+      }
+
+      // Move component to end of target section
+      setPortfolioData((prev) => {
+        const componentToMove = activeSection.components.find((comp) => comp.id === active.id);
+        if (!componentToMove) return prev;
+
+        return {
+          ...prev,
+          sections: prev.sections.map((section) => {
+            if (section.id === activeSection.id) {
+              // Remove from source
+              return {
+                ...section,
+                components: section.components.filter((comp) => comp.id !== active.id),
+              };
+            }
+            if (section.id === targetSection.id) {
+              // Add to target at the end
+              return {
+                ...section,
+                components: [...section.components, componentToMove],
+              };
+            }
+            return section;
+          }),
+        };
       });
     }
+
+    setActiveId(null);
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects((prev) => prev.filter((project) => project.id !== id));
-  };
-
-  const handleEditProject = (id: string) => {
-    setEditingProject(id);
-    const project = projects.find((p) => p.id === id);
-    if (project) {
-      setNewProject(project);
+  const handleAddSection = useCallback(() => {
+    if (portfolioData.sections.length >= 10) {
+      alert("Maximum 10 sections allowed");
+      return;
     }
+
+    const newSection: Section = {
+      id: `section-${Date.now()}`,
+      title: "New Section",
+      slug: "new-section",
+      description: "",
+      visible: true,
+      components: [],
+    };
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: [...prev.sections, newSection],
+    }));
+  }, [portfolioData.sections.length]);
+
+  const handleDeleteSection = (sectionId: string) => {
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.filter((section) => section.id !== sectionId),
+    }));
   };
 
-  const handleSaveProject = () => {
-    if (editingProject && newProject.title && newProject.description) {
-      setProjects((prev) =>
-        prev.map((project) => (project.id === editingProject ? ({ ...project, ...newProject } as Project) : project))
-      );
-      setEditingProject(null);
-      setNewProject({
-        title: "",
-        description: "",
-        technologies: [],
-        githubUrl: "",
-        liveUrl: "",
-      });
+  const handleToggleSectionVisibility = (sectionId: string) => {
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) =>
+        section.id === sectionId ? { ...section, visible: !section.visible } : section
+      ),
+    }));
+  };
+
+  const handleUpdateSection = (sectionId: string, updates: Partial<Section>) => {
+    if (updates.title && updates.title.length > 150) {
+      alert("Section title must be 150 characters or less");
+      return;
     }
+
+    if (updates.description !== undefined && updates.description.length > 500) {
+      alert("Section description must be 500 characters or less");
+      return;
+    }
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => (section.id === sectionId ? { ...section, ...updates } : section)),
+    }));
   };
 
-  const addTechnology = (tech: string) => {
-    if (tech.trim() && !newProject.technologies?.includes(tech.trim())) {
-      setNewProject((prev) => ({
+  const handleAddComponent = (sectionId: string) => {
+    setAddingComponentSectionId(sectionId);
+    setEditingComponentId(null);
+  };
+
+  const handleSaveNewComponent = (component: Component) => {
+    if (!addingComponentSectionId) return;
+
+    // Enforce: Bio can only exist in fixed Bio section, not within sections
+    if (component.type === "bio") {
+      alert("Bio can only be added in the fixed Bio section at the top.");
+      return;
+    }
+
+    const totalComponents = portfolioData.sections.reduce((acc, section) => acc + section.components.length, 0);
+    if (totalComponents >= 15) {
+      alert("Maximum 15 components allowed across all sections");
+      return;
+    }
+
+    const validationError = validateComponentData(component.type, component.data);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => {
+        if (section.id === addingComponentSectionId) {
+          return {
+            ...section,
+            components: [...section.components, component],
+          };
+        }
+        return section;
+      }),
+    }));
+
+    setAddingComponentSectionId(null);
+  };
+
+  const handleEditComponent = (componentId: string) => {
+    setEditingComponentId(componentId);
+    setAddingComponentSectionId(null);
+  };
+
+  const handleSaveComponent = (component: Component) => {
+    const validationError = validateComponentData(component.type, component.data);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => ({
+        ...section,
+        components: section.components.map((comp) => (comp.id === component.id ? component : comp)),
+      })),
+    }));
+
+    setEditingComponentId(null);
+  };
+
+  const handleDeleteComponent = (componentId: string) => {
+    setPortfolioData((prev) => ({
+      ...prev,
+      sections: prev.sections.map((section) => ({
+        ...section,
+        components: section.components.filter((component) => component.id !== componentId),
+      })),
+    }));
+  };
+
+  const handleSaveBioComponent = (component: Component) => {
+    const validationError = validateComponentData(component.type, component.data);
+    if (validationError) {
+      alert(validationError);
+      return;
+    }
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      bio: prev.bio.map((comp) => (comp.id === component.id ? component : comp)),
+    }));
+
+    setEditingComponentId(null);
+  };
+
+  const handleDeleteBioComponent = (componentId: string) => {
+    if (confirm("Are you sure you want to delete this bio component?")) {
+      setPortfolioData((prev) => ({
         ...prev,
-        technologies: [...(prev.technologies || []), tech.trim()],
+        bio: prev.bio.filter((component) => component.id !== componentId),
       }));
     }
   };
 
-  const removeTechnology = (tech: string) => {
-    setNewProject((prev) => ({
-      ...prev,
-      technologies: prev.technologies?.filter((t) => t !== tech) || [],
-    }));
+  const handleSavePortfolio = useCallback(() => {
+    // TODO: Implement API call to save portfolio
+    // eslint-disable-next-line no-console
+    console.log("Saving portfolio:", portfolioData);
+  }, [portfolioData]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "s") {
+        event.preventDefault();
+        handleSavePortfolio();
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key === "n") {
+        event.preventDefault();
+        handleAddSection();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleSavePortfolio, handleAddSection]);
+
+  // Custom collision detection that handles nested contexts better
+  const collisionDetection: CollisionDetection = (args) => {
+    const activeType = args.active?.data?.current?.type as string | undefined;
+
+    // For sections, use closestCenter
+    if (activeType === "section") {
+      return closestCenter(args);
+    }
+
+    // For components, use pointerWithin first for better precision during drag
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+
+    // Fallback to closestCenter for components
+    return closestCenter(args);
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Portfolio Editor</h1>
-          <p className="text-muted-foreground">Edit your profile and showcase your projects</p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={collisionDetection}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="flex flex-1 flex-col p-12">
+        <EditorHeader onAddSection={handleAddSection} onSavePortfolio={handleSavePortfolio} />
+
+        <div className="space-y-3">
+          <BioSection
+            bio={portfolioData.bio}
+            editingComponentId={editingComponentId}
+            onEditComponent={handleEditComponent}
+            onSaveComponent={handleSaveBioComponent}
+            onDeleteComponent={handleDeleteBioComponent}
+          />
+
+          <SectionContent
+            sections={portfolioData.sections}
+            editingComponentId={editingComponentId}
+            addingComponentSectionId={addingComponentSectionId}
+            onToggleSectionVisibility={handleToggleSectionVisibility}
+            onDeleteSection={handleDeleteSection}
+            onAddComponent={handleAddComponent}
+            onUpdateSection={handleUpdateSection}
+            onEditComponent={handleEditComponent}
+            onSaveComponent={handleSaveComponent}
+            onDeleteComponent={handleDeleteComponent}
+            onSaveNewComponent={handleSaveNewComponent}
+            onCancelAddComponent={() => setAddingComponentSectionId(null)}
+          />
+
+          {portfolioData.sections.length === 0 && <EmptySections onAddSection={handleAddSection} />}
         </div>
-        <Button onClick={handleSaveProfile} className="gap-2">
-          <Save className="h-4 w-4" />
-          Save Changes
-        </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Profile Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Update your personal information and bio</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  value={profile.name}
-                  onChange={(e) => handleProfileChange("name", e.target.value)}
-                  placeholder="Your full name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="title">Professional Title</Label>
-                <Input
-                  id="title"
-                  value={profile.title}
-                  onChange={(e) => handleProfileChange("title", e.target.value)}
-                  placeholder="e.g., Full Stack Developer"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={profile.email}
-                onChange={(e) => handleProfileChange("email", e.target.value)}
-                placeholder="your.email@example.com"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={profile.location}
-                onChange={(e) => handleProfileChange("location", e.target.value)}
-                placeholder="City, Country"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bio">Bio</Label>
-              <Textarea
-                id="bio"
-                value={profile.bio}
-                onChange={(e) => handleProfileChange("bio", e.target.value)}
-                placeholder="Tell us about yourself..."
-                rows={4}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Projects Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Projects</CardTitle>
-            <CardDescription>Manage your portfolio projects</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Add/Edit Project Form */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="project-title">Project Title</Label>
-                <Input
-                  id="project-title"
-                  value={newProject.title || ""}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, title: e.target.value }))}
-                  placeholder="Project name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="project-description">Description</Label>
-                <Textarea
-                  id="project-description"
-                  value={newProject.description || ""}
-                  onChange={(e) => setNewProject((prev) => ({ ...prev, description: e.target.value }))}
-                  placeholder="Project description"
-                  rows={3}
-                />
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="github-url">GitHub URL</Label>
-                  <Input
-                    id="github-url"
-                    value={newProject.githubUrl || ""}
-                    onChange={(e) => setNewProject((prev) => ({ ...prev, githubUrl: e.target.value }))}
-                    placeholder="https://github.com/..."
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="live-url">Live URL</Label>
-                  <Input
-                    id="live-url"
-                    value={newProject.liveUrl || ""}
-                    onChange={(e) => setNewProject((prev) => ({ ...prev, liveUrl: e.target.value }))}
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Technologies</Label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {newProject.technologies?.map((tech) => (
-                    <Badge key={tech} variant="secondary" className="gap-1">
-                      {tech}
-                      <button onClick={() => removeTechnology(tech)} className="ml-1 hover:text-destructive">
-                        ×
-                      </button>
-                    </Badge>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Add technology"
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter") {
-                        addTechnology(e.currentTarget.value);
-                        e.currentTarget.value = "";
-                      }
-                    }}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {editingProject ? (
-                  <>
-                    <Button onClick={handleSaveProject} size="sm">
-                      <Save className="h-4 w-4 mr-2" />
-                      Save Project
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setEditingProject(null);
-                        setNewProject({
-                          title: "",
-                          description: "",
-                          technologies: [],
-                          githubUrl: "",
-                          liveUrl: "",
-                        });
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <Button onClick={handleAddProject} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Project
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Projects List */}
-            <div className="space-y-3">
-              {projects.map((project) => (
-                <div key={project.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h4 className="font-semibold">{project.title}</h4>
-                      <p className="text-sm text-muted-foreground">{project.description}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEditProject(project.id)}>
-                        <Edit3 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteProject(project.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {project.technologies.map((tech) => (
-                      <Badge key={tech} variant="outline" className="text-xs">
-                        {tech}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+      <DragOverlay>
+        <DragOverlayContent activeId={activeId} sections={portfolioData.sections} />
+      </DragOverlay>
+    </DndContext>
   );
 }

@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { useAuth } from "@/hooks/use-auth";
 
 const data = {
   navMain: [
@@ -38,8 +37,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ currentPath, ...props }: AppSidebarProps) {
-  const { session, isLoading: isAuthLoading } = useAuth();
-
   // Update nav items with active state based on current path
   const navItems = data.navMain.map((item) => ({
     ...item,
@@ -62,9 +59,7 @@ export function AppSidebar({ currentPath, ...props }: AppSidebarProps) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuItem>
-          <UserAvatar session={session} isLoading={isAuthLoading} />
-        </SidebarMenuItem>
+        <SidebarMenuItem>UserAvatar</SidebarMenuItem>
 
         <NavUser />
       </SidebarFooter>

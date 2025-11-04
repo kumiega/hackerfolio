@@ -81,11 +81,7 @@ export const PATCH: APIRoute = async (context) => {
     const command: UpdatePortfolioCommand = validationResult.data;
 
     // Step 4: Update portfolio via service (includes limit validation)
-    const updatedPortfolio = await PortfolioService.updatePortfolio(
-      portfolioId,
-      authenticatedUser.user.id,
-      command
-    );
+    const updatedPortfolio = await PortfolioService.updatePortfolio(portfolioId, authenticatedUser.user.id, command);
 
     // Step 5: Return success response
     const response: ApiSuccessResponse<PortfolioDto> = {
