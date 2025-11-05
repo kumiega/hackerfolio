@@ -40,12 +40,7 @@ const { sections } = Astro.props;
                 />
               );
             case "cards":
-              return (
-                <CardsSection
-                  title={(componentData.title as string) || section.title}
-                  items={(componentData.items as any[]) || []}
-                />
-              );
+              return <CardsSection title={section.title} items={(componentData.cards as any[]) || []} />;
             case "list":
               return (
                 <LinksListSection

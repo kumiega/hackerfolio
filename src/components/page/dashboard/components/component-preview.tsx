@@ -1,5 +1,14 @@
-import { Badge } from "@/components/ui/badge";
 import type { Component } from "@/types";
+import { TextPreview } from "./previews/text-preview";
+import { CardPreview } from "./previews/card-preview";
+import { PillsPreview } from "./previews/pills-preview";
+import { SocialLinksPreview } from "./previews/social-links-preview";
+import { ListPreview } from "./previews/list-preview";
+import { ImagePreview } from "./previews/image-preview";
+import { BioPreview } from "./previews/bio-preview";
+import { FullNamePreview } from "./previews/full-name-preview";
+import { AvatarPreview } from "./previews/avatar-preview";
+import { UnknownPreview } from "./previews/unknown-preview";
 
 interface ComponentPreviewProps {
   component: Component;
@@ -8,96 +17,30 @@ interface ComponentPreviewProps {
 export function ComponentPreview({ component }: ComponentPreviewProps) {
   switch (component.type) {
     case "text":
+      return <TextPreview content={(component.data as { content: string }).content} />;
+    case "cards":
       return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Text
-          </Badge>
-          <p className="text-sm text-muted-foreground line-clamp-2">
-            {(component.data as { content: string }).content || "No content"}
-          </p>
-        </div>
-      );
-    case "card":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Project Card
-          </Badge>
-          <h4 className="font-medium text-sm">{(component.data as { title: string }).title || "Untitled"}</h4>
-          <p className="text-sm text-muted-foreground line-clamp-1">
-            {(component.data as { summary: string }).summary || "No summary"}
-          </p>
-        </div>
+        <CardPreview
+          cards={
+            (component.data as { cards: { repo_url: string; title: string; summary: string; tech: string[] }[] }).cards
+          }
+        />
       );
     case "pills":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Skills
-          </Badge>
-          <div className="flex flex-wrap gap-1">
-            {((component.data as { items: string[] }).items || []).slice(0, 3).map((item: string, index: number) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {item}
-              </Badge>
-            ))}
-            {((component.data as { items: string[] }).items || []).length > 3 && (
-              <Badge variant="secondary" className="text-xs">
-                +{((component.data as { items: string[] }).items || []).length - 3} more
-              </Badge>
-            )}
-          </div>
-        </div>
-      );
+      return <PillsPreview items={(component.data as { items: string[] }).items} />;
     case "social_links":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Social Links
-          </Badge>
-          <p className="text-sm text-muted-foreground">Social media links</p>
-        </div>
-      );
+      return <SocialLinksPreview data={component.data as Record<string, unknown>} />;
     case "list":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Links
-          </Badge>
-          <p className="text-sm text-muted-foreground">
-            {((component.data as { items: unknown[] }).items || []).length} links
-          </p>
-        </div>
-      );
+      return <ListPreview items={(component.data as { items: unknown[] }).items} />;
     case "image":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Image
-          </Badge>
-          <p className="text-sm text-muted-foreground">{(component.data as { alt: string }).alt || "Image"}</p>
-        </div>
-      );
+      return <ImagePreview alt={(component.data as { alt: string }).alt} />;
     case "bio":
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            Bio
-          </Badge>
-          <p className="text-sm text-muted-foreground">
-            {(component.data as { headline: string }).headline || "No headline"}
-          </p>
-        </div>
-      );
+      return <BioPreview headline={(component.data as { headline: string }).headline} />;
+    case "full_name":
+      return <FullNamePreview full_name={(component.data as { full_name: string }).full_name} />;
+    case "avatar":
+      return <AvatarPreview avatar_url={(component.data as { avatar_url: string }).avatar_url} />;
     default:
-      return (
-        <div>
-          <Badge variant="outline" className="mb-2">
-            {component.type}
-          </Badge>
-          <p className="text-sm text-muted-foreground">Component</p>
-        </div>
-      );
+      return <UnknownPreview type={component.type} />;
   }
 }

@@ -14,7 +14,7 @@ export const prerender = false;
  */
 const componentSchema = z.object({
   id: z.string().uuid(),
-  type: z.enum(["text", "card", "pills", "social_links", "list", "image", "bio"]),
+  type: z.enum(["text", "cards", "pills", "social_links", "list", "image", "bio", "full_name", "avatar"]),
   data: z.record(z.any()),
 });
 

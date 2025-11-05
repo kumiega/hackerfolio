@@ -16,6 +16,6 @@ if (user && !user.is_onboarded) {
 
 <Layout title="Editor - Hackerfolio">
   <DashboardLayout client:load currentPath="/dashboard/editor">
-    <EditorContent client:load />
+    <EditorContent client:load user={user} />
   </DashboardLayout>
 </Layout>

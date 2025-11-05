@@ -5,7 +5,16 @@ import type { Tables, TablesInsert, TablesUpdate } from "./db/database.types";
 // Enums (mirroring component types)
 // ============================================================================
 
-export type ComponentType = "text" | "card" | "pills" | "social_links" | "list" | "image" | "bio";
+export type ComponentType =
+  | "text"
+  | "cards"
+  | "pills"
+  | "social_links"
+  | "list"
+  | "image"
+  | "bio"
+  | "full_name"
+  | "avatar";
 
 // ============================================================================
 // Component Data Types (type-specific data structures)
@@ -15,11 +24,15 @@ export interface TextComponentData {
   content: string; // <= 2000 chars
 }
 
-export interface ProjectCardComponentData {
+export interface ProjectCardData {
   repo_url: string;
   title: string; // <= 100 chars
   summary: string; // <= 500 chars
   tech: string[];
+}
+
+export interface ProjectCardComponentData {
+  cards: ProjectCardData[]; // Array of cards, max 10
 }
 
 export interface TechListComponentData {
@@ -54,6 +67,14 @@ export interface BioComponentData {
   about: string; // <= 2000 chars
 }
 
+export interface FullNameComponentData {
+  full_name: string; // <= 100 chars
+}
+
+export interface AvatarComponentData {
+  avatar_url: string; // URL to avatar image
+}
+
 export interface OrderedListComponentData {
   items: {
     label: string; // <= 80 chars
@@ -70,7 +91,9 @@ export type ComponentData =
   | LinkListComponentData
   | ImageComponentData
   | BioComponentData
-  | OrderedListComponentData;
+  | OrderedListComponentData
+  | FullNameComponentData
+  | AvatarComponentData;
 
 // ============================================================================
 // JSONB Portfolio Structure (used in draft_data and published_data)
@@ -80,6 +103,7 @@ export interface Component {
   id: string;
   type: ComponentType;
   data: ComponentData;
+  visible?: boolean; // Optional for backward compatibility, defaults to true
 }
 
 export interface Section {
@@ -306,12 +330,14 @@ export interface SectionListQuery extends PaginationQuery, SortingQuery {}
 // Type guard for component data based on type
 export interface ComponentDataMap {
   text: TextComponentData;
-  card: ProjectCardComponentData;
+  cards: ProjectCardComponentData;
   pills: TechListComponentData;
   social_links: SocialLinksComponentData;
   list: LinkListComponentData | OrderedListComponentData;
   image: ImageComponentData;
   bio: BioComponentData;
+  full_name: FullNameComponentData;
+  avatar: AvatarComponentData;
 }
 
 // Extract component data type by component type

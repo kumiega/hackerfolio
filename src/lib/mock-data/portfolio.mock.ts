@@ -9,6 +9,20 @@ export const mockPortfolioData: PortfolioData = {
   position: "Full-stack developer at Google",
   bio: [
     {
+      id: "bio-avatar",
+      type: "avatar",
+      data: {
+        avatar_url: "/images/avatar.jpg",
+      },
+    },
+    {
+      id: "bio-full-name",
+      type: "full_name",
+      data: {
+        full_name: "Mark Coderfast",
+      },
+    },
+    {
       id: "bio-text",
       type: "text",
       data: {
@@ -73,22 +87,24 @@ export const mockPortfolioData: PortfolioData = {
           id: "project-cards",
           type: "cards",
           data: {
-            title: "My projects",
-            items: [
+            cards: [
               {
-                name: "Hackerfolio",
-                description: "Generate professional portfolio with AI easy way.",
-                url: "#",
+                repo_url: "https://github.com/markcoderfast/hackerfolio",
+                title: "Hackerfolio",
+                summary: "Generate professional portfolio with AI easy way.",
+                tech: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
               },
               {
-                name: "Project Two",
-                description: "Another amazing project I built.",
-                url: "#",
+                repo_url: "https://github.com/markcoderfast/project-two",
+                title: "Project Two",
+                summary: "Another amazing project I built with modern technologies.",
+                tech: ["Vue.js", "Node.js", "PostgreSQL"],
               },
               {
-                name: "Project Three",
-                description: "Yet another cool project.",
-                url: "#",
+                repo_url: "https://github.com/markcoderfast/project-three",
+                title: "Project Three",
+                summary: "Yet another cool project showcasing my skills.",
+                tech: ["React", "Python", "Django", "AWS"],
               },
             ],
           },

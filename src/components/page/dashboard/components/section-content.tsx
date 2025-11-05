@@ -21,6 +21,7 @@ interface SectionContentProps {
   onDeleteComponent: (componentId: string) => void;
   onSaveNewComponent: (component: Component) => void;
   onCancelAddComponent: () => void;
+  githubAvatarUrl?: string;
 }
 
 export function SectionContent({
@@ -36,6 +37,7 @@ export function SectionContent({
   onDeleteComponent,
   onSaveNewComponent,
   onCancelAddComponent,
+  githubAvatarUrl,
 }: SectionContentProps) {
   return (
     <SortableContext items={sections.map((s) => s.id)} strategy={verticalListSortingStrategy}>
@@ -58,6 +60,7 @@ export function SectionContent({
                       component={component}
                       onSave={onSaveComponent}
                       onCancel={() => onEditComponent("")}
+                      githubAvatarUrl={githubAvatarUrl}
                     />
                   );
                 }

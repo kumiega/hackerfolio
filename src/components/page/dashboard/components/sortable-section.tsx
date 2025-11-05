@@ -1,10 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { useState } from "react";
-import { Plus, Trash2, Eye, EyeOff, GripVertical } from "lucide-react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { Plus, Trash2, Eye, EyeOff, GripVertical, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useSortable } from "@dnd-kit/sortable";
@@ -33,6 +34,7 @@ export function SortableSection({
   const [editingTitle, setEditingTitle] = useState(section.title);
   const [editingDescription, setEditingDescription] = useState(section.description);
   const [isPressed, setIsPressed] = useState(false);
+  const editContainerRef = useRef<HTMLDivElement>(null);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: section.id,
@@ -46,12 +48,58 @@ export function SortableSection({
     },
   });
 
-  // Clear pressed state when dragging starts
-  React.useEffect(() => {
-    if (isDragging) {
-      setIsPressed(false);
+  // Clear pressed state when dragging starts (handled in render)
+  const effectiveIsPressed = isPressed && !isDragging;
+
+  const handleTitleSave = useCallback(() => {
+    if (editingTitle.trim() && editingTitle !== section.title) {
+      onUpdateSection(section.id, {
+        title: editingTitle.trim(),
+        slug: editingTitle
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, ""),
+      });
     }
-  }, [isDragging]);
+    setIsEditingTitle(false);
+  }, [editingTitle, section.title, section.id, onUpdateSection]);
+
+  // Handle click outside and escape key when editing title
+  useEffect(() => {
+    if (!isEditingTitle) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (editContainerRef.current && !editContainerRef.current.contains(event.target as Node)) {
+        // Clicked outside, save if changed
+        if (editingTitle.trim() && editingTitle !== section.title) {
+          handleTitleSave();
+        } else if (!editingTitle.trim()) {
+          setEditingTitle(section.title);
+          setIsEditingTitle(false);
+        } else {
+          setIsEditingTitle(false);
+        }
+      }
+    };
+
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setEditingTitle(section.title);
+        setIsEditingTitle(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscapeKey);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscapeKey);
+    };
+  }, [isEditingTitle, editingTitle, section.title, handleTitleSave]);
 
   // Make section droppable for visual feedback when dragging components
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
@@ -69,20 +117,6 @@ export function SortableSection({
     cursor: isDragging ? "grabbing" : "default",
   };
 
-  const handleTitleSave = () => {
-    if (editingTitle.trim() && editingTitle !== section.title) {
-      onUpdateSection(section.id, {
-        title: editingTitle.trim(),
-        slug: editingTitle
-          .trim()
-          .toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9-]/g, ""),
-      });
-    }
-    setIsEditingTitle(false);
-  };
-
   const handleDescriptionSave = () => {
     if (editingDescription !== section.description) {
       onUpdateSection(section.id, { description: editingDescription });
@@ -93,9 +127,9 @@ export function SortableSection({
     <Card
       ref={setNodeRef}
       style={style}
-      className={`transition-all ${isDragging ? "opacity-50 ring-2 ring-primary scale-[1.02]" : ""} ${isPressed && !isDragging ? "scale-[0.98]" : ""} ${!section.visible ? "opacity-80" : ""}`}
+      className={`transition-all ${isDragging ? "opacity-50 ring-2 ring-primary scale-[1.02]" : ""} ${effectiveIsPressed ? "scale-[0.98]" : ""} ${!section.visible ? "opacity-80" : ""}`}
     >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
         <div className="flex items-center gap-2 flex-1">
           <button
             {...attributes}
@@ -106,31 +140,38 @@ export function SortableSection({
             className="cursor-grab active:cursor-grabbing p-2 hover:bg-accent hover:text-accent-foreground active:bg-primary active:text-primary-foreground border-0 bg-transparent text-muted-foreground touch-none transition-colors rounded-md"
             aria-label={`Drag handle for section ${section.title}`}
             type="button"
+            suppressHydrationWarning
           >
             <GripVertical className="h-5 w-5" />
           </button>
           {isEditingTitle ? (
-            <div className="flex items-center gap-2 flex-1">
+            <div ref={editContainerRef} className="flex flex-col items-start gap-2 flex-1">
               <Input
                 value={editingTitle}
                 onChange={(e) => setEditingTitle(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") handleTitleSave();
-                  if (e.key === "Escape") {
-                    setEditingTitle(section.title);
-                    setIsEditingTitle(false);
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleTitleSave();
                   }
+                  // Escape is handled globally now
                 }}
-                onBlur={handleTitleSave}
-                className="text-lg font-semibold h-auto p-1 border-none shadow-none focus:ring-0"
+                className="text-lg font-semibold h-auto px-3 py-2 bg-background border-2 border-primary focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-sm"
+                placeholder="Enter section title..."
               />
+              <div className="text-xs text-muted-foreground whitespace-nowrap">
+                Press Enter to save, Escape to cancel or click outside
+              </div>
             </div>
           ) : (
             <CardTitle
-              className="text-lg cursor-pointer hover:text-primary transition-colors"
+              className="text-lg cursor-pointer hover:text-primary hover:bg-primary/5 transition-all rounded px-2 py-1 -mx-2 -my-1 group flex items-center gap-2"
               onClick={() => setIsEditingTitle(true)}
+              title="Click to edit section title"
             >
               {section.title}
+              <Edit3 className="h-3 w-3 opacity-40 group-hover:opacity-80 transition-opacity" />
             </CardTitle>
           )}
         </div>
@@ -141,7 +182,7 @@ export function SortableSection({
             onClick={() => onAddComponent(section.id)}
             aria-label={`Add component to section ${section.title}`}
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4" />
             Add Component
           </Button>
           <Button
@@ -164,15 +205,20 @@ export function SortableSection({
       </CardHeader>
       <CardContent>
         <div className="mb-4">
-          <Textarea
-            value={editingDescription}
-            onChange={(e) => setEditingDescription(e.target.value)}
-            onBlur={handleDescriptionSave}
-            placeholder="Add a description for this section..."
-            className="text-sm text-muted-foreground border-none shadow-none focus:ring-0 resize-none min-h-[2rem]"
-            rows={1}
-          />
+          <Field>
+            <FieldLabel>Description</FieldLabel>
+            <Textarea
+              value={editingDescription}
+              onChange={(e) => setEditingDescription(e.target.value)}
+              onBlur={handleDescriptionSave}
+              placeholder="Add a description for this section..."
+              className="text-sm bg-background text-muted-foreground border shadow-none focus:ring-0 resize-none min-h-[2rem]"
+              rows={1}
+            />
+          </Field>
         </div>
+
+        <h4 className="text-sm font-medium text-foreground mb-2">Components</h4>
         <div
           ref={setDroppableRef}
           className={`min-h-[50px] rounded-lg transition-all duration-200 ${

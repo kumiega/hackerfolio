@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Component } from "@/types";
@@ -12,7 +12,8 @@ interface BioSectionProps {
   editingComponentId: string | null;
   onEditComponent: (componentId: string) => void;
   onSaveComponent: (component: Component) => void;
-  onDeleteComponent: (componentId: string) => void;
+  onToggleComponentVisibility: (componentId: string) => void;
+  githubAvatarUrl?: string;
 }
 
 export function BioSection({
@@ -20,14 +21,17 @@ export function BioSection({
   editingComponentId,
   onEditComponent,
   onSaveComponent,
-  onDeleteComponent,
+  onToggleComponentVisibility,
+  githubAvatarUrl,
 }: BioSectionProps) {
-  if (bio.length === 0) return null;
+  // Filter to show only visible components, but allow editing of hidden ones
+  const visibleBio = bio.filter((component) => component.visible !== false);
+  if (visibleBio.length === 0 && bio.length === 0) return null;
 
   return (
-    <Card className="border-dashed">
+    <Card className="border bg-background">
       <CardHeader>
-        <CardTitle className="text-lg">Bio Section</CardTitle>
+        <CardTitle className="text-lg">Your Bio</CardTitle>
         <CardDescription>This section appears at the top of your portfolio</CardDescription>
       </CardHeader>
       <CardContent>
@@ -40,14 +44,21 @@ export function BioSection({
                   component={component}
                   onSave={onSaveComponent}
                   onCancel={() => onEditComponent("")}
+                  githubAvatarUrl={githubAvatarUrl}
                 />
               );
             }
             return (
-              <div key={component.id} className="border rounded-lg p-3">
+              <div
+                key={component.id}
+                className={`border rounded-lg p-3 ${component.visible === false ? "opacity-50" : ""}`}
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <ComponentPreview component={component} />
+                    {component.visible === false && (
+                      <p className="text-xs text-muted-foreground mt-1">Hidden from portfolio</p>
+                    )}
                   </div>
                   <div className="flex gap-1">
                     <Button
@@ -61,10 +72,10 @@ export function BioSection({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onDeleteComponent(component.id)}
-                      aria-label={`Delete ${component.type} component`}
+                      onClick={() => onToggleComponentVisibility(component.id)}
+                      aria-label={`${component.visible === false ? "Show" : "Hide"} ${component.type} component`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {component.visible === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
                   </div>
                 </div>

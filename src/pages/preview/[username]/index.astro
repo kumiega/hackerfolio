@@ -10,7 +10,7 @@ import "@/styles/portfolio.css";
 import { mockPortfolioData as data } from "@/lib/mock-data";
 
 const socialLinks = data.bio
-  .filter((component) => component.type === "social_links")
+  .filter((component) => component.type === "social_links" && component.visible !== false)
   .reduce(
     (links, component) => {
       const data = component.data as {
@@ -35,7 +35,7 @@ const socialLinks = data.bio
   );
 
 const bioText = data.bio
-  .filter((component) => component.type === "text")
+  .filter((component) => component.type === "text" && component.visible !== false)
   .map((component) => (component.data as { content: string }).content)
   .join(" ");
 ---

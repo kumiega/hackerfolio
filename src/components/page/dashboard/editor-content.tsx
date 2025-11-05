@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { useState, useEffect, useCallback } from "react";
 import {
   DndContext,
@@ -16,7 +15,7 @@ import {
   type CollisionDetection,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import type { Component, Section, PortfolioData } from "@/types";
+import type { Component, Section, PortfolioData, User } from "@/types";
 import { mockPortfolioData } from "@/lib/mock-data/portfolio.mock";
 import { BioSection } from "./components/bio-section";
 import { EmptySections } from "./components/empty-sections";
@@ -25,7 +24,11 @@ import { SectionContent } from "./components/section-content";
 import { EditorHeader } from "./components/editor-header";
 import { validateComponentData } from "@/lib/schemas/component.schemas";
 
-export function EditorContent() {
+interface EditorContentProps {
+  user?: User;
+}
+
+export function EditorContent({ user }: EditorContentProps) {
   const [portfolioData, setPortfolioData] = useState<PortfolioData>(mockPortfolioData);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
@@ -333,13 +336,13 @@ export function EditorContent() {
     setEditingComponentId(null);
   };
 
-  const handleDeleteBioComponent = (componentId: string) => {
-    if (confirm("Are you sure you want to delete this bio component?")) {
-      setPortfolioData((prev) => ({
-        ...prev,
-        bio: prev.bio.filter((component) => component.id !== componentId),
-      }));
-    }
+  const handleToggleBioComponentVisibility = (componentId: string) => {
+    setPortfolioData((prev) => ({
+      ...prev,
+      bio: prev.bio.map((component) =>
+        component.id === componentId ? { ...component, visible: component.visible !== false ? false : true } : component
+      ),
+    }));
   };
 
   const handleSavePortfolio = useCallback(() => {
@@ -400,7 +403,7 @@ export function EditorContent() {
             editingComponentId={editingComponentId}
             onEditComponent={handleEditComponent}
             onSaveComponent={handleSaveBioComponent}
-            onDeleteComponent={handleDeleteBioComponent}
+            onToggleComponentVisibility={handleToggleBioComponentVisibility}
           />
 
           <SectionContent

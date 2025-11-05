@@ -1,12 +1,13 @@
 ---
-interface Project {
-  name: string;
-  description: string;
-  url?: string;
+interface CardData {
+  repo_url: string;
+  title: string;
+  summary: string;
+  tech: string[];
 }
 
 interface Props {
-  items: Project[];
+  items: CardData[];
   title: string;
 }
 
@@ -20,14 +21,24 @@ const { items, title } = Astro.props;
   </h2>
 
   <nav aria-label="Selected projects">
-    <ul class="flex flex-col space-y-[-1px]" role="list">
+    <ul class="flex flex-col space-y-4" role="list">
       {
         items.map((item) => (
           <li>
-            <a href={item.url || "#"} class="link-card">
+            <a href={item.repo_url || "#"} class="link-card">
               <div class="link-card-content">
-                <h3 class="text-foreground font-medium">{item.name}</h3>
-                <p class="text-muted-foreground text-sm">{item.description}</p>
+                <h3 class="text-foreground font-medium">{item.title}</h3>
+                <p class="text-muted-foreground text-sm mb-2">{item.summary}</p>
+                {item.tech && item.tech.length > 0 && (
+                  <div class="flex flex-wrap gap-1">
+                    {item.tech.slice(0, 5).map((tech) => (
+                      <span class="bg-muted text-muted-foreground text-xs px-2 py-1 rounded">{tech}</span>
+                    ))}
+                    {item.tech.length > 5 && (
+                      <span class="text-muted-foreground text-xs">+{item.tech.length - 5} more</span>
+                    )}
+                  </div>
+                )}
               </div>
               <span class="link-card-arrow" aria-hidden="true">
                 →

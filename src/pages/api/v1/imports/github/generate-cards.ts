@@ -98,12 +98,16 @@ export const POST: APIRoute = async (context) => {
         // Create component data (not saved to DB, returned to client)
         components.push({
           id: randomUUID(),
-          type: "card",
+          type: "cards",
           data: {
-            repo_url: repoUrl,
-            title: repoInfo.name,
-            summary,
-            tech: allTech.slice(0, 20), // Limit to 20 technologies
+            cards: [
+              {
+                repo_url: repoUrl,
+                title: repoInfo.name,
+                summary,
+                tech: allTech.slice(0, 20), // Limit to 20 technologies
+              },
+            ],
           },
         });
       } catch (error) {

@@ -46,7 +46,7 @@ export function SortableComponent({ component, children, onEdit, onDelete }: Sor
     <div
       ref={setNodeRef}
       style={style}
-      className={`border rounded-lg p-3 mb-2 transition-all ${isDragging ? "opacity-50 bg-muted ring-2 ring-primary border-primary scale-[1.02]" : ""} ${isPressed && !isDragging ? "scale-[0.98]" : ""}`}
+      className={`bg-background border border-dashed border-primary p-3 py-5 mb-2 transition-all ${isDragging ? "opacity-50 bg-muted ring-2 ring-primary border-primary scale-[1.02]" : ""} ${isPressed && !isDragging ? "scale-[0.98]" : ""}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-1">
@@ -59,6 +59,7 @@ export function SortableComponent({ component, children, onEdit, onDelete }: Sor
             className="cursor-grab active:cursor-grabbing p-1 hover:bg-accent hover:text-accent-foreground active:bg-primary active:text-primary-foreground border-0 bg-transparent text-muted-foreground touch-none transition-colors rounded-md"
             aria-label={`Drag handle for ${component.type} component`}
             type="button"
+            suppressHydrationWarning
           >
             <GripVertical className="h-4 w-4" />
           </button>

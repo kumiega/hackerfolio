@@ -14,13 +14,20 @@ export const textComponentDataSchema = z.object({
 });
 
 /**
- * Schema for validating project card component data
+ * Schema for validating individual project card data
  */
-export const projectCardComponentDataSchema = z.object({
+export const projectCardDataSchema = z.object({
   repo_url: z.string(),
   title: z.string().min(1, "Title is required").max(100, "Title must be 100 characters or less"),
   summary: z.string().max(500, "Summary must be 500 characters or less"),
   tech: z.array(z.string()).optional().default([]),
+});
+
+/**
+ * Schema for validating project card component data (array of cards)
+ */
+export const projectCardComponentDataSchema = z.object({
+  cards: z.array(projectCardDataSchema).min(1, "At least one card is required").max(10, "Maximum 10 cards allowed"),
 });
 
 /**
@@ -92,6 +99,14 @@ export const bioComponentDataSchema = z.object({
   about: z.string().max(2000, "About text must be 2000 characters or less"),
 });
 
+export const fullNameComponentDataSchema = z.object({
+  full_name: z.string().min(1, "Full name is required").max(100, "Full name must be 100 characters or less"),
+});
+
+export const avatarComponentDataSchema = z.object({
+  avatar_url: z.string().url("Avatar URL must be a valid URL"),
+});
+
 /**
  * Schema for validating ordered list component data
  */
@@ -120,7 +135,7 @@ export const reorderCommandSchema = z.object({
  * Schema for validating component creation command
  */
 export const createComponentCommandSchema = z.object({
-  type: z.enum(["text", "card", "pills", "social_links", "list", "image", "bio"]),
+  type: z.enum(["text", "cards", "pills", "social_links", "list", "image", "bio", "full_name", "avatar"]),
   data: z.union([
     textComponentDataSchema,
     projectCardComponentDataSchema,
@@ -130,6 +145,8 @@ export const createComponentCommandSchema = z.object({
     imageComponentDataSchema,
     bioComponentDataSchema,
     orderedListComponentDataSchema,
+    fullNameComponentDataSchema,
+    avatarComponentDataSchema,
   ]),
 });
 
@@ -148,7 +165,7 @@ export const componentListQuerySchema = z.object({
   per_page: z.coerce.number().int().min(1).max(100).default(20),
   sort: z.enum(["position", "created_at"]).default("position"),
   order: z.enum(["asc", "desc"]).default("asc"),
-  type: z.enum(["text", "card", "pills", "social_links", "list", "image", "bio"]).optional(),
+  type: z.enum(["text", "cards", "pills", "social_links", "list", "image", "bio", "full_name", "avatar"]).optional(),
   q: z.string().optional(),
 });
 
@@ -191,12 +208,14 @@ export type GenerateProjectCardsCommand = z.infer<typeof generateProjectCardsCom
 // Schema map for component types - using z.ZodTypeAny to allow type flexibility
 const componentDataSchemas: Record<ComponentType, z.ZodTypeAny> = {
   text: textComponentDataSchema,
-  card: projectCardComponentDataSchema,
+  cards: projectCardComponentDataSchema,
   pills: techListComponentDataSchema,
   social_links: socialLinksComponentDataSchema,
   list: linkListComponentDataSchema,
   image: imageComponentDataSchema,
   bio: bioComponentDataSchema,
+  full_name: fullNameComponentDataSchema,
+  avatar: avatarComponentDataSchema,
 };
 
 /**
