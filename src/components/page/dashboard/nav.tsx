@@ -31,13 +31,16 @@ interface NavProps {
 }
 
 export function Nav({ label, items, currentPath = "/dashboard" }: NavProps) {
+  // Map /dashboard to /dashboard/bio for navigation highlighting
+  const normalizedPath = currentPath === "/dashboard" ? "/dashboard/bio" : currentPath;
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const isItemActive = currentPath === item.url;
-          const hasActiveSubItem = item.items?.some((subItem) => currentPath === subItem.url);
+          const isItemActive = normalizedPath === item.url;
+          const hasActiveSubItem = item.items?.some((subItem) => normalizedPath === subItem.url);
           const isExpanded = isItemActive || hasActiveSubItem;
 
           return (
@@ -60,7 +63,7 @@ export function Nav({ label, items, currentPath = "/dashboard" }: NavProps) {
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         {item.items?.map((subItem) => {
-                          const isSubItemActive = currentPath === subItem.url;
+                          const isSubItemActive = normalizedPath === subItem.url;
                           return (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton asChild isActive={isSubItemActive}>

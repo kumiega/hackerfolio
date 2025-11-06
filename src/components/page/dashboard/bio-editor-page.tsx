@@ -51,8 +51,6 @@ export function BioEditorPage({
   }, [onSaveRef, onPublishRef]);
 
   return (
-    <div className="p-12">
-      <BioEditorContent user={user} onSavingChange={handleSavingChange} onPublishingChange={handlePublishingChange} />
-    </div>
+    <BioEditorContent user={user} onSavingChange={handleSavingChange} onPublishingChange={handlePublishingChange} />
   );
 }

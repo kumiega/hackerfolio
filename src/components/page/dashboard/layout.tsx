@@ -1,7 +1,7 @@
 "use client";
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
@@ -28,6 +28,14 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
   const saveRef = useRef<(() => void) | null>(null);
   const publishRef = useRef<(() => void) | null>(null);
 
+  // Hide the loading skeleton once React mounts
+  useEffect(() => {
+    const skeleton = document.getElementById("dashboard-skeleton");
+    if (skeleton) {
+      skeleton.style.display = "none";
+    }
+  }, []);
+
   const handleSavePortfolio = () => {
     saveRef.current?.();
   };
@@ -43,7 +51,7 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
     <div className="[--header-height:calc(--spacing(14))]">
       <SidebarProvider className="flex flex-col">
         <SiteHeader
-          currentPath={actualCurrentPath}
+          currentPath={location.pathname}
           user={user}
           onSavePortfolio={isEditorPage ? handleSavePortfolio : undefined}
           onPublishPortfolio={isEditorPage ? handlePublishPortfolio : undefined}
@@ -51,7 +59,7 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
           isPublishing={isPublishing}
         />
         <div className="flex flex-1">
-          <AppSidebar user={user} currentPath={actualCurrentPath} />
+          <AppSidebar user={user} currentPath={location.pathname} />
           <SidebarInset className="p-12">
             <Routes>
               <Route

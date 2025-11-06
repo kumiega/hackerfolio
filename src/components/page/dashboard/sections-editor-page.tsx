@@ -52,12 +52,10 @@ export function SectionsEditorPage({
   }, [onSaveRef, onPublishRef]);
 
   return (
-    <div className="p-12">
-      <SectionsEditorContent
-        user={user}
-        onSavingChange={handleSavingChange}
-        onPublishingChange={handlePublishingChange}
-      />
-    </div>
+    <SectionsEditorContent
+      user={user}
+      onSavingChange={handleSavingChange}
+      onPublishingChange={handlePublishingChange}
+    />
   );
 }

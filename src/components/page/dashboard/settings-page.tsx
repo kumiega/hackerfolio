@@ -9,9 +9,5 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ user, currentPath }: SettingsPageProps) {
-  return (
-    <div className="p-12">
-      <SettingsContent />
-    </div>
-  );
+  return <SettingsContent />;
 }

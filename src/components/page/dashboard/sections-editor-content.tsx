@@ -24,8 +24,6 @@ import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
-import { validateComponentData } from "@/lib/schemas/component.schemas";
-
 import { toast } from "sonner";
 
 // Default empty portfolio structure
