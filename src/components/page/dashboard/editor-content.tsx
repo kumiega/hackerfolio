@@ -33,7 +33,44 @@ import { toast } from "sonner";
 const defaultPortfolioData: PortfolioData = {
   full_name: "",
   position: "",
-  bio: [],
+  bio: [
+    {
+      id: "default-avatar",
+      type: "avatar",
+      data: {
+        avatar_url: "",
+      },
+      visible: true,
+    },
+    {
+      id: "default-personal-info",
+      type: "personal_info",
+      data: {
+        full_name: "",
+        position: "",
+      },
+      visible: true,
+    },
+    {
+      id: "default-bio-text",
+      type: "text",
+      data: {
+        content: "",
+      },
+      visible: true,
+    },
+    {
+      id: "default-social-links",
+      type: "social_links",
+      data: {
+        github: "",
+        linkedin: "",
+        x: "",
+        website: [],
+      },
+      visible: true,
+    },
+  ],
   avatar_url: null,
   sections: [],
 };
@@ -506,7 +543,46 @@ export function EditorContent({ user }: EditorContentProps) {
     }));
   };
 
+  const handleDeleteBioComponent = (componentId: string) => {
+    // Only allow deleting non-default bio components
+    const component = portfolioData.bio.find((c) => c.id === componentId);
+    if (component && (component.type === "personal_info" || component.type === "text")) {
+      // Don't delete default bio components
+      return;
+    }
+
+    setPortfolioData((prev) => ({
+      ...prev,
+      bio: prev.bio.filter((component) => component.id !== componentId),
+    }));
+  };
+
   const handleSavePortfolio = useCallback(async () => {
+    const validateRequiredFields = () => {
+      // Check if personal info component has required fields
+      const personalInfoComponent = portfolioData.bio.find((c) => c.type === "personal_info");
+      if (!personalInfoComponent) {
+        return "Personal info component is missing";
+      }
+
+      const personalInfoData = personalInfoComponent.data as { full_name?: string; position?: string };
+      if (!personalInfoData.full_name?.trim()) {
+        return "Full name is required";
+      }
+
+      // Check if text component has content
+      const textComponent = portfolioData.bio.find((c) => c.type === "text");
+      if (!textComponent) {
+        return "Bio text component is missing";
+      }
+
+      const textData = textComponent.data as { content?: string };
+      if (!textData.content?.trim()) {
+        return "Bio text is required";
+      }
+
+      return null; // No validation errors
+    };
     if (!portfolioData || !user?.user_id) {
       console.warn("No portfolio data or user available");
       return;
@@ -514,6 +590,13 @@ export function EditorContent({ user }: EditorContentProps) {
 
     if (isSaving) {
       return; // Prevent multiple save operations
+    }
+
+    // Validate required fields
+    const validationError = validateRequiredFields();
+    if (validationError) {
+      toast.error(validationError);
+      return;
     }
 
     const toastId = toast.loading("Saving portfolio...");
@@ -544,6 +627,32 @@ export function EditorContent({ user }: EditorContentProps) {
   }, [portfolioData, portfolioId, user?.user_id, isSaving]);
 
   const handlePublishPortfolio = useCallback(async () => {
+    const validateRequiredFields = () => {
+      // Check if personal info component has required fields
+      const personalInfoComponent = portfolioData.bio.find((c) => c.type === "personal_info");
+      if (!personalInfoComponent) {
+        return "Personal info component is missing";
+      }
+
+      const personalInfoData = personalInfoComponent.data as { full_name?: string; position?: string };
+      if (!personalInfoData.full_name?.trim()) {
+        return "Full name is required";
+      }
+
+      // Check if text component has content
+      const textComponent = portfolioData.bio.find((c) => c.type === "text");
+      if (!textComponent) {
+        return "Bio text component is missing";
+      }
+
+      const textData = textComponent.data as { content?: string };
+      if (!textData.content?.trim()) {
+        return "Bio text is required";
+      }
+
+      return null; // No validation errors
+    };
+
     if (!portfolioId || !user?.user_id) {
       toast.error("No portfolio available to publish");
       return;
@@ -551,6 +660,13 @@ export function EditorContent({ user }: EditorContentProps) {
 
     if (isPublishing || isSaving) {
       return; // Prevent multiple operations
+    }
+
+    // Validate required fields
+    const validationError = validateRequiredFields();
+    if (validationError) {
+      toast.error(validationError);
+      return;
     }
 
     // Validate draft data before publishing
@@ -680,6 +796,7 @@ export function EditorContent({ user }: EditorContentProps) {
             onEditComponent={handleEditComponent}
             onSaveComponent={handleSaveBioComponent}
             onToggleComponentVisibility={handleToggleBioComponentVisibility}
+            onDeleteComponent={handleDeleteBioComponent}
           />
 
           <SectionContent

@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Field, FieldLabel } from "@/components/ui/field";
+import { Field, FieldLabel, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Upload, Github } from "lucide-react";
+import { Upload, Github, Loader2 } from "lucide-react";
 
 interface AvatarFormProps {
   avatar_url: string;
@@ -14,6 +14,7 @@ interface AvatarFormProps {
 
 export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: AvatarFormProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,23 +31,48 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
     }
 
     setIsUploading(true);
+    setUploadError(null);
 
     try {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result as string;
-        onChange("avatar_url", dataUrl);
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch {
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      const response = await fetch("/api/v1/portfolios/avatar-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error?.message || "Upload failed");
+      }
+
+      // Update the avatar URL in the form
+      onChange("avatar_url", result.data.avatar_url);
+    } catch (error) {
+      console.error("Upload error:", error);
+      setUploadError(error instanceof Error ? error.message : "Upload failed");
+    } finally {
       setIsUploading(false);
     }
   };
 
-  const useGithubAvatar = () => {
-    if (githubAvatarUrl) {
+  const useGithubAvatar = async () => {
+    if (!githubAvatarUrl) return;
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // For GitHub avatars, we'll still just set the URL directly since it's already hosted
+      // We could potentially download and re-upload to our storage, but for now we'll keep it simple
       onChange("avatar_url", githubAvatarUrl);
+    } catch (error) {
+      console.error("GitHub avatar error:", error);
+      setUploadError("Failed to set GitHub avatar");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -75,10 +101,22 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
           Upload Image
         </FieldLabel>
         <div className="flex items-center gap-2">
-          <Input type="file" accept="image/*" onChange={handleFileUpload} disabled={isUploading} className="flex-1" />
-          {isUploading && <span className="text-sm text-muted-foreground">Uploading...</span>}
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={handleFileUpload}
+            disabled={isUploading}
+            className="flex-1"
+          />
+          {isUploading && (
+            <div className="flex items-center gap-1">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Uploading...</span>
+            </div>
+          )}
         </div>
         <p className="text-xs text-muted-foreground">Max file size: 5MB. Supported formats: JPG, PNG, GIF, WebP</p>
+        {uploadError && <FieldError>{uploadError}</FieldError>}
       </Field>
 
       {/* GitHub Avatar */}
@@ -97,7 +135,7 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
               <p className="text-sm font-medium">GitHub Profile Avatar</p>
               <p className="text-xs text-muted-foreground">Use your GitHub avatar from authentication</p>
             </div>
-            <Button type="button" variant="outline" onClick={useGithubAvatar} size="sm">
+            <Button type="button" variant="outline" onClick={useGithubAvatar} size="sm" disabled={isUploading}>
               Use This Avatar
             </Button>
           </div>
