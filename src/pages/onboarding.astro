@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import Layout from "../layouts/layout-base.astro";
 import { Logo } from "@/components/ui/logo";
 import { OnboardingSteps } from "@/components/page/onboarding/steps";
@@ -20,8 +22,7 @@ if (sessionData.profile.is_onboarded) {
   .hero {
     --bg-url: url("../assets/bg-mobile.jpg");
     color: var(--primary-foreground);
-    background-image:
-      linear-gradient(-180deg, oklch(0.6499 0.1883 257.88 / 0) 75%, oklch(0.6499 0.1883 257.88 / 0.75)),
+    background-image: linear-gradient(-180deg, oklch(0.6499 0.1883 257.88 / 0) 75%, oklch(0.6499 0.1883 257.88 / 0.75)),
       linear-gradient(to bottom, oklch(0.2221 0 0 / 1) 50%, oklch(0.2221 0 0 / 0)), var(--bg-url);
     background-size: cover;
     background-position: center;
@@ -29,8 +30,11 @@ if (sessionData.profile.is_onboarded) {
 
     @media (min-width: 40rem) {
       --bg-url: url("../assets/bg.jpg");
-      background-image:
-        linear-gradient(-160deg, oklch(0.6499 0.1883 257.88 / 0) 50%, oklch(0.6499 0.1883 257.88 / 0.75)),
+      background-image: linear-gradient(
+          -160deg,
+          oklch(0.6499 0.1883 257.88 / 0) 50%,
+          oklch(0.6499 0.1883 257.88 / 0.75)
+        ),
         linear-gradient(to bottom, oklch(0.2221 0 0 / 0.95) 10%, oklch(0.2221 0 0 / 0)),
         linear-gradient(to bottom, oklch(0.2221 0 0 / 0.9) 40%, oklch(0.2221 0 0 / 0.5)), var(--bg-url);
     }

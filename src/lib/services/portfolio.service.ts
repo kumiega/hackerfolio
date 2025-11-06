@@ -39,7 +39,7 @@ export class PortfolioService {
   static async checkPortfolioExists(userId: string): Promise<boolean> {
     // Step 1: Query portfolios table for user's portfolio
     // Use repository method to check existence
-    return await repositories.portfolios.exists(userId);
+    return await repositories.portfolios.userHasPortfolio(userId);
   }
 
   /**
@@ -74,8 +74,23 @@ export class PortfolioService {
     userId: string,
     command: UpdatePortfolioCommand
   ): Promise<PortfolioDto> {
-    // Step 1: Validate limits (max 10 sections, max 15 components total including bio)
-    const { sections, bio } = command.draft_data;
+    // Step 1: Get existing portfolio to merge with
+    const existingPortfolio = await repositories.portfolios.findById(portfolioId);
+    if (!existingPortfolio) {
+      throw new AppError(ERROR_CODES.PORTFOLIO_NOT_FOUND, "Portfolio not found", {
+        portfolioId,
+        userId,
+      });
+    }
+
+    // Step 2: Merge partial update with existing data
+    const mergedDraftData = {
+      ...existingPortfolio.draft_data,
+      ...command.draft_data,
+    };
+
+    // Step 3: Validate limits (max 10 sections, max 15 components total including bio)
+    const { sections, bio } = mergedDraftData;
 
     if (sections.length > 10) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, undefined, {
@@ -95,10 +110,10 @@ export class PortfolioService {
       });
     }
 
-    // Step 2: Update portfolio draft_data with ownership verification
+    // Step 4: Update portfolio draft_data with ownership verification
     // RLS policy ensures user can only update their own portfolio
     return await repositories.portfolios.update(portfolioId, {
-      draft_data: command.draft_data,
+      draft_data: mergedDraftData,
     });
   }
 
@@ -115,8 +130,15 @@ export class PortfolioService {
    */
   static async publishPortfolio(portfolioId: string, userId: string): Promise<PublishStatusDto> {
     // Step 1: Call database function to publish portfolio
-    // This function validates ownership, checks requirements, and copies draft_data to published_data
-    return await repositories.portfolios.publish(portfolioId);
+    // Repository handles ownership verification, then calls DB function for validation and publishing
+    const publishedPortfolio = await repositories.portfolios.publish(portfolioId, userId);
+
+    // Step 2: Return only the required fields for PublishStatusDto
+    return {
+      id: publishedPortfolio.id,
+      published_data: publishedPortfolio.published_data!,
+      last_published_at: publishedPortfolio.last_published_at!,
+    };
   }
 
   /**

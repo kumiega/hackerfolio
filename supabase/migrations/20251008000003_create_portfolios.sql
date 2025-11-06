@@ -95,6 +95,7 @@ as $$
 declare
   result public.portfolios;
   section_count int;
+  bio_count int;
   component_count int;
 begin
   -- Validate user owns the portfolio
@@ -110,7 +111,7 @@ begin
     jsonb_array_length(draft_data->'sections'),
     jsonb_array_length(coalesce(draft_data->'bio', '[]'::jsonb)),
     (
-      select sum(jsonb_array_length(section->'components'))
+      select coalesce(sum(jsonb_array_length(section->'components')), 0)
       from jsonb_array_elements(draft_data->'sections') as section
     )
   into section_count, bio_count, component_count

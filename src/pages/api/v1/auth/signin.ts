@@ -33,7 +33,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return new Response(error.message, { status: 500 });
     }
 
-    console.log("✅ OAuth URL generated:", data.url);
     return redirect(data.url);
   }
 

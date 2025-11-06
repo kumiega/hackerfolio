@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabaseClient } from "@/db/supabase.client";
 import type { AuthSessionDto } from "@/types";
-import { AuthService } from "@/lib/services/auth.service";
+import { getCurrentSession } from "@/lib/dal/auth";
 
 // Local types for login component state management
 export interface LoginState {

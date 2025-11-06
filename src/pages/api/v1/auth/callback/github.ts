@@ -12,7 +12,6 @@ export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) 
 
   const supabase = createClientSSR({ request, cookies });
 
-  console.log("🔄 Exchanging code for session...");
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
@@ -39,8 +38,6 @@ export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) 
       }
     );
   }
-
-  console.log("✅ Session exchange successful:", data?.user?.id);
 
   return redirect("/dashboard");
 };

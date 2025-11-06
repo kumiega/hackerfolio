@@ -250,7 +250,7 @@ export interface CreatePortfolioCommand {
 }
 
 export interface UpdatePortfolioCommand {
-  draft_data: PortfolioData;
+  draft_data: Partial<PortfolioData>;
 }
 
 // Import commands - GitHub

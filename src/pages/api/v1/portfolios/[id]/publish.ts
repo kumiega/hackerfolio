@@ -1,7 +1,6 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, PublishStatusDto, AuthSessionDto } from "@/types";
+import type { ApiSuccessResponse, PublishStatusDto } from "@/types";
 import { PortfolioService } from "@/lib/services/portfolio.service";
-import { AuthService } from "@/lib/services/auth.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { isValidUUID } from "@/lib/utils";
@@ -43,7 +42,6 @@ export const POST: APIRoute = async (context) => {
 
   // Step 1: Extract and validate path parameters
   const portfolioId = params.id;
-  let authenticatedUser: AuthSessionDto | null = null;
 
   try {
     if (!portfolioId || typeof portfolioId !== "string" || !isValidUUID(portfolioId)) {
@@ -61,10 +59,12 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Step 3: Authentication check
-    authenticatedUser = await AuthService.getCurrentSession(supabase);
+    if (!locals.user) {
+      return createErrorResponse("UNAUTHENTICATED", requestId);
+    }
 
     // Step 4: Publish portfolio (calls DB function that copies draft_data to published_data)
-    const publishStatus = await PortfolioService.publishPortfolio(portfolioId, authenticatedUser.user.id);
+    const publishStatus = await PortfolioService.publishPortfolio(portfolioId, locals.user.user_id);
 
     // Step 5: Return success response
     const response: ApiSuccessResponse<PublishStatusDto> = {
@@ -84,7 +84,7 @@ export const POST: APIRoute = async (context) => {
       endpoint: "POST /api/v1/portfolios/[id]/publish",
       route: request.url,
       portfolioId,
-      userId: authenticatedUser?.user?.id,
+      userId: locals.user?.user_id,
     });
   }
 };

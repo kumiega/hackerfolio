@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import type { ApiSuccessResponse, ApiErrorResponse, ErrorIntakeResponseDto, ErrorIntakeCommand } from "@/types";
 import { logError } from "@/lib/error-utils";
 import { RateLimiter } from "@/lib/rate-limiter";
-import { AuthService } from "@/lib/services/auth.service";
 import { ERROR_CODES } from "@/lib/error-constants";
 
 // Disable prerendering for this API route
@@ -30,14 +29,7 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // Step 1: Get current user for rate limiting (optional authentication)
-    let userId: string | null = null;
-    try {
-      const authenticatedUser = await AuthService.getCurrentSession(supabase);
-      userId = authenticatedUser.user.id;
-    } catch {
-      // Error intake is allowed for anonymous users, but rate limiting will be IP-based
-      userId = null;
-    }
+    const userId = locals.user?.user_id || null;
 
     // Step 2: Parse and validate request body
     let body: ErrorIntakeCommand;

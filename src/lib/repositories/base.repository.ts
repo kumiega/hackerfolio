@@ -1,4 +1,4 @@
-import type { SupabaseClientSSR } from "@/db/supabase.client";
+import type { SupabaseClient } from "@/db/supabase.client";
 import { AppError } from "@/lib/error-handler";
 import type { PostgrestError } from "@supabase/supabase-js";
 
@@ -12,9 +12,9 @@ import type { PostgrestError } from "@supabase/supabase-js";
  * - Row Level Security (RLS) compliance
  */
 export abstract class BaseRepository {
-  protected readonly supabase: SupabaseClientSSR;
+  protected readonly supabase: SupabaseClient;
 
-  constructor(supabase: SupabaseClientSSR) {
+  constructor(supabase: SupabaseClient) {
     this.supabase = supabase;
   }
 
@@ -77,6 +77,11 @@ export abstract class BaseRepository {
       const { data, error } = await operation();
 
       if (error) {
+        // Handle "not found" as successful null result
+        if (this.isNotFoundError(error)) {
+          return null;
+        }
+
         throw new AppError("DATABASE_ERROR", errorMessage, {
           cause: error,
           ...context,

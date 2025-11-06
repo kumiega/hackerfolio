@@ -2,6 +2,7 @@ import * as React from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
+import { Toaster } from "@/components/ui/sonner";
 
 interface DashboardLayoutProps {
   children?: React.ReactNode;
@@ -29,6 +30,7 @@ export function DashboardLayout({ children, currentPath }: DashboardLayoutProps)
           </SidebarInset>
         </div>
       </SidebarProvider>
+      <Toaster />
     </div>
   );
 }

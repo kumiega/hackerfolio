@@ -1,20 +1,20 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, ApiErrorResponse, PortfolioDto, CreatePortfolioCommand } from "@/types";
-import { z } from "zod";
-import { PortfolioService } from "@/lib/services/portfolio.service";
-import { AuthService } from "@/lib/services/auth.service";
+import type { ApiSuccessResponse, ApiErrorResponse, PortfolioDto, PortfolioData } from "@/types";
+import { repositories } from "@/lib/repositories";
 import { logError } from "@/lib/error-utils";
+import { z } from "zod";
 
 // Disable prerendering for this API route
 export const prerender = false;
 
-/**
- * Zod schema for portfolio creation validation
- */
 const createPortfolioSchema = z.object({
   draft_data: z
     .object({
-      sections: z.array(z.any()).optional(),
+      full_name: z.string(),
+      position: z.string(),
+      bio: z.array(z.any()),
+      avatar_url: z.string().nullable(),
+      sections: z.array(z.any()),
     })
     .optional(),
 });
@@ -22,16 +22,12 @@ const createPortfolioSchema = z.object({
 /**
  * POST /api/v1/portfolios
  *
- * Creates a new portfolio for the currently authenticated user.
- * This endpoint enforces a strict 1:1 relationship between users and portfolios,
- * ensuring each user can have only one portfolio. The endpoint validates input data,
- * checks for existing portfolios, and returns the created portfolio object upon successful creation.
+ * Creates a new portfolio for the authenticated user.
  *
- * @param request.body - Portfolio creation data (title required, description optional)
  * @returns 201 - Created portfolio data
+ * @returns 400 - Invalid request data
  * @returns 401 - User not authenticated
- * @returns 409 - Portfolio already exists for this user
- * @returns 422 - Validation errors
+ * @returns 409 - User already has a portfolio
  * @returns 500 - Internal server error
  */
 export const POST: APIRoute = async (context) => {
@@ -41,69 +37,7 @@ export const POST: APIRoute = async (context) => {
 
   try {
     // Step 1: Authentication check
-    const authenticatedUser = await AuthService.getCurrentSession(supabase);
-
-    // Step 2: Parse and validate request body
-    let requestBody: unknown;
-    try {
-      requestBody = await request.json();
-    } catch {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid JSON in request body",
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const validationResult = createPortfolioSchema.safeParse(requestBody);
-    if (!validationResult.success) {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: validationResult.error.format(),
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    const command: CreatePortfolioCommand = validationResult.data;
-
-    // Step 3: Check if portfolio already exists
-    const portfolioExists = await PortfolioService.checkPortfolioExists(supabase, authenticatedUser.user.id);
-    if (portfolioExists) {
-      throw new Error("PORTFOLIO_ALREADY_EXISTS");
-    }
-
-    // Step 4: Create portfolio via service
-    const createdPortfolio = await PortfolioService.createPortfolio(supabase, authenticatedUser.user.id, command);
-
-    // Step 5: Return success response
-    const response: ApiSuccessResponse<PortfolioDto> = {
-      data: createdPortfolio,
-    };
-
-    return new Response(JSON.stringify(response), {
-      status: 201,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
-    // Handle authentication errors (401)
-    if (error.message === "UNAUTHENTICATED" || error.name === "UNAUTHENTICATED") {
+    if (!locals.user) {
       const errorResponse: ApiErrorResponse = {
         error: {
           code: "UNAUTHORIZED",
@@ -117,27 +51,47 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Handle profile not found errors (401)
-    if (error.message === "PROFILE_NOT_FOUND" || error.name === "PROFILE_NOT_FOUND") {
+    // Step 2: Parse and validate request body
+    let requestData;
+    try {
+      requestData = await request.json();
+    } catch {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "UNAUTHORIZED",
-          message: "User profile not found",
+          code: "BAD_REQUEST",
+          message: "Invalid JSON in request body",
           requestId,
         },
       };
       return new Response(JSON.stringify(errorResponse), {
-        status: 401,
+        status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Handle portfolio already exists error (409)
-    if (error.message === "PORTFOLIO_ALREADY_EXISTS" || error.name === "PORTFOLIO_ALREADY_EXISTS") {
+    const validationResult = createPortfolioSchema.safeParse(requestData);
+    if (!validationResult.success) {
       const errorResponse: ApiErrorResponse = {
         error: {
-          code: "PORTFOLIO_ALREADY_EXISTS",
-          message: "A portfolio already exists for this user",
+          code: "VALIDATION_ERROR",
+          message: "Invalid portfolio data",
+          requestId,
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Step 3: Check if user already has a portfolio
+    const existingPortfolio = await repositories.portfolios.findByUserId(locals.user.user_id);
+
+    if (existingPortfolio) {
+      const errorResponse: ApiErrorResponse = {
+        error: {
+          code: "CONFLICT",
+          message: "User already has a portfolio",
           requestId,
         },
       };
@@ -147,22 +101,29 @@ export const POST: APIRoute = async (context) => {
       });
     }
 
-    // Handle validation errors (422)
-    if (error.message === "VALIDATION_ERROR" || error.name === "VALIDATION_ERROR") {
-      const errorResponse: ApiErrorResponse = {
-        error: {
-          code: "VALIDATION_ERROR",
-          message: "Invalid input data",
-          details: error.details,
-          requestId,
-        },
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 422,
-        headers: { "Content-Type": "application/json" },
-      });
+    // Step 4: Create new portfolio
+    const createData: { user_id: string; draft_data?: PortfolioData } = {
+      user_id: locals.user.user_id,
+    };
+    if (validationResult.data.draft_data) {
+      createData.draft_data = validationResult.data.draft_data;
     }
+    const newPortfolio = await repositories.portfolios.create(createData);
 
+    // Step 5: Return success response
+    const response: ApiSuccessResponse<PortfolioDto> = {
+      data: newPortfolio,
+    };
+
+    return new Response(JSON.stringify(response), {
+      status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
     // Handle database errors (500)
     if (error.message === "DATABASE_ERROR" || error.name === "DATABASE_ERROR") {
       await logError(supabase, {
@@ -174,7 +135,7 @@ export const POST: APIRoute = async (context) => {
         route: request.url,
         request_id: requestId,
         stack: error.stack,
-        context: { user_id: error.userId },
+        context: { user_id: locals.user?.user_id },
       });
 
       const errorResponse: ApiErrorResponse = {

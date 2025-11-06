@@ -182,22 +182,62 @@ export class PortfolioRepository extends BaseRepository {
    * This function validates requirements (≥1 section, ≥1 component) and copies draft_data to published_data
    *
    * @param portfolioId - Portfolio ID to publish
+   * @param userId - User ID for ownership verification
    * @returns Promise<PortfolioRow> - Updated portfolio with published_data
    */
-  async publish(portfolioId: string): Promise<PortfolioRow> {
+  async publish(portfolioId: string, userId: string): Promise<PortfolioRow> {
+    // First check ownership at application level
+    const portfolio = await this.findById(portfolioId);
+    if (!portfolio) {
+      throw new AppError("PORTFOLIO_NOT_FOUND", "Portfolio not found", {
+        portfolioId,
+        userId,
+      });
+    }
+
+    if (portfolio.user_id !== userId) {
+      throw new AppError("PORTFOLIO_NOT_FOUND", "Portfolio not found or access denied", {
+        portfolioId,
+        userId,
+      });
+    }
+
+    // Call the database function to publish (with additional ownership check for defense in depth)
     const { data, error } = await this.supabase.rpc("publish_portfolio", {
       portfolio_id: portfolioId,
     });
 
     if (error) {
+      // Handle specific PostgreSQL exceptions from the publish_portfolio function
+      if (error.message?.includes("Portfolio must have at least 1 section")) {
+        throw new AppError("UNMET_REQUIREMENTS", "Portfolio must have at least 1 section to publish", {
+          portfolioId,
+          userId,
+        });
+      }
+      if (error.message?.includes("Portfolio must have at least 1 component")) {
+        throw new AppError("UNMET_REQUIREMENTS", "Portfolio must have at least 1 component to publish", {
+          portfolioId,
+          userId,
+        });
+      }
+      // Also check for the full message with parentheses
+      if (error.message?.includes("Portfolio must have at least 1 component (in sections or bio)")) {
+        throw new AppError("UNMET_REQUIREMENTS", "Portfolio must have at least 1 component to publish", {
+          portfolioId,
+          userId,
+        });
+      }
+
       throw new AppError("DATABASE_ERROR", "Failed to publish portfolio via DB function", {
         portfolioId,
+        userId,
         cause: error,
       });
     }
 
     if (!data) {
-      throw new AppError("DATABASE_ERROR", "No data returned from publish function", { portfolioId });
+      throw new AppError("DATABASE_ERROR", "No data returned from publish function", { portfolioId, userId });
     }
 
     return data as PortfolioRow;

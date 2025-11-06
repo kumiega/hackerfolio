@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import type { ApiSuccessResponse, ApiErrorResponse, PortfolioDto } from "@/types";
-import { PortfolioService } from "@/lib/services/portfolio.service";
+import { PortfolioRepository } from "@/lib/repositories/portfolio.repository";
 import { logError } from "@/lib/error-utils";
 
 // Disable prerendering for this API route
@@ -40,7 +40,8 @@ export const GET: APIRoute = async (context) => {
     }
 
     // Step 2: Fetch user's portfolio
-    const portfolio = await PortfolioService.getUserPortfolio(locals.user.user_id);
+    const portfolioRepository = new PortfolioRepository(locals.supabase);
+    const portfolio = await portfolioRepository.findByUserId(locals.user.user_id);
 
     // Step 3: Handle case where portfolio doesn't exist
     if (!portfolio) {

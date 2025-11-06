@@ -1,8 +1,7 @@
 import type { APIRoute } from "astro";
-import type { ApiSuccessResponse, PortfolioDto, UpdatePortfolioCommand, AuthSessionDto } from "@/types";
+import type { ApiSuccessResponse, PortfolioDto, UpdatePortfolioCommand } from "@/types";
 import { z } from "zod";
 import { PortfolioService } from "@/lib/services/portfolio.service";
-import { AuthService } from "@/lib/services/auth.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 
 // Disable prerendering for this API route
@@ -12,24 +11,41 @@ export const prerender = false;
  * Zod schema for portfolio update validation (draft_data)
  * Validates the JSONB structure with sections and components
  */
+const componentTypeSchema = z.enum([
+  "text",
+  "cards",
+  "pills",
+  "social_links",
+  "list",
+  "image",
+  "bio",
+  "full_name",
+  "avatar",
+]);
+
 const componentSchema = z.object({
-  id: z.string().uuid(),
-  type: z.enum(["text", "cards", "pills", "social_links", "list", "image", "bio", "full_name", "avatar"]),
-  data: z.record(z.any()),
+  id: z.string().min(1), // Allow any non-empty string for IDs
+  type: componentTypeSchema,
+  data: z.object({}).catchall(z.unknown()), // Allow any object structure for component data
+  visible: z.boolean().optional(), // Optional for backward compatibility
 });
 
 const sectionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().min(1), // Allow any non-empty string for IDs
   title: z.string().min(1).max(150),
-  slug: z.string(),
-  description: z.string(),
-  visible: z.boolean(),
+  slug: z.string(), // Allow empty slugs for now
+  description: z.string(), // Allow empty descriptions for now
+  visible: z.boolean().optional().default(true), // Make optional with default
   components: z.array(componentSchema),
 });
 
 const updatePortfolioSchema = z.object({
   draft_data: z.object({
-    sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed"),
+    full_name: z.string().min(1).max(100).optional(),
+    position: z.string().min(1).max(100).optional(),
+    bio: z.array(componentSchema).optional(),
+    avatar_url: z.string().nullable().optional(),
+    sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed").optional(),
   }),
 });
 
@@ -54,11 +70,12 @@ export const PATCH: APIRoute = async (context) => {
   const supabase = locals.supabase;
   const requestId = locals.requestId || crypto.randomUUID();
   const portfolioId = params.id;
-  let authenticatedUser: AuthSessionDto | null = null;
 
   try {
     // Step 1: Authentication check
-    authenticatedUser = await AuthService.getCurrentSession(supabase);
+    if (!locals.user) {
+      return createErrorResponse("UNAUTHENTICATED", requestId);
+    }
 
     // Step 2: Validate portfolio ID parameter
     if (!portfolioId || typeof portfolioId !== "string") {
@@ -78,10 +95,10 @@ export const PATCH: APIRoute = async (context) => {
       return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid input data", validationResult.error.format());
     }
 
-    const command: UpdatePortfolioCommand = validationResult.data;
+    const command: UpdatePortfolioCommand = validationResult.data as UpdatePortfolioCommand;
 
     // Step 4: Update portfolio via service (includes limit validation)
-    const updatedPortfolio = await PortfolioService.updatePortfolio(portfolioId, authenticatedUser.user.id, command);
+    const updatedPortfolio = await PortfolioService.updatePortfolio(portfolioId, locals.user.user_id, command);
 
     // Step 5: Return success response
     const response: ApiSuccessResponse<PortfolioDto> = {
@@ -101,7 +118,7 @@ export const PATCH: APIRoute = async (context) => {
       endpoint: `PATCH /api/v1/portfolios/${portfolioId}`,
       route: request.url,
       portfolioId,
-      userId: authenticatedUser?.user?.id,
+      userId: locals.user?.user_id,
     });
   }
 };
