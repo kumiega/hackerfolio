@@ -72,17 +72,30 @@ const bioText = data.bio
   .filter((component: Component) => component.type === "text" && component.visible !== false)
   .map((component: Component) => (component.data as { content: string }).content)
   .join(" ");
+
+const fullName =
+  data.bio
+    .filter((component: Component) => component.type === "personal_info" && component.visible !== false)
+    .map((component: Component) => (component.data as { full_name: string }).full_name)
+    .join(" ") || "Your Name";
+
+const avatarUrl =
+  data.bio
+    .filter((component: Component) => component.type === "avatar" && component.visible !== false)
+    .map((component: Component) => (component.data as { avatar_url: string }).avatar_url)
+    .join(" ") || "/images/avatar.jpg";
+
+const position =
+  data.bio
+    .filter((component: Component) => component.type === "personal_info" && component.visible !== false)
+    .map((component: Component) => (component.data as { position?: string }).position)
+    .filter(Boolean)
+    .join(" ") || null;
 ---
 
 <Layout title="Portfolio - Hackerfolio">
-  <div class="max-w-[480px] mx-auto pt-24 px-5 relative z-[1]">
-    <BioSection
-      name={data.full_name}
-      title={data.position}
-      description={bioText}
-      avatarSrc={data.avatar_url || "/images/avatar.jpg"}
-      links={socialLinks}
-    />
+  <div class="max-w-[480px] mx-auto pt-24 px-5 relative z-[1] flex-1">
+    <BioSection name={fullName} title={position} description={bioText} avatarSrc={avatarUrl} links={socialLinks} />
 
     <main>
       <SectionRenderer sections={data.sections} />

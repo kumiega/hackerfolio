@@ -11,7 +11,7 @@ import { CardForm } from "./forms/card-form";
 import { PillsForm } from "./forms/pills-form";
 import { SocialLinksForm } from "./forms/social-links-form";
 import { BioForm } from "./forms/bio-form";
-import { FullNameForm } from "./forms/full-name-form";
+import { PersonalInfoForm } from "./forms/personal-info-form";
 import { AvatarForm } from "./forms/avatar-form";
 import { ListForm } from "./forms/list-form";
 
@@ -107,9 +107,14 @@ export function ComponentEditor({ component, onSave, onCancel, githubAvatarUrl }
           />
         );
 
-      case "full_name":
+      case "personal_info":
         return (
-          <FullNameForm full_name={formData.full_name as string} onChange={updateFormData} error={errors.full_name} />
+          <PersonalInfoForm
+            full_name={formData.full_name as string}
+            position={formData.position as string}
+            onChange={updateFormData}
+            errors={errors}
+          />
         );
 
       case "avatar":

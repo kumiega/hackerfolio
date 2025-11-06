@@ -27,7 +27,6 @@ import { Spinner } from "@/components/ui/spinner";
 
 import { validateComponentData } from "@/lib/schemas/component.schemas";
 
-
 import { toast } from "sonner";
 
 // Default empty portfolio structure

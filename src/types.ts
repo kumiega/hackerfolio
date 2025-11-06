@@ -13,7 +13,7 @@ export type ComponentType =
   | "list"
   | "image"
   | "bio"
-  | "full_name"
+  | "personal_info"
   | "avatar";
 
 // ============================================================================
@@ -67,8 +67,9 @@ export interface BioComponentData {
   about: string; // <= 2000 chars
 }
 
-export interface FullNameComponentData {
+export interface PersonalInfoComponentData {
   full_name: string; // <= 100 chars
+  position?: string; // <= 100 chars
 }
 
 export interface AvatarComponentData {
@@ -92,7 +93,7 @@ export type ComponentData =
   | ImageComponentData
   | BioComponentData
   | OrderedListComponentData
-  | FullNameComponentData
+  | PersonalInfoComponentData
   | AvatarComponentData;
 
 // ============================================================================
@@ -336,7 +337,7 @@ export interface ComponentDataMap {
   list: LinkListComponentData | OrderedListComponentData;
   image: ImageComponentData;
   bio: BioComponentData;
-  full_name: FullNameComponentData;
+  personal_info: PersonalInfoComponentData;
   avatar: AvatarComponentData;
 }
 

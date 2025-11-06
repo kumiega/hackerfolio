@@ -14,7 +14,7 @@ import { SocialLinksForm } from "./forms/social-links-form";
 import { ListForm } from "./forms/list-form";
 import { ImageForm } from "./forms/image-form";
 import { BioForm } from "./forms/bio-form";
-import { FullNameForm } from "./forms/full-name-form";
+import { PersonalInfoForm } from "./forms/personal-info-form";
 import { AvatarForm } from "./forms/avatar-form";
 
 interface AddComponentFormProps {
@@ -109,8 +109,8 @@ export function AddComponentForm({ onSave, onCancel }: AddComponentFormProps) {
           <BioForm headline={formData.headline as string} about={formData.about as string} onChange={updateFormData} />
         );
 
-      case "full_name":
-        return <FullNameForm full_name={formData.full_name as string} onChange={updateFormData} />;
+      case "personal_info":
+        return <PersonalInfoForm full_name={formData.full_name as string} onChange={updateFormData} />;
 
       case "avatar":
         return <AvatarForm avatar_url={formData.avatar_url as string} onChange={updateFormData} />;

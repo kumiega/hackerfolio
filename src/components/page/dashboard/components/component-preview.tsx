@@ -6,7 +6,7 @@ import { SocialLinksPreview } from "./previews/social-links-preview";
 import { ListPreview } from "./previews/list-preview";
 import { ImagePreview } from "./previews/image-preview";
 import { BioPreview } from "./previews/bio-preview";
-import { FullNamePreview } from "./previews/full-name-preview";
+import { PersonalInfoPreview } from "./previews/personal-info-preview";
 import { AvatarPreview } from "./previews/avatar-preview";
 import { UnknownPreview } from "./previews/unknown-preview";
 
@@ -36,8 +36,13 @@ export function ComponentPreview({ component }: ComponentPreviewProps) {
       return <ImagePreview alt={(component.data as { alt: string }).alt} />;
     case "bio":
       return <BioPreview headline={(component.data as { headline: string }).headline} />;
-    case "full_name":
-      return <FullNamePreview full_name={(component.data as { full_name: string }).full_name} />;
+    case "personal_info":
+      return (
+        <PersonalInfoPreview
+          full_name={(component.data as { full_name: string }).full_name}
+          position={(component.data as { position?: string }).position}
+        />
+      );
     case "avatar":
       return <AvatarPreview avatar_url={(component.data as { avatar_url: string }).avatar_url} />;
     default:

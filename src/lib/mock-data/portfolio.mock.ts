@@ -17,7 +17,7 @@ export const mockPortfolioData: PortfolioData = {
     },
     {
       id: "bio-full-name",
-      type: "full_name",
+      type: "personal_info",
       data: {
         full_name: "Mark Coderfast",
       },

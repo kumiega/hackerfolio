@@ -65,7 +65,7 @@ export function BioSection({
                       variant="ghost"
                       size="sm"
                       onClick={() => onEditComponent(component.id)}
-                      aria-label={`Edit ${component.type} component`}
+                      aria-label={`Edit ${component.type === "personal_info" ? "Personal Info" : component.type} component`}
                     >
                       <Edit3 className="h-4 w-4" />
                     </Button>
@@ -73,7 +73,7 @@ export function BioSection({
                       variant="ghost"
                       size="sm"
                       onClick={() => onToggleComponentVisibility(component.id)}
-                      aria-label={`${component.visible === false ? "Show" : "Hide"} ${component.type} component`}
+                      aria-label={`${component.visible === false ? "Show" : "Hide"} ${component.type === "personal_info" ? "Personal Info" : component.type} component`}
                     >
                       {component.visible === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
