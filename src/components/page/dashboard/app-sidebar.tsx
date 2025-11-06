@@ -18,13 +18,13 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 const data = {
   navMain: [
     {
-      title: "Bio Editor",
+      title: "Bio",
       url: "/dashboard/bio",
       icon: User,
       isActive: false,
     },
     {
-      title: "Sections Editor",
+      title: "Sections",
       url: "/dashboard/editor",
       icon: FileText,
       isActive: false,

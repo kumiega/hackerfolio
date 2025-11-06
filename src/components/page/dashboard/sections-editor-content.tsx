@@ -441,15 +441,15 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner className="h-8 w-8" />
+      <div className="flex items-center justify-center flex-1">
+        <Spinner className="h-8 w-8 text-primary" />
       </div>
     );
   }
 
   if (error && !portfolioData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center flex-1">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Portfolio</h3>
           <p className="text-muted-foreground">{error}</p>

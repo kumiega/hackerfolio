@@ -8,8 +8,6 @@ import type { Component, PortfolioData, User } from "@/types";
 import { BioSection } from "./components/bio-section";
 import { Spinner } from "@/components/ui/spinner";
 
-import { validateComponentData } from "@/lib/schemas/component.schemas";
-
 import { toast } from "sonner";
 
 // Default empty bio structure
@@ -72,11 +70,11 @@ const PortfolioApiClient = {
     return data.data;
   },
 
-  async getPortfolio(userId: string): Promise<PortfolioData> {
+  async getPortfolio(userId: string): Promise<PortfolioDto> {
     const response = await fetch(`/api/v1/portfolios/me`, {
       method: "GET",
     });
-    return this.handleResponse<PortfolioData>(response);
+    return this.handleResponse<PortfolioDto>(response);
   },
 
   async updatePortfolio(id: string, data: Partial<PortfolioData>): Promise<PortfolioData> {
@@ -142,11 +140,11 @@ export function BioEditorContent({
 
         const portfolio = await PortfolioApiClient.getPortfolio(user.user_id);
 
-        // Extract bio components or use defaults
-        const bioComponents = portfolio.bio && portfolio.bio.length > 0 ? portfolio.bio : defaultBioComponents;
+        // Extract bio components from draft_data or use defaults
+        const bioComponents = portfolio.draft_data.bio && portfolio.draft_data.bio.length > 0 ? portfolio.draft_data.bio : defaultBioComponents;
 
         setPortfolioData({
-          ...portfolio,
+          ...portfolio.draft_data,
           bio: bioComponents,
         });
         setPortfolioId(portfolio.id);
@@ -342,15 +340,15 @@ export function BioEditorContent({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Spinner className="h-8 w-8" />
+      <div className="flex items-center justify-center flex-1">
+        <Spinner className="h-8 w-8 text-primary" />
       </div>
     );
   }
 
   if (error && !portfolioData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center flex-1">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Bio</h3>
           <p className="text-muted-foreground">{error}</p>
@@ -361,7 +359,7 @@ export function BioEditorContent({
 
   if (!portfolioData) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex items-center justify-center flex-1">
         <div className="text-center">
           <h3 className="text-lg font-semibold mb-2">No Bio Data</h3>
           <p className="text-muted-foreground">Unable to load bio information</p>

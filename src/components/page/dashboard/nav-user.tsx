@@ -1,7 +1,6 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useState } from "react";
 
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
