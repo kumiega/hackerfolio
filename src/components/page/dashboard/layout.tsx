@@ -4,16 +4,19 @@ import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
 import { Toaster } from "@/components/ui/sonner";
 
+import type { User } from "@/types";
+
 interface DashboardLayoutProps {
   children?: React.ReactNode;
   currentPath?: string;
+  user?: User;
 }
 
-export function DashboardLayout({ children, currentPath }: DashboardLayoutProps) {
+export function DashboardLayout({ children, currentPath, user }: DashboardLayoutProps) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
       <SidebarProvider className="flex flex-col">
-        <SiteHeader currentPath={currentPath} />
+        <SiteHeader currentPath={currentPath} user={user} />
         <div className="flex flex-1">
           <AppSidebar currentPath={currentPath} />
           <SidebarInset>
