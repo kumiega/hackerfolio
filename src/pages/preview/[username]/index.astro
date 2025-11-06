@@ -4,26 +4,60 @@ import BioSection from "@/components/page/portfolio/bio.astro";
 import SectionRenderer from "@/components/page/portfolio/section-renderer.astro";
 import Footer from "@/components/page/portfolio/footer.astro";
 import PixelBlast from "@/components/ui/pixel-blast";
+import type { Component } from "@/types";
 
 import "@/styles/portfolio.css";
 
-import { mockPortfolioData as data } from "@/lib/mock-data";
+export const prerender = false;
+
+const { params, locals } = Astro;
+const username = params.username;
+
+// Check authentication
+if (!locals.user) {
+  return Astro.redirect("/signin");
+}
+
+// Check if user owns this portfolio
+if (locals.user.username !== username) {
+  return Astro.redirect("/dashboard");
+}
+
+// Fetch preview data from API
+const response = await fetch(`${Astro.url.origin}/api/v1/preview/portfolios/${username}`, {
+  headers: {
+    Cookie: Astro.request.headers.get("cookie") || "",
+  },
+});
+
+if (!response.ok) {
+  if (response.status === 404) {
+    return Astro.redirect("/dashboard");
+  }
+  throw new Error(`Failed to fetch preview data: ${response.status}`);
+}
+
+const apiResponse = await response.json();
+const previewData = apiResponse.data;
+
+// Extract data from the API response
+const data = previewData.draft_data;
 
 const socialLinks = data.bio
-  .filter((component) => component.type === "social_links" && component.visible !== false)
+  .filter((component: Component) => component.type === "social_links" && component.visible !== false)
   .reduce(
-    (links, component) => {
-      const data = component.data as {
+    (links: Record<string, string>, component: Component) => {
+      const componentData = component.data as {
         github?: string;
         linkedin?: string;
         x?: string;
         website?: { name: string; url: string }[];
       };
-      if (data.github) links.github = data.github;
-      if (data.linkedin) links.linkedin = data.linkedin;
-      if (data.x) links.twitter = data.x;
-      if (data.website) {
-        data.website.forEach((site) => {
+      if (componentData.github) links.github = componentData.github;
+      if (componentData.linkedin) links.linkedin = componentData.linkedin;
+      if (componentData.x) links.twitter = componentData.x;
+      if (componentData.website) {
+        componentData.website.forEach((site) => {
           if (site.name?.toLowerCase().includes("blog")) {
             links.blog = site.url;
           }
@@ -35,8 +69,8 @@ const socialLinks = data.bio
   );
 
 const bioText = data.bio
-  .filter((component) => component.type === "text" && component.visible !== false)
-  .map((component) => (component.data as { content: string }).content)
+  .filter((component: Component) => component.type === "text" && component.visible !== false)
+  .map((component: Component) => (component.data as { content: string }).content)
   .join(" ");
 ---
 
