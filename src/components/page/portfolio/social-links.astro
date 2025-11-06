@@ -31,21 +31,21 @@ const { github, linkedin, x, website, title } = Astro.props;
 
   <nav class="flex flex-wrap gap-2" aria-label="Social links">
     {
-      github && (
+      github && github.trim() && (
         <a class="link-button" href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
           GitHub
         </a>
       )
     }
     {
-      linkedin && (
+      linkedin && linkedin.trim() && (
         <a class="link-button" href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
           LinkedIn
         </a>
       )
     }
     {
-      x && (
+      x && x.trim() && (
         <a class="link-button" href={x} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter) profile">
           X
         </a>
@@ -53,18 +53,20 @@ const { github, linkedin, x, website, title } = Astro.props;
     }
     {
       website &&
-        website.map((site) => (
-          <a
-            key={site.url}
-            class="link-button"
-            href={site.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={`${site.name} website`}
-          >
-            {site.name}
-          </a>
-        ))
+        website
+          .filter((site) => site.name?.trim() && site.url?.trim())
+          .map((site) => (
+            <a
+              key={site.url}
+              class="link-button"
+              href={site.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${site.name} website`}
+            >
+              {site.name}
+            </a>
+          ))
     }
   </nav>
 </section>

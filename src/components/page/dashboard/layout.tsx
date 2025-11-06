@@ -10,13 +10,32 @@ interface DashboardLayoutProps {
   children?: React.ReactNode;
   currentPath?: string;
   user?: User;
+  onSavePortfolio?: () => void;
+  onPublishPortfolio?: () => void;
+  isSaving?: boolean;
+  isPublishing?: boolean;
 }
 
-export function DashboardLayout({ children, currentPath, user }: DashboardLayoutProps) {
+export function DashboardLayout({
+  children,
+  currentPath,
+  user,
+  onSavePortfolio,
+  onPublishPortfolio,
+  isSaving,
+  isPublishing,
+}: DashboardLayoutProps) {
   return (
     <div className="[--header-height:calc(--spacing(14))]">
       <SidebarProvider className="flex flex-col">
-        <SiteHeader currentPath={currentPath} user={user} />
+        <SiteHeader
+          currentPath={currentPath}
+          user={user}
+          onSavePortfolio={onSavePortfolio}
+          onPublishPortfolio={onPublishPortfolio}
+          isSaving={isSaving}
+          isPublishing={isPublishing}
+        />
         <div className="flex flex-1">
           <AppSidebar currentPath={currentPath} />
           <SidebarInset>

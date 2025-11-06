@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PanelsTopLeft, Settings2 } from "lucide-react";
+import { PanelsTopLeft, Settings2, User, FileText } from "lucide-react";
 
 import { NavMain } from "@/components/page/dashboard/nav-main";
 import { NavUser } from "@/components/page/dashboard/nav-user";
@@ -18,9 +18,15 @@ import { UserAvatar } from "@/components/ui/user-avatar";
 const data = {
   navMain: [
     {
-      title: "Editor",
+      title: "Bio Editor",
+      url: "/dashboard/bio",
+      icon: User,
+      isActive: false,
+    },
+    {
+      title: "Sections Editor",
       url: "/dashboard/editor",
-      icon: PanelsTopLeft,
+      icon: FileText,
       isActive: false,
     },
     {

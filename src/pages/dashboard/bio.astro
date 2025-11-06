@@ -1,6 +1,6 @@
 ---
 import Layout from "../../layouts/layout-base.astro";
-import { SectionsEditorPage } from "@/components/page/dashboard/sections-editor-page";
+import { BioEditorPage } from "@/components/page/dashboard/bio-editor-page";
 
 const { user } = Astro.locals;
 
@@ -13,6 +13,6 @@ if (user && !user.is_onboarded) {
 }
 ---
 
-<Layout title="Portfolio Editor - Hackerfolio">
-  <SectionsEditorPage client:load user={user} currentPath="/dashboard/editor" />
+<Layout title="Bio Editor - Hackerfolio">
+  <BioEditorPage client:load user={user} currentPath="/dashboard/bio" />
 </Layout>

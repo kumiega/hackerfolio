@@ -9,29 +9,33 @@ export const mockPortfolioData: PortfolioData = {
   position: "Full-stack developer at Google",
   bio: [
     {
-      id: "bio-avatar",
+      id: "default-avatar",
       type: "avatar",
       data: {
         avatar_url: "/images/avatar.jpg",
       },
+      visible: true,
     },
     {
-      id: "bio-full-name",
+      id: "default-personal-info",
       type: "personal_info",
       data: {
         full_name: "Mark Coderfast",
+        position: "Full-stack Developer",
       },
+      visible: true,
     },
     {
-      id: "bio-text",
+      id: "default-bio-text",
       type: "text",
       data: {
         content:
           "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
       },
+      visible: true,
     },
     {
-      id: "bio-social",
+      id: "default-social-links",
       type: "social_links",
       data: {
         github: "https://github.com/markcoderfast",
@@ -39,6 +43,7 @@ export const mockPortfolioData: PortfolioData = {
         x: "https://twitter.com/markcoderfast",
         website: [{ name: "Blog", url: "https://markcoderfast.com" }],
       },
+      visible: true,
     },
   ],
   avatar_url: "/images/avatar.jpg",

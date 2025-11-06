@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit3, Eye, EyeOff } from "lucide-react";
+import { Edit3, Eye, EyeOff, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Component } from "@/types";
@@ -13,6 +13,7 @@ interface BioSectionProps {
   onEditComponent: (componentId: string) => void;
   onSaveComponent: (component: Component) => void;
   onToggleComponentVisibility: (componentId: string) => void;
+  onDeleteComponent?: (componentId: string) => void;
   githubAvatarUrl?: string;
 }
 
@@ -22,11 +23,17 @@ export function BioSection({
   onEditComponent,
   onSaveComponent,
   onToggleComponentVisibility,
+  onDeleteComponent,
   githubAvatarUrl,
 }: BioSectionProps) {
   // Filter to show only visible components, but allow editing of hidden ones
   const visibleBio = bio.filter((component) => component.visible !== false);
   if (visibleBio.length === 0 && bio.length === 0) return null;
+
+  // Default bio components that cannot be removed or have limited actions
+  const isDefaultBioComponent = (component: Component) => {
+    return ["personal_info", "avatar", "social_links", "text"].includes(component.type);
+  };
 
   return (
     <Card className="border bg-background">
@@ -69,14 +76,28 @@ export function BioSection({
                     >
                       <Edit3 className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onToggleComponentVisibility(component.id)}
-                      aria-label={`${component.visible === false ? "Show" : "Hide"} ${component.type === "personal_info" ? "Personal Info" : component.type} component`}
-                    >
-                      {component.visible === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                    </Button>
+                    {!isDefaultBioComponent(component) && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onToggleComponentVisibility(component.id)}
+                          aria-label={`${component.visible === false ? "Show" : "Hide"} ${component.type === "personal_info" ? "Personal Info" : component.type} component`}
+                        >
+                          {component.visible === false ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                        </Button>
+                        {onDeleteComponent && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onDeleteComponent(component.id)}
+                            aria-label={`Delete ${component.type} component`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

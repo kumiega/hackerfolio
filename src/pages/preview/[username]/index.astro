@@ -53,12 +53,12 @@ const socialLinks = data.bio
         x?: string;
         website?: { name: string; url: string }[];
       };
-      if (componentData.github) links.github = componentData.github;
-      if (componentData.linkedin) links.linkedin = componentData.linkedin;
-      if (componentData.x) links.twitter = componentData.x;
-      if (componentData.website) {
+      if (componentData.github && componentData.github.trim()) links.github = componentData.github;
+      if (componentData.linkedin && componentData.linkedin.trim()) links.linkedin = componentData.linkedin;
+      if (componentData.x && componentData.x.trim()) links.twitter = componentData.x;
+      if (componentData.website && componentData.website.length > 0) {
         componentData.website.forEach((site) => {
-          if (site.name?.toLowerCase().includes("blog")) {
+          if (site.name?.trim() && site.url?.trim() && site.name?.toLowerCase().includes("blog")) {
             links.blog = site.url;
           }
         });

@@ -16,13 +16,8 @@ export function TypeSelection({ value, onChange }: TypeSelectionProps) {
           <SelectValue placeholder="Select a component type" />
         </SelectTrigger>
         <SelectContent className="z-[100]">
-          <SelectItem value="personal_info">Personal Info</SelectItem>
-          <SelectItem value="avatar">Avatar</SelectItem>
-          <SelectItem value="bio">Bio</SelectItem>
-          <SelectItem value="text">Text</SelectItem>
           <SelectItem value="cards">Project Card</SelectItem>
           <SelectItem value="pills">Skills Pills</SelectItem>
-          <SelectItem value="social_links">Social Links</SelectItem>
           <SelectItem value="list">List</SelectItem>
           <SelectItem value="image">Image</SelectItem>
         </SelectContent>
