@@ -464,58 +464,54 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
   };
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex flex-1 flex-col gap-6">
-        <div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight mb-3">Portfolio Editor</h1>
-              <p className="text-muted-foreground">
-                Create and organize the sections and components of your portfolio.
-              </p>
-            </div>
-            <Button onClick={handleAddSection} variant="outline" className="gap-2" aria-label="Add new section">
-              <Plus className="h-4 w-4" />
-              Add Section
-            </Button>
+    <div className="flex flex-1 flex-col gap-6">
+      <div>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight mb-3">Portfolio Editor</h1>
+            <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
           </div>
+          <Button onClick={handleAddSection} variant="outline" className="gap-2" aria-label="Add new section">
+            <Plus className="h-4 w-4" />
+            Add Section
+          </Button>
+        </div>
+      </div>
+
+      <DndContext
+        sensors={sensors}
+        collisionDetection={collisionDetection}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="space-y-3">
+          {portfolioData.sections.length === 0 ? (
+            <EmptySections onAddSection={handleAddSection} />
+          ) : (
+            portfolioData.sections.map((section) => (
+              <SectionContent
+                key={section.id}
+                sections={[section]}
+                editingComponentId={editingComponentId}
+                addingComponentSectionId={addingComponentSectionId}
+                onToggleSectionVisibility={handleToggleSectionVisibility}
+                onDeleteSection={handleDeleteSection}
+                onAddComponent={handleAddComponent}
+                onUpdateSection={handleUpdateSection}
+                onEditComponent={handleEditComponent}
+                onSaveComponent={handleSaveComponent}
+                onDeleteComponent={handleDeleteComponent}
+                onSaveNewComponent={handleSaveNewComponent}
+                onCancelAddComponent={() => setAddingComponentSectionId(null)}
+              />
+            ))
+          )}
         </div>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={collisionDetection}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="space-y-3">
-            {portfolioData.sections.length === 0 ? (
-              <EmptySections onAddSection={handleAddSection} />
-            ) : (
-              portfolioData.sections.map((section) => (
-                <SectionContent
-                  key={section.id}
-                  sections={[section]}
-                  editingComponentId={editingComponentId}
-                  addingComponentSectionId={addingComponentSectionId}
-                  onToggleSectionVisibility={handleToggleSectionVisibility}
-                  onDeleteSection={handleDeleteSection}
-                  onAddComponent={handleAddComponent}
-                  onUpdateSection={handleUpdateSection}
-                  onEditComponent={handleEditComponent}
-                  onSaveComponent={handleSaveComponent}
-                  onDeleteComponent={handleDeleteComponent}
-                  onSaveNewComponent={handleSaveNewComponent}
-                  onCancelAddComponent={() => setAddingComponentSectionId(null)}
-                />
-              ))
-            )}
-          </div>
-
-          <DragOverlay>
-            {activeId ? <DragOverlayContent activeId={activeId} sections={portfolioData.sections} /> : null}
-          </DragOverlay>
-        </DndContext>
-      </div>
+        <DragOverlay>
+          {activeId ? <DragOverlayContent activeId={activeId} sections={portfolioData.sections} /> : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

@@ -1,45 +1,58 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { DashboardLayout } from "@/components/page/dashboard/layout";
+import { useState, useEffect } from "react";
 import { BioEditorContent } from "@/components/page/dashboard/bio-editor-content";
 import type { User } from "@/types";
 
 interface BioEditorPageProps {
   user: User;
-  currentPath: string;
+  onSaveRef?: (fn: (() => void) | null) => void;
+  onPublishRef?: (fn: (() => void) | null) => void;
+  onSavingChange?: (saving: boolean) => void;
+  onPublishingChange?: (publishing: boolean) => void;
 }
 
-export function BioEditorPage({ user, currentPath }: BioEditorPageProps) {
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const saveRef = useRef<(() => void) | null>(null);
-  const publishRef = useRef<(() => void) | null>(null);
+export function BioEditorPage({
+  user,
+  onSaveRef,
+  onPublishRef,
+  onSavingChange,
+  onPublishingChange,
+}: BioEditorPageProps) {
+  const [isSaving, setIsSaving] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
+  const [isPublishing, setIsPublishing] = useState(false); // eslint-disable-line @typescript-eslint/no-unused-vars
 
+  // Update parent state when our state changes
+  const handleSavingChange = (saving: boolean) => {
+    setIsSaving(saving);
+    onSavingChange?.(saving);
+  };
+
+  const handlePublishingChange = (publishing: boolean) => {
+    setIsPublishing(publishing);
+    onPublishingChange?.(publishing);
+  };
+
+  // Set up the save/publish handlers that dispatch events
   const handleSavePortfolio = () => {
-    saveRef.current?.();
+    const event = new CustomEvent("saveBio");
+    window.dispatchEvent(event);
   };
 
   const handlePublishPortfolio = () => {
-    publishRef.current?.();
+    const event = new CustomEvent("publishBio");
+    window.dispatchEvent(event);
   };
 
+  // Provide refs to parent when requested
+  useEffect(() => {
+    onSaveRef?.(handleSavePortfolio);
+    onPublishRef?.(handlePublishPortfolio);
+  }, [onSaveRef, onPublishRef]);
+
   return (
-    <DashboardLayout
-      currentPath={currentPath}
-      user={user}
-      onSavePortfolio={handleSavePortfolio}
-      onPublishPortfolio={handlePublishPortfolio}
-      isSaving={isSaving}
-      isPublishing={isPublishing}
-    >
-      <BioEditorContent
-        user={user}
-        onSavingChange={setIsSaving}
-        onPublishingChange={setIsPublishing}
-        onSaveRef={(fn) => (saveRef.current = fn)}
-        onPublishRef={(fn) => (publishRef.current = fn)}
-      />
-    </DashboardLayout>
+    <div className="p-12">
+      <BioEditorContent user={user} onSavingChange={handleSavingChange} onPublishingChange={handlePublishingChange} />
+    </div>
   );
 }

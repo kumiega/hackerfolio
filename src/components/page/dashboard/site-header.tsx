@@ -42,7 +42,7 @@ export function SiteHeader({
           <SidebarIcon />
         </Button>
         <Separator orientation="vertical" className="mr-2 h-4" />
-        <Breadcrumbs currentPath={currentPath} />
+        <Breadcrumbs pathname={currentPath} />
         <div className="ml-auto flex items-center gap-2">
           {isEditorPage && (
             <>

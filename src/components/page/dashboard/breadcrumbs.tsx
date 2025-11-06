@@ -7,11 +7,14 @@ import {
 } from "@/components/ui/breadcrumb";
 
 interface BreadcrumbsProps {
-  currentPath?: string;
+  pathname?: string;
 }
 
-export function Breadcrumbs({ currentPath }: BreadcrumbsProps) {
-  const getBreadcrumbData = (path?: string) => {
+export function Breadcrumbs({ pathname }: BreadcrumbsProps) {
+  // Normalize pathname by removing trailing slash
+  const normalizedPath = (pathname || "").replace(/\/$/, "") || "/dashboard";
+
+  const getBreadcrumbData = (path: string) => {
     switch (path) {
       case "/dashboard":
         return { label: "Dashboard", href: "/dashboard" };
@@ -19,12 +22,16 @@ export function Breadcrumbs({ currentPath }: BreadcrumbsProps) {
         return { label: "Editor", href: "/dashboard/editor" };
       case "/dashboard/settings":
         return { label: "Settings", href: "/dashboard/settings" };
+      case "/dashboard/theme":
+        return { label: "Theme", href: "/dashboard/theme" };
+      case "/dashboard/bio":
+        return { label: "Bio", href: "/dashboard/bio" };
       default:
         return { label: "Dashboard", href: "/dashboard" };
     }
   };
 
-  const breadcrumbData = getBreadcrumbData(currentPath);
+  const breadcrumbData = getBreadcrumbData(normalizedPath);
 
   return (
     <Breadcrumb className="hidden sm:block">
@@ -32,7 +39,7 @@ export function Breadcrumbs({ currentPath }: BreadcrumbsProps) {
         <BreadcrumbItem>
           <BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
         </BreadcrumbItem>
-        {currentPath !== "/dashboard" && (
+        {normalizedPath !== "/dashboard" && (
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>

@@ -1,73 +1,88 @@
 import * as React from "react";
-import { PanelsTopLeft, Settings2, User, FileText } from "lucide-react";
+import { Settings2, User as UserIcon, FileText, LogOut, Palette } from "lucide-react";
+import { Link } from "react-router";
 
-import { NavMain } from "@/components/page/dashboard/nav-main";
-import { NavUser } from "@/components/page/dashboard/nav-user";
+import { Nav } from "@/components/page/dashboard/nav";
+
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { Logo } from "@/components/ui/logo";
-import { UserAvatar } from "@/components/ui/user-avatar";
 
-const data = {
-  navMain: [
+import { UserAvatar } from "@/components/ui/user-avatar";
+import type { User } from "@/types";
+
+const nav = {
+  portfolio: [
     {
       title: "Bio",
       url: "/dashboard/bio",
-      icon: User,
-      isActive: false,
+      icon: UserIcon,
     },
     {
       title: "Sections",
       url: "/dashboard/editor",
       icon: FileText,
-      isActive: false,
+    },
+  ],
+  user: [
+    {
+      title: "Theme",
+      url: "/dashboard/theme",
+      icon: Palette,
     },
     {
       title: "Settings",
       url: "/dashboard/settings",
       icon: Settings2,
-      isActive: false,
     },
   ],
 };
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user?: User;
   currentPath?: string;
 }
 
-export function AppSidebar({ currentPath, ...props }: AppSidebarProps) {
-  // Update nav items with active state based on current path
-  const navItems = data.navMain.map((item) => ({
-    ...item,
-    isActive: currentPath === item.url,
-  }));
-
+export function AppSidebar({ user, currentPath, ...props }: AppSidebarProps) {
   return (
     <Sidebar className="top-(--header-height) h-[calc(100svh-var(--header-height))]!" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <a href="/dashboard">
+            <Link to="/dashboard">
               <Logo className="text-base sm:text-lg mx-2 pt-0.5" />
-            </a>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarSeparator />
       <SidebarContent>
-        <NavMain items={navItems} />
+        <Nav label="Portfolio" items={nav.portfolio} currentPath={currentPath || "/dashboard"} />
+        <SidebarSeparator />
+        <Nav label="User" items={nav.user} currentPath={currentPath || "/dashboard"} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenuItem>UserAvatar</SidebarMenuItem>
-
-        <NavUser />
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <UserAvatar user={user ?? null} />
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <form method="POST" action="/api/v1/auth/signout">
+              <SidebarMenuButton type="submit" tooltip="Log out" className="w-full">
+                <LogOut />
+                <span>Log out</span>
+              </SidebarMenuButton>
+            </form>
+          </SidebarMenuItem>
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

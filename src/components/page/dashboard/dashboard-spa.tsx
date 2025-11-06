@@ -2,7 +2,7 @@
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
 import { useState, useRef } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
 import { Toaster } from "@/components/ui/sonner";
@@ -15,9 +15,9 @@ import { SectionsEditorPage } from "@/components/page/dashboard/sections-editor-
 import { SettingsPage } from "@/components/page/dashboard/settings-page";
 import { ThemePage } from "@/components/page/dashboard/theme-page";
 
-interface DashboardLayoutProps {
+interface DashboardSPAProps {
   user: User;
-  currentPath?: string;
+  currentPath: string;
 }
 
 function DashboardContent({ user, currentPath }: { user: User; currentPath?: string }) {
@@ -52,51 +52,49 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
         />
         <div className="flex flex-1">
           <AppSidebar user={user} currentPath={actualCurrentPath} />
-          <SidebarInset className="p-12">
-            <Routes>
-              <Route
-                path="/dashboard/bio"
-                element={
-                  <BioEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
-              />
-              <Route
-                path="/dashboard/editor"
-                element={
-                  <SectionsEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
-              />
-              <Route
-                path="/dashboard/settings"
-                element={<SettingsPage user={user} currentPath="/dashboard/settings" />}
-              />
-              <Route path="/dashboard/theme" element={<ThemePage user={user} currentPath="/dashboard/theme" />} />
-              <Route
-                path="/dashboard"
-                element={
-                  <BioEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
-              />
-            </Routes>
-          </SidebarInset>
+          <Routes>
+            <Route
+              path="/dashboard/bio"
+              element={
+                <BioEditorPage
+                  user={user}
+                  onSaveRef={(fn) => (saveRef.current = fn)}
+                  onPublishRef={(fn) => (publishRef.current = fn)}
+                  onSavingChange={setIsSaving}
+                  onPublishingChange={setIsPublishing}
+                />
+              }
+            />
+            <Route
+              path="/dashboard/editor"
+              element={
+                <SectionsEditorPage
+                  user={user}
+                  onSaveRef={(fn) => (saveRef.current = fn)}
+                  onPublishRef={(fn) => (publishRef.current = fn)}
+                  onSavingChange={setIsSaving}
+                  onPublishingChange={setIsPublishing}
+                />
+              }
+            />
+            <Route
+              path="/dashboard/settings"
+              element={<SettingsPage user={user} currentPath="/dashboard/settings" />}
+            />
+            <Route path="/dashboard/theme" element={<ThemePage user={user} currentPath="/dashboard/theme" />} />
+            <Route
+              path="/dashboard"
+              element={
+                <BioEditorPage
+                  user={user}
+                  onSaveRef={(fn) => (saveRef.current = fn)}
+                  onPublishRef={(fn) => (publishRef.current = fn)}
+                  onSavingChange={setIsSaving}
+                  onPublishingChange={setIsPublishing}
+                />
+              }
+            />
+          </Routes>
         </div>
       </SidebarProvider>
       <Toaster />
@@ -104,7 +102,7 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
   );
 }
 
-export function DashboardLayout({ user, currentPath }: DashboardLayoutProps) {
+export function DashboardSPA({ user, currentPath }: DashboardSPAProps) {
   return (
     <BrowserRouter>
       <DashboardContent user={user} currentPath={currentPath} />

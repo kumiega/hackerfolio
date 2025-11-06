@@ -141,7 +141,10 @@ export function BioEditorContent({
         const portfolio = await PortfolioApiClient.getPortfolio(user.user_id);
 
         // Extract bio components from draft_data or use defaults
-        const bioComponents = portfolio.draft_data.bio && portfolio.draft_data.bio.length > 0 ? portfolio.draft_data.bio : defaultBioComponents;
+        const bioComponents =
+          portfolio.draft_data.bio && portfolio.draft_data.bio.length > 0
+            ? portfolio.draft_data.bio
+            : defaultBioComponents;
 
         setPortfolioData({
           ...portfolio.draft_data,
@@ -369,27 +372,25 @@ export function BioEditorContent({
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-6">
-      <div className="flex flex-1 flex-col gap-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight mb-3">Bio Editor</h1>
-          <p className="text-muted-foreground">
-            Customize your personal information, avatar, social links, and bio text.
-          </p>
-        </div>
-
-        <DndContext sensors={sensors} collisionDetection={closestCenter}>
-          <div className="space-y-3">
-            <BioSection
-              bio={portfolioData.bio}
-              editingComponentId={editingComponentId}
-              onEditComponent={handleEditComponent}
-              onSaveComponent={handleSaveBioComponent}
-              onToggleComponentVisibility={handleToggleBioComponentVisibility}
-            />
-          </div>
-        </DndContext>
+    <div className="flex flex-1 flex-col gap-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight mb-3">Bio Editor</h1>
+        <p className="text-muted-foreground">
+          Customize your personal information, avatar, social links, and bio text.
+        </p>
       </div>
+
+      <DndContext sensors={sensors} collisionDetection={closestCenter}>
+        <div className="space-y-3">
+          <BioSection
+            bio={portfolioData.bio}
+            editingComponentId={editingComponentId}
+            onEditComponent={handleEditComponent}
+            onSaveComponent={handleSaveBioComponent}
+            onToggleComponentVisibility={handleToggleBioComponentVisibility}
+          />
+        </div>
+      </DndContext>
     </div>
   );
 }

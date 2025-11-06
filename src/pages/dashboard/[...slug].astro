@@ -3,6 +3,7 @@ import Layout from "../../layouts/layout-base.astro";
 import { DashboardLayout } from "@/components/page/dashboard/layout";
 
 const { user } = Astro.locals;
+const currentPath = Astro.url.pathname;
 
 if (!user) {
   return Astro.redirect("/signin");
@@ -14,5 +15,5 @@ if (user && !user.is_onboarded) {
 ---
 
 <Layout title="Dashboard - Hackerfolio">
-  <DashboardLayout user={user} client:only="react" />
+  <DashboardLayout user={user} currentPath={currentPath} client:only="react" />
 </Layout>
