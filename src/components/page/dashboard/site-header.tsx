@@ -91,7 +91,7 @@ export function SiteHeader({
             </>
           )}
           <Button
-            className="h-8 w-8"
+            className="h-10 w-10"
             variant="ghost"
             size="icon"
             onClick={handlePreview}
