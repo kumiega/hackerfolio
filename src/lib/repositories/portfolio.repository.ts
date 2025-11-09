@@ -215,14 +215,7 @@ export class PortfolioRepository extends BaseRepository {
           userId,
         });
       }
-      if (error.message?.includes("Portfolio must have at least 1 component")) {
-        throw new AppError("UNMET_REQUIREMENTS", "Portfolio must have at least 1 component to publish", {
-          portfolioId,
-          userId,
-        });
-      }
-      // Also check for the full message with parentheses
-      if (error.message?.includes("Portfolio must have at least 1 component (in sections or bio)")) {
+      if (error.message?.includes("Portfolio must have at least 1 component (in sections)")) {
         throw new AppError("UNMET_REQUIREMENTS", "Portfolio must have at least 1 component to publish", {
           portfolioId,
           userId,

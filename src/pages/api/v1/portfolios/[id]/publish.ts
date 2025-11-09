@@ -22,7 +22,7 @@ const publishValidationSchema = z.object({
  * POST /api/v1/portfolios/:id/publish
  *
  * Publishes a portfolio by copying draft_data to published_data.
- * The database function validates that draft_data has at least one section and one component.
+ * The database function validates that draft_data has at least one section and one component in sections.
  * Upon successful publication, published_data is updated and last_published_at timestamp is set.
  *
  * @param id - Portfolio UUID from URL path parameter (required, valid UUID format)
@@ -42,7 +42,7 @@ const publishValidationSchema = z.object({
  * - 404: Non-existent portfolio ID → returns not found
  * - 404: Portfolio belongs to different user → returns not found
  * - 409: draft_data has no sections → returns unmet requirements
- * - 409: draft_data has sections but no components → returns unmet requirements
+ * - 409: draft_data has sections but no components in sections → returns unmet requirements
  * - 500: Database connection error → returns internal error
  */
 export const POST: APIRoute = async (context) => {
