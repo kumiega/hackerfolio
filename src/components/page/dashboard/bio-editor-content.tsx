@@ -101,6 +101,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
     publishRef,
     setSaving,
     setPublishing,
+    portfolioState,
   } = usePortfolioChangeTracker();
 
   // Load portfolio data on mount
@@ -319,6 +320,12 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
     );
   }
 
+  // Format timestamps for display
+  const formatTimestamp = (timestamp: string | null) => {
+    if (!timestamp) return null;
+    return new Date(timestamp).toLocaleString();
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div>
@@ -326,6 +333,14 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         <p className="text-muted-foreground">
           Customize your personal information, avatar, social links, and bio text.
         </p>
+
+        {/* Timestamp info */}
+        <div className="text-[10px] font-mono text-muted  mt-4 space-y-1">
+          <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
+          {portfolioState.lastPublishedAt && (
+            <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
+          )}
+        </div>
       </div>
 
       <div className="space-y-3">

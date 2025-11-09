@@ -13,7 +13,7 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ currentPath }: SiteHeaderProps) {
   const { toggleSidebar } = useSidebar();
-  const { portfolioState, saveBioRef, saveSectionsRef, publishRef, isSaving, isPublishing } =
+  const { saveBioRef, saveSectionsRef, publishRef, isSaving, isPublishing, portfolioState } =
     usePortfolioChangeTracker();
 
   const handleSavePortfolio = () => {
@@ -33,12 +33,6 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
 
   // Show editor buttons only on bio and sections editor pages
   const isEditorPage = currentPath === "/dashboard/bio" || currentPath === "/dashboard/editor";
-
-  // Format timestamps for display
-  const formatTimestamp = (timestamp: string | null) => {
-    if (!timestamp) return "Never";
-    return new Date(timestamp).toLocaleString();
-  };
 
   return (
     <header className="bg-sidebar sticky top-0 z-50 flex w-full items-center border-b">
@@ -95,16 +89,6 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
                 )}
               </Button>
             </>
-          )}
-
-          {/* Timestamp info */}
-          {isEditorPage && portfolioState.lastSavedAt && (
-            <div className="text-xs text-muted-foreground ml-2">
-              <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
-              {portfolioState.lastPublishedAt && (
-                <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
-              )}
-            </div>
           )}
         </div>
       </div>

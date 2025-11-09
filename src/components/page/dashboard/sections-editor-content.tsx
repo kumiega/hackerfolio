@@ -110,6 +110,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     publishRef,
     setSaving,
     setPublishing,
+    portfolioState,
   } = usePortfolioChangeTracker();
 
   const sensors = useSensors(
@@ -135,7 +136,11 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         setPortfolioId(portfolio.id);
 
         // Set initial state in change tracker
-        setInitialState(portfolio.draft_data, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
+        setInitialState(
+          portfolio.draft_data,
+          portfolio.updated_at || undefined,
+          portfolio.last_published_at || undefined
+        );
       } catch (err) {
         console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
@@ -184,20 +189,23 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     setEditingComponentId(componentId);
   }, []);
 
-  const handleSaveComponent = useCallback((component: Component) => {
-    setPortfolioData((prev) => {
-      const updatedSections = prev.sections.map((section) => ({
-        ...section,
-        components: section.components.map((c) => (c.id === component.id ? component : c)),
-      }));
-      return {
-        ...prev,
-        sections: updatedSections,
-      };
-    });
-    setEditingComponentId(null);
-    markAsChanged();
-  }, [markAsChanged]);
+  const handleSaveComponent = useCallback(
+    (component: Component) => {
+      setPortfolioData((prev) => {
+        const updatedSections = prev.sections.map((section) => ({
+          ...section,
+          components: section.components.map((c) => (c.id === component.id ? component : c)),
+        }));
+        return {
+          ...prev,
+          sections: updatedSections,
+        };
+      });
+      setEditingComponentId(null);
+      markAsChanged();
+    },
+    [markAsChanged]
+  );
 
   const handleSaveNewComponent = useCallback(
     (component: Component) => {
@@ -481,6 +489,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     return closestCenter(args);
   };
 
+  // Format timestamps for display
+  const formatTimestamp = (timestamp: string | null) => {
+    if (!timestamp) return null;
+    return new Date(timestamp).toLocaleString();
+  };
+
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div>
@@ -488,6 +502,14 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-3">Portfolio Editor</h1>
             <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
+
+            {/* Timestamp info */}
+            <div className="text-[10px] font-mono text-muted mt-4 space-y-1">
+              <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
+              {portfolioState.lastPublishedAt && (
+                <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
+              )}
+            </div>
           </div>
           <Button onClick={handleAddSection} variant="outline" className="gap-2" aria-label="Add new section">
             <Plus className="h-4 w-4" />
