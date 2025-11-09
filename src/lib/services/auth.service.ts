@@ -91,4 +91,84 @@ export class AuthService {
       username: updatedProfile.username,
     };
   }
+
+  /**
+   * Changes the username for the authenticated user
+   *
+   * Allows users to change their existing username to a new available one.
+   * The method performs comprehensive validation and ensures username uniqueness.
+   *
+   * @param newUsername - New username to set (must match ^[a-z0-9-]{3,30}$ pattern)
+   * @returns Promise<UserProfileDto> - Updated user profile with the new username
+   * @throws AuthError with code 'UNAUTHENTICATED' if user is not authenticated
+   * @throws AuthError with code 'PROFILE_NOT_FOUND' if user profile doesn't exist
+   * @throws AuthError with code 'INVALID_USERNAME_FORMAT' if username doesn't match pattern
+   * @throws AuthError with code 'USERNAME_NOT_SET' if user doesn't have a username set
+   * @throws AuthError with code 'USERNAME_UNCHANGED' if new username is same as current
+   * @throws AuthError with code 'USERNAME_TAKEN' if username is already taken by another user
+   * @throws Error for database operation failures
+   */
+  static async changeUsername(newUsername: string): Promise<UserProfileDto> {
+    const supabase = repositories.getSupabaseClient();
+
+    // Step 1: Validate username format
+    const USERNAME_REGEX = /^[a-z0-9-]{3,30}$/;
+    if (!USERNAME_REGEX.test(newUsername)) {
+      throw new AppError("INVALID_USERNAME_FORMAT");
+    }
+
+    // Step 2: Get authenticated user and their current profile
+    let user;
+    const {
+      data: { user: authUser },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !authUser || !authUser.email) {
+      // If getUser() fails, try getSession() as fallback
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
+
+      if (sessionError || !session?.user || !session.user.email) {
+        throw new AppError("UNAUTHENTICATED");
+      }
+
+      user = session.user;
+    } else {
+      user = authUser;
+    }
+
+    const profile = await repositories.userProfiles.findById(user.id);
+
+    if (!profile) {
+      throw new AppError("PROFILE_NOT_FOUND", undefined, { userId: user.id });
+    }
+
+    // Step 3: Check if user has a username set
+    if (!profile.username) {
+      throw new AppError("USERNAME_NOT_SET", undefined, { userId: user.id });
+    }
+
+    // Step 4: Check if username is actually changing
+    if (profile.username.toLowerCase() === newUsername.toLowerCase()) {
+      throw new AppError("USERNAME_UNCHANGED", undefined, { userId: user.id, username: newUsername });
+    }
+
+    // Step 5: Check username availability (excluding current user)
+    const isAvailable = await repositories.userProfiles.isUsernameAvailable(newUsername, user.id);
+    if (!isAvailable) {
+      throw new AppError("USERNAME_TAKEN", undefined, { username: newUsername });
+    }
+
+    // Step 6: Update the username
+    const updatedProfile = await repositories.userProfiles.update(user.id, { username: newUsername });
+
+    // Step 7: Return updated profile data
+    return {
+      id: updatedProfile.id,
+      username: updatedProfile.username,
+    };
+  }
 }

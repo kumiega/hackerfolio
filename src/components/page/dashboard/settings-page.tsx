@@ -9,5 +9,5 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ user, currentPath }: SettingsPageProps) {
-  return <SettingsContent />;
+  return <SettingsContent user={user} />;
 }
