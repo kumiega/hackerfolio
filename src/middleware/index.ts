@@ -40,12 +40,18 @@ export const onRequest = defineMiddleware(async (context, next) => {
     const profile = await repositories.userProfiles.findById(user.id);
 
     if (profile) {
+      // Get avatar URL from user metadata (GitHub OAuth)
+      const avatarUrl =
+        user.user_metadata?.avatar_url && user.user_metadata?.avatar_url.trim() !== ""
+          ? user.user_metadata?.avatar_url
+          : null;
+
       locals.user = {
         user_id: user.id,
         profile_id: profile.id || "",
         email: user.email || "",
         username: profile.username,
-        avatar_url: profile.avatar_url,
+        avatar_url: avatarUrl,
         created_at: profile.created_at,
         updated_at: profile.updated_at,
         is_onboarded: profile.is_onboarded,
