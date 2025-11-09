@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, User } from "lucide-react";
+import { Upload, User, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,11 @@ interface BioSectionProps {
 
 export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
+
+  const handleRemoveAvatar = () => {
+    onUpdateBio({ avatar_url: "" });
+    toast.success("Avatar removed successfully!");
+  };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -75,12 +80,23 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
           <div className="space-y-4">
             <Label>Avatar</Label>
             <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12">
-                <AvatarImage src={bio.avatar_url} alt="Avatar" />
-                <AvatarFallback>
-                  <User className="h-8 w-8" />
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative group">
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={bio.avatar_url} alt="Avatar" />
+                  <AvatarFallback>
+                    <User className="h-8 w-8" />
+                  </AvatarFallback>
+                </Avatar>
+                {bio.avatar_url && (
+                  <button
+                    onClick={handleRemoveAvatar}
+                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                    title="Remove avatar"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" disabled={isUploading} className="relative">
@@ -102,7 +118,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="full_name">Full Name *</Label>
+              <Label htmlFor="full_name">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="full_name"
                 value={bio.full_name || ""}
@@ -111,7 +129,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="position">Position</Label>
+              <Label htmlFor="position">
+                Position <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="position"
                 value={bio.position || ""}
@@ -122,7 +142,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio_text">Bio Text *</Label>
+            <Label htmlFor="bio_text">
+              Bio Text <span className="text-red-500">*</span>
+            </Label>
             <Textarea
               id="bio_text"
               value={bio.bio_text || ""}

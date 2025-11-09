@@ -7,14 +7,43 @@ import { z } from "zod";
 // Disable prerendering for this API route
 export const prerender = false;
 
+const socialLinksSchema = z.object({
+  github: z.string().optional(),
+  linkedin: z.string().optional(),
+  x: z.string().optional(),
+  email: z.string().optional(),
+  custom_link: z
+    .object({
+      name: z.string(),
+      url: z.string(),
+    })
+    .optional(),
+  website: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string(),
+      })
+    )
+    .optional(),
+});
+
+const bioDataSchema = z.object({
+  full_name: z.string().max(100),
+  position: z.string().max(100).optional(),
+  bio_text: z.string().max(2000),
+  avatar_url: z.string().optional(),
+  social_links: socialLinksSchema.optional(),
+});
+
 const createPortfolioSchema = z.object({
   draft_data: z
     .object({
-      full_name: z.string(),
-      position: z.string(),
-      bio: z.array(z.any()),
-      avatar_url: z.string().nullable(),
-      sections: z.array(z.any()),
+      full_name: z.string().max(100).optional(),
+      position: z.string().max(100).optional(),
+      bio: bioDataSchema.optional(),
+      avatar_url: z.string().nullable().optional(),
+      sections: z.array(z.any()).optional(),
     })
     .optional(),
 });

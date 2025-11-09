@@ -4,9 +4,19 @@ import { PortfolioService } from "@/lib/services/portfolio.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 import { ERROR_CODES } from "@/lib/error-constants";
 import { isValidUUID } from "@/lib/utils";
+import { z } from "zod";
+import { repositories } from "@/lib/repositories";
 
 // Disable prerendering for this API route
 export const prerender = false;
+
+const publishValidationSchema = z.object({
+  bio: z.object({
+    full_name: z.string().min(1, "Full name is required").max(100),
+    bio_text: z.string().min(1, "Bio text is required").max(2000),
+    position: z.string().min(1, "Position is required").max(100),
+  }),
+});
 
 /**
  * POST /api/v1/portfolios/:id/publish
@@ -63,10 +73,26 @@ export const POST: APIRoute = async (context) => {
       return createErrorResponse("UNAUTHENTICATED", requestId);
     }
 
-    // Step 4: Publish portfolio (calls DB function that copies draft_data to published_data)
+    // Step 4: Get portfolio data for validation (RLS ensures user can only access their own portfolio)
+    const portfolio = await repositories.portfolios.findById(portfolioId);
+    if (!portfolio || portfolio.user_id !== locals.user.user_id) {
+      return createErrorResponse("NOT_FOUND", requestId, "Portfolio not found");
+    }
+
+    const validationResult = publishValidationSchema.safeParse(portfolio.draft_data);
+    if (!validationResult.success) {
+      return createErrorResponse(
+        "VALIDATION_ERROR",
+        requestId,
+        "Portfolio is not ready for publishing",
+        validationResult.error.format()
+      );
+    }
+
+    // Step 6: Publish portfolio (calls DB function that copies draft_data to published_data)
     const publishStatus = await PortfolioService.publishPortfolio(portfolioId, locals.user.user_id);
 
-    // Step 5: Return success response
+    // Step 7: Return success response
     const response: ApiSuccessResponse<PublishStatusDto> = {
       data: publishStatus,
     };

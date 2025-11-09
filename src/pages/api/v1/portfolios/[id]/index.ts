@@ -39,11 +39,40 @@ const sectionSchema = z.object({
   components: z.array(componentSchema),
 });
 
+const socialLinksSchema = z.object({
+  github: z.string().optional(),
+  linkedin: z.string().optional(),
+  x: z.string().optional(),
+  email: z.string().optional(),
+  custom_link: z
+    .object({
+      name: z.string(),
+      url: z.string(),
+    })
+    .optional(),
+  website: z
+    .array(
+      z.object({
+        name: z.string(),
+        url: z.string(),
+      })
+    )
+    .optional(),
+});
+
+const bioDataSchema = z.object({
+  full_name: z.string().max(100),
+  position: z.string().max(100).optional(),
+  bio_text: z.string().max(2000),
+  avatar_url: z.string().optional(),
+  social_links: socialLinksSchema.optional(),
+});
+
 const updatePortfolioSchema = z.object({
   draft_data: z.object({
-    full_name: z.string().min(1).max(100).optional(),
-    position: z.string().min(1).max(100).optional(),
-    bio: z.array(componentSchema).optional(),
+    full_name: z.string().max(100).optional(),
+    position: z.string().max(100).optional(),
+    bio: bioDataSchema.optional(),
     avatar_url: z.string().nullable().optional(),
     sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed").optional(),
   }),

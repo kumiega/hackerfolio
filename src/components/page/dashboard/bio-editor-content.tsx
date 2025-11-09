@@ -2,7 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-import type { BioData, PortfolioData, PortfolioDto, User } from "@/types";
+import type {
+  BioData,
+  PortfolioData,
+  PortfolioDto,
+  User,
+  UpdatePortfolioCommand,
+  CreatePortfolioCommand,
+} from "@/types";
 
 import { BioSection } from "./components/bio-section";
 import { Spinner } from "@/components/ui/spinner";
@@ -50,24 +57,24 @@ const PortfolioApiClient = {
     return this.handleResponse<PortfolioDto>(response);
   },
 
-  async updatePortfolio(id: string, data: Partial<PortfolioData>): Promise<PortfolioData> {
+  async updatePortfolio(id: string, command: UpdatePortfolioCommand): Promise<PortfolioData> {
     const response = await fetch(`/api/v1/portfolios/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(command),
     });
     return this.handleResponse<PortfolioData>(response);
   },
 
-  async createPortfolio(data: PortfolioData): Promise<{ id: string }> {
+  async createPortfolio(command: CreatePortfolioCommand): Promise<{ id: string }> {
     const response = await fetch("/api/v1/portfolios", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(command),
     });
     return this.handleResponse<{ id: string }>(response);
   },
@@ -108,8 +115,11 @@ export function BioEditorContent({
         const bioData = portfolio.draft_data.bio || defaultBioData;
 
         setPortfolioData({
-          ...portfolio.draft_data,
+          full_name: portfolio.draft_data.full_name || "",
+          position: portfolio.draft_data.position || "",
           bio: bioData,
+          avatar_url: portfolio.draft_data.avatar_url || null,
+          sections: portfolio.draft_data.sections || [],
         });
         setPortfolioId(portfolio.id);
       } catch (err) {
@@ -149,21 +159,6 @@ export function BioEditorContent({
     });
   }, []);
 
-  const validateRequiredFields = useCallback(() => {
-    if (!portfolioData) return "No portfolio data available";
-
-    // Check required bio fields
-    if (!portfolioData.bio.full_name?.trim()) {
-      return "Full name is required";
-    }
-
-    if (!portfolioData.bio.bio_text?.trim()) {
-      return "Bio text is required";
-    }
-
-    return null; // No validation errors
-  }, [portfolioData]);
-
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
       console.warn("No portfolio data or user available");
@@ -172,13 +167,6 @@ export function BioEditorContent({
 
     if (isSaving) {
       return; // Prevent multiple save operations
-    }
-
-    // Validate required fields
-    const validationError = validateRequiredFields();
-    if (validationError) {
-      toast.error(validationError);
-      return;
     }
 
     const toastId = toast.loading("Saving bio...");
@@ -191,13 +179,23 @@ export function BioEditorContent({
       if (portfolioId) {
         // Update existing portfolio
         await PortfolioApiClient.updatePortfolio(portfolioId, {
-          bio: portfolioData.bio,
-          full_name: portfolioData.full_name,
-          position: portfolioData.position,
+          draft_data: {
+            bio: portfolioData.bio,
+            full_name: portfolioData.full_name,
+            position: portfolioData.position,
+          },
         });
       } else {
         // Create new portfolio
-        const newPortfolio = await PortfolioApiClient.createPortfolio(portfolioData);
+        const newPortfolio = await PortfolioApiClient.createPortfolio({
+          draft_data: {
+            bio: portfolioData.bio,
+            full_name: portfolioData.full_name,
+            position: portfolioData.position,
+            avatar_url: portfolioData.avatar_url,
+            sections: portfolioData.sections,
+          },
+        });
         setPortfolioId(newPortfolio.id);
       }
 
@@ -212,7 +210,7 @@ export function BioEditorContent({
       setIsSaving(false);
       onSavingChange?.(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange, validateRequiredFields]);
+  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange]);
 
   const handlePublishPortfolio = useCallback(async () => {
     if (!portfolioId || !user?.user_id) {
@@ -222,13 +220,6 @@ export function BioEditorContent({
 
     if (isSaving) {
       return; // Prevent multiple operations
-    }
-
-    // Validate required fields
-    const validationError = validateRequiredFields();
-    if (validationError) {
-      toast.error(validationError);
-      return;
     }
 
     const toastId = toast.loading("Publishing portfolio...");
@@ -242,9 +233,11 @@ export function BioEditorContent({
         throw new Error("No portfolio data available");
       }
       await PortfolioApiClient.updatePortfolio(portfolioId, {
-        bio: portfolioData.bio,
-        full_name: portfolioData.full_name,
-        position: portfolioData.position,
+        draft_data: {
+          bio: portfolioData.bio,
+          full_name: portfolioData.full_name,
+          position: portfolioData.position,
+        },
       });
 
       // Then publish
@@ -268,13 +261,27 @@ export function BioEditorContent({
       setIsPublishing(false);
       onPublishingChange?.(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onPublishingChange, validateRequiredFields]);
+  }, [portfolioData, portfolioId, user?.user_id, isSaving, onPublishingChange]);
 
   // Set refs for parent component to call functions
   useEffect(() => {
     onSaveRef?.(handleSavePortfolio);
     onPublishRef?.(handlePublishPortfolio);
   }, [onSaveRef, onPublishRef, handleSavePortfolio, handlePublishPortfolio]);
+
+  // Listen for custom events dispatched by parent
+  useEffect(() => {
+    const handleSaveEvent = () => handleSavePortfolio();
+    const handlePublishEvent = () => handlePublishPortfolio();
+
+    window.addEventListener("saveBio", handleSaveEvent);
+    window.addEventListener("publishBio", handlePublishEvent);
+
+    return () => {
+      window.removeEventListener("saveBio", handleSaveEvent);
+      window.removeEventListener("publishBio", handlePublishEvent);
+    };
+  }, [handleSavePortfolio, handlePublishPortfolio]);
 
   if (isLoading) {
     return (
