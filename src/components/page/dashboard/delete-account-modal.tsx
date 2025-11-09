@@ -1,8 +1,8 @@
 "use client";
 
-import * as React from "react";
 import { useState } from "react";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { QueryState } from "@/types";
+import { Code } from "@/components/ui/code";
 
 interface DeleteAccountModalProps {
   isOpen: boolean;
@@ -45,8 +46,14 @@ export function DeleteAccountModal({ isOpen, onClose, currentUsername }: DeleteA
         throw new Error(json?.error?.message || "Failed to delete account");
       }
 
-      // Account deleted successfully - redirect to home page
-      window.location.href = "/";
+      // Account deleted successfully
+      // Show success toast
+      toast.success("Account deleted successfully", {
+        description: "Your account and all data have been permanently removed.",
+      });
+
+      // Redirect to signin page (this will clear the session since user is no longer authenticated)
+      window.location.href = "/signin";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setDeleteState("error");
@@ -69,12 +76,12 @@ export function DeleteAccountModal({ isOpen, onClose, currentUsername }: DeleteA
             <Trash2 className="h-5 w-5" />
             Delete Account
           </SheetTitle>
-          <SheetDescription>
+          <SheetDescription className="pt-3">
             This action cannot be undone. This will permanently delete your account, profile, and all portfolio data.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 py-6">
+        <div className="space-y-6 py-6 px-4">
           <Alert className="border-destructive/50 bg-destructive/10">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
@@ -91,7 +98,7 @@ export function DeleteAccountModal({ isOpen, onClose, currentUsername }: DeleteA
 
           <div className="space-y-2">
             <Label htmlFor="confirmation-username">
-              Type <code className="bg-muted px-1 py-0.5 rounded text-sm">{currentUsername}</code> to confirm
+              Type <Code>{currentUsername}</Code> to confirm
             </Label>
             <Input
               id="confirmation-username"

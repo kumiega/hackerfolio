@@ -88,7 +88,7 @@ export class PortfolioRepository extends BaseRepository {
    * @returns Promise<void>
    */
   async delete(portfolioId: string): Promise<void> {
-    await this.executeQuery(
+    await this.executeQueryVoid(
       async () => await this.supabase.from(this.tableName).delete().eq("id", portfolioId),
       "Failed to delete portfolio",
       { portfolioId }

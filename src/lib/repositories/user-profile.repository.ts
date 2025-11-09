@@ -134,7 +134,7 @@ export class UserProfileRepository extends BaseRepository {
    * @returns Promise<void>
    */
   async delete(userId: string): Promise<void> {
-    await this.executeQuery(
+    await this.executeQueryVoid(
       async () => await this.supabase.from(this.tableName).delete().eq("id", userId),
       "Failed to delete user profile",
       { userId }

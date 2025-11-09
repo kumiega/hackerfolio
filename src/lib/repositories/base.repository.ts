@@ -139,6 +139,41 @@ export abstract class BaseRepository {
   }
 
   /**
+   * Executes a database operation that doesn't return data (e.g., delete operations)
+   *
+   * @param operation - Database operation to execute
+   * @param errorMessage - Custom error message for operation failures
+   * @param context - Additional context for error logging
+   * @returns Promise<void>
+   * @throws AppError with code 'DATABASE_ERROR' for database operation failures
+   */
+  protected async executeQueryVoid(
+    operation: () => Promise<{ data: unknown | null; error: PostgrestError | null }>,
+    errorMessage: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
+    try {
+      const { error } = await operation();
+
+      if (error) {
+        throw new AppError("DATABASE_ERROR", errorMessage, {
+          cause: error,
+          ...context,
+        });
+      }
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+
+      throw new AppError("DATABASE_ERROR", errorMessage, {
+        cause: error as Error,
+        ...context,
+      });
+    }
+  }
+
+  /**
    * Checks if a database error indicates "not found" (PGRST116)
    *
    * @param error - Database error object

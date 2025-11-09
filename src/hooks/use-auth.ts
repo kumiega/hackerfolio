@@ -124,7 +124,7 @@ export function useAuth() {
         const {
           data: { session: currentSession },
           error: sessionError,
-        } = await supabaseClient.auth.getSession();
+        } = await supabase.auth.getSession();
 
         if (!isMounted) return;
 
@@ -155,7 +155,7 @@ export function useAuth() {
 
     const {
       data: { subscription },
-    } = supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
       if (event === "SIGNED_IN" && session?.user) {
