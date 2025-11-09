@@ -16,6 +16,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import type { Component, Section, PortfolioData, PortfolioDto, User } from "@/types";
+import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
 
 import { EmptySections } from "./components/empty-sections";
 import { DragOverlayContent } from "./components/drag-overlay-content";
@@ -87,11 +88,9 @@ const PortfolioApiClient = {
 
 interface SectionsEditorContentProps {
   user: User;
-  onSavingChange?: (saving: boolean) => void;
-  onPublishingChange?: (publishing: boolean) => void;
 }
 
-export function SectionsEditorContent({ user, onSavingChange, onPublishingChange }: SectionsEditorContentProps) {
+export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   const [portfolioData, setPortfolioData] = useState<PortfolioData>(defaultPortfolioData);
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
@@ -99,9 +98,19 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<"section" | "component" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Use the global change tracker
+  const {
+    markAsChanged,
+    markAsSaved,
+    markAsPublished,
+    setInitialState,
+    saveSectionsRef,
+    publishRef,
+    setSaving,
+    setPublishing,
+  } = usePortfolioChangeTracker();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -124,6 +133,9 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
         const portfolio = await PortfolioApiClient.getPortfolio(user.user_id);
         setPortfolioData(portfolio.draft_data);
         setPortfolioId(portfolio.id);
+
+        // Set initial state in change tracker
+        setInitialState(portfolio.draft_data, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
       } catch (err) {
         console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
@@ -147,6 +159,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
       ...prev,
       sections: prev.sections.map((section) => (section.id === sectionId ? { ...section, ...updates } : section)),
     }));
+    markAsChanged();
   };
 
   const handleDeleteSection = (sectionId: string) => {
@@ -154,6 +167,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
       ...prev,
       sections: prev.sections.filter((section) => section.id !== sectionId),
     }));
+    markAsChanged();
   };
 
   const handleToggleSectionVisibility = (sectionId: string) => {
@@ -163,6 +177,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
         section.id === sectionId ? { ...section, visible: !section.visible } : section
       ),
     }));
+    markAsChanged();
   };
 
   const handleEditComponent = useCallback((componentId: string) => {
@@ -181,7 +196,8 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
       };
     });
     setEditingComponentId(null);
-  }, []);
+    markAsChanged();
+  }, [markAsChanged]);
 
   const handleSaveNewComponent = useCallback(
     (component: Component) => {
@@ -203,8 +219,9 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
         };
       });
       setAddingComponentSectionId(null);
+      markAsChanged();
     },
-    [addingComponentSectionId]
+    [addingComponentSectionId, markAsChanged]
   );
 
   const handleDeleteComponent = (componentId: string) => {
@@ -218,6 +235,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
         sections: updatedSections,
       };
     });
+    markAsChanged();
   };
 
   const handleToggleComponentVisibility = (componentId: string) => {
@@ -235,6 +253,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
         sections: updatedSections,
       };
     });
+    markAsChanged();
   };
 
   const handleAddComponent = (sectionId: string) => {
@@ -247,15 +266,10 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
       return;
     }
 
-    if (isSaving) {
-      return; // Prevent multiple save operations
-    }
-
     const toastId = toast.loading("Saving sections...");
 
     try {
-      setIsSaving(true);
-      onSavingChange?.(true);
+      setSaving(true);
       setError(null);
 
       if (portfolioId) {
@@ -271,25 +285,23 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
 
       toast.success("Sections saved successfully!", { id: toastId });
       console.log("Sections saved successfully");
+
+      // Mark as saved with the current portfolio data
+      markAsSaved(portfolioData);
     } catch (err) {
       console.error("Failed to save sections:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to save sections";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
     } finally {
-      setIsSaving(false);
-      onSavingChange?.(false);
+      setSaving(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, setSaving, markAsSaved]);
 
   const handlePublishPortfolio = useCallback(async () => {
     if (!portfolioId || !user?.user_id) {
       toast.error("No portfolio available to publish");
       return;
-    }
-
-    if (isPublishing || isSaving) {
-      return; // Prevent multiple operations
     }
 
     // Validate draft data before publishing
@@ -310,8 +322,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
     const toastId = toast.loading("Publishing portfolio...");
 
     try {
-      setIsPublishing(true);
-      onPublishingChange?.(true);
+      setPublishing(true);
 
       // First save any pending changes
       await PortfolioApiClient.updatePortfolio(portfolioId, {
@@ -330,16 +341,18 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
 
       toast.success("Portfolio published successfully!", { id: toastId });
       console.log("Portfolio published successfully");
+
+      // Mark as published
+      markAsPublished(new Date().toISOString());
     } catch (err) {
       console.error("Failed to publish portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to publish portfolio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
     } finally {
-      setIsPublishing(false);
-      onPublishingChange?.(false);
+      setPublishing(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, isPublishing, onPublishingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, setPublishing, markAsPublished]);
 
   const handleAddSection = useCallback(() => {
     const newSection: Section = {
@@ -355,9 +368,10 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
       ...prev,
       sections: [...prev.sections, newSection],
     }));
-  }, []);
+    markAsChanged();
+  }, [markAsChanged]);
 
-  // Set up event listeners for parent component actions
+  // Set up event listeners for parent component actions and change tracker refs
   useEffect(() => {
     const handleSaveEvent = () => handleSavePortfolio();
     const handlePublishEvent = () => handlePublishPortfolio();
@@ -365,11 +379,15 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
     window.addEventListener("saveSections", handleSaveEvent);
     window.addEventListener("publishSections", handlePublishEvent);
 
+    // Set refs in change tracker
+    saveSectionsRef.current = handleSavePortfolio;
+    publishRef.current = handlePublishPortfolio;
+
     return () => {
       window.removeEventListener("saveSections", handleSaveEvent);
       window.removeEventListener("publishSections", handlePublishEvent);
     };
-  }, [handleSavePortfolio, handlePublishPortfolio]);
+  }, [handleSavePortfolio, handlePublishPortfolio, saveSectionsRef, publishRef]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -400,6 +418,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
           sections: arrayMove(prev.sections, oldIndex, newIndex),
         };
       });
+      markAsChanged();
     }
 
     // Handle component reordering within sections
@@ -430,6 +449,7 @@ export function SectionsEditorContent({ user, onSavingChange, onPublishingChange
             sections: updatedSections,
           };
         });
+        markAsChanged();
       }
     }
 

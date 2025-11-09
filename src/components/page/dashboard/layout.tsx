@@ -6,6 +6,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
 import { Toaster } from "@/components/ui/sonner";
+import { PortfolioChangeTrackerProvider } from "@/lib/portfolio-change-tracker";
 
 import type { User } from "@/types";
 
@@ -23,10 +24,6 @@ interface DashboardLayoutProps {
 function DashboardContent({ user, currentPath }: { user: User; currentPath?: string }) {
   const location = useLocation();
   const actualCurrentPath = currentPath || location.pathname;
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
-  const saveRef = useRef<(() => void) | null>(null);
-  const publishRef = useRef<(() => void) | null>(null);
 
   // Hide the loading skeleton once React mounts
   useEffect(() => {
@@ -36,14 +33,6 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
     }
   }, []);
 
-  const handleSavePortfolio = () => {
-    saveRef.current?.();
-  };
-
-  const handlePublishPortfolio = () => {
-    publishRef.current?.();
-  };
-
   // Determine if current page is an editor page
   const isEditorPage = actualCurrentPath === "/dashboard/bio" || actualCurrentPath === "/dashboard/editor";
 
@@ -52,11 +41,6 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
       <SidebarProvider className="flex flex-col">
         <SiteHeader
           currentPath={location.pathname}
-          user={user}
-          onSavePortfolio={isEditorPage ? handleSavePortfolio : undefined}
-          onPublishPortfolio={isEditorPage ? handlePublishPortfolio : undefined}
-          isSaving={isSaving}
-          isPublishing={isPublishing}
         />
         <div className="flex flex-1">
           <AppSidebar user={user} currentPath={location.pathname} />
@@ -64,27 +48,11 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
             <Routes>
               <Route
                 path="/dashboard/bio"
-                element={
-                  <BioEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
+                element={<BioEditorPage user={user} />}
               />
               <Route
                 path="/dashboard/editor"
-                element={
-                  <SectionsEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
+                element={<SectionsEditorPage user={user} />}
               />
               <Route
                 path="/dashboard/settings"
@@ -93,15 +61,7 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
               <Route path="/dashboard/theme" element={<ThemePage user={user} currentPath="/dashboard/theme" />} />
               <Route
                 path="/dashboard"
-                element={
-                  <BioEditorPage
-                    user={user}
-                    onSaveRef={(fn) => (saveRef.current = fn)}
-                    onPublishRef={(fn) => (publishRef.current = fn)}
-                    onSavingChange={setIsSaving}
-                    onPublishingChange={setIsPublishing}
-                  />
-                }
+                element={<BioEditorPage user={user} />}
               />
             </Routes>
           </SidebarInset>
@@ -114,8 +74,10 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
 
 export function DashboardLayout({ user, currentPath }: DashboardLayoutProps) {
   return (
-    <BrowserRouter>
-      <DashboardContent user={user} currentPath={currentPath} />
-    </BrowserRouter>
+    <PortfolioChangeTrackerProvider>
+      <BrowserRouter>
+        <DashboardContent user={user} currentPath={currentPath} />
+      </BrowserRouter>
+    </PortfolioChangeTrackerProvider>
   );
 }

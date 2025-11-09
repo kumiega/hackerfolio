@@ -5,7 +5,7 @@ interface Props {
   name: string;
   title?: string;
   description: string;
-  avatarSrc: string;
+  avatarSrc?: string;
   links: Record<string, string>;
 }
 
@@ -13,10 +13,16 @@ const { name, title, description, avatarSrc, links } = Astro.props;
 ---
 
 <section class="portfolio-intro" aria-labelledby="portfolio-intro-heading">
-  <div class="relative max-w-max mb-8">
-    <div class="bg-linear-340 from-primary to-transparent to-50% absolute top-0 left-0 h-full w-full z-10"></div>
-    <Image src={avatarSrc} height={64} width={64} alt="" class="w-24 h-24" />
-  </div>
+  {
+    avatarSrc ? (
+      <div class="relative max-w-max mb-8">
+        <div class="bg-linear-340 from-primary to-transparent to-50% absolute top-0 left-0 h-full w-full z-10" />
+        <Image src={avatarSrc} height={64} width={64} alt="" class="w-24 h-24" />
+      </div>
+    ) : (
+      <div class="w-24 h-24 mb-8" />
+    )
+  }
 
   <h1 id="portfolio-intro-heading" class="text-2xl font-bold mb-2">{name}</h1>
 

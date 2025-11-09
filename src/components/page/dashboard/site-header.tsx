@@ -1,39 +1,44 @@
-import { SidebarIcon, EyeIcon, Save, Send } from "lucide-react";
+import { SidebarIcon, Save, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Breadcrumbs } from "@/components/page/dashboard/breadcrumbs";
 import { Spinner } from "@/components/ui/spinner";
-import type { User } from "@/types";
+import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
 
 interface SiteHeaderProps {
   currentPath?: string;
-  user?: User;
-  onSavePortfolio?: () => void;
-  onPublishPortfolio?: () => void;
-  isSaving?: boolean;
-  isPublishing?: boolean;
 }
 
-export function SiteHeader({
-  currentPath,
-  user,
-  onSavePortfolio,
-  onPublishPortfolio,
-  isSaving = false,
-  isPublishing = false,
-}: SiteHeaderProps) {
+export function SiteHeader({ currentPath }: SiteHeaderProps) {
   const { toggleSidebar } = useSidebar();
+  const { portfolioState, saveBioRef, saveSectionsRef, publishRef, isSaving, isPublishing } =
+    usePortfolioChangeTracker();
 
-  const handlePreview = () => {
-    if (user?.username) {
-      window.open(`/preview/${user.username}`, "_blank");
+  const handleSavePortfolio = () => {
+    // Try bio save first, then sections save
+    if (saveBioRef.current) {
+      saveBioRef.current();
+    } else if (saveSectionsRef.current) {
+      saveSectionsRef.current();
+    }
+  };
+
+  const handlePublishPortfolio = () => {
+    if (publishRef.current) {
+      publishRef.current();
     }
   };
 
   // Show editor buttons only on bio and sections editor pages
   const isEditorPage = currentPath === "/dashboard/bio" || currentPath === "/dashboard/editor";
+
+  // Format timestamps for display
+  const formatTimestamp = (timestamp: string | null) => {
+    if (!timestamp) return "Never";
+    return new Date(timestamp).toLocaleString();
+  };
 
   return (
     <header className="bg-sidebar sticky top-0 z-50 flex w-full items-center border-b">
@@ -46,10 +51,11 @@ export function SiteHeader({
         <div className="ml-auto flex items-center gap-2">
           {isEditorPage && (
             <>
-              {onSavePortfolio && (
+              {/* Save button - show when there are unsaved changes */}
+              {portfolioState.hasUnsavedChanges && (
                 <Button
                   variant="muted"
-                  onClick={onSavePortfolio}
+                  onClick={handleSavePortfolio}
                   disabled={isSaving}
                   className="gap-2 min-w-36 transition-all duration-200"
                   aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
@@ -67,39 +73,39 @@ export function SiteHeader({
                   )}
                 </Button>
               )}
-              {onPublishPortfolio && (
-                <Button
-                  onClick={onPublishPortfolio}
-                  disabled={isPublishing || isSaving}
-                  className="gap-2 min-w-36 transition-all duration-200"
-                  variant="default"
-                  aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
-                >
-                  {isPublishing ? (
-                    <>
-                      <Spinner className="h-4 w-4" />
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      Publish
-                    </>
-                  )}
-                </Button>
-              )}
+
+              {/* Publish button */}
+              <Button
+                onClick={handlePublishPortfolio}
+                disabled={isPublishing || isSaving}
+                className="gap-2 min-w-36 transition-all duration-200"
+                variant="default"
+                aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
+              >
+                {isPublishing ? (
+                  <>
+                    <Spinner className="h-4 w-4" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    Publish
+                  </>
+                )}
+              </Button>
             </>
           )}
-          <Button
-            className="h-10 w-10"
-            variant="ghost"
-            size="icon"
-            onClick={handlePreview}
-            disabled={!user?.username}
-            title="Preview portfolio"
-          >
-            <EyeIcon />
-          </Button>
+
+          {/* Timestamp info */}
+          {isEditorPage && portfolioState.lastSavedAt && (
+            <div className="text-xs text-muted-foreground ml-2">
+              <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
+              {portfolioState.lastPublishedAt && (
+                <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </header>

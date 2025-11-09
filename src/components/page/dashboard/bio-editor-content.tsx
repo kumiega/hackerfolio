@@ -10,6 +10,7 @@ import type {
   UpdatePortfolioCommand,
   CreatePortfolioCommand,
 } from "@/types";
+import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
 
 import { BioSection } from "./components/bio-section";
 import { Spinner } from "@/components/ui/spinner";
@@ -82,25 +83,25 @@ const PortfolioApiClient = {
 
 interface BioEditorContentProps {
   user: User;
-  onSavingChange?: (saving: boolean) => void;
-  onPublishingChange?: (publishing: boolean) => void;
-  onSaveRef?: (fn: () => void) => void;
-  onPublishRef?: (fn: () => void) => void;
 }
 
-export function BioEditorContent({
-  user,
-  onSavingChange,
-  onPublishingChange,
-  onSaveRef,
-  onPublishRef,
-}: BioEditorContentProps) {
+export function BioEditorContent({ user }: BioEditorContentProps) {
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Use the global change tracker
+  const {
+    markAsChanged,
+    markAsSaved,
+    markAsPublished,
+    setInitialState,
+    saveBioRef,
+    publishRef,
+    setSaving,
+    setPublishing,
+  } = usePortfolioChangeTracker();
 
   // Load portfolio data on mount
   useEffect(() => {
@@ -114,14 +115,19 @@ export function BioEditorContent({
         // Use bio data from draft_data or use defaults
         const bioData = portfolio.draft_data.bio || defaultBioData;
 
-        setPortfolioData({
+        const initialData = {
           full_name: portfolio.draft_data.full_name || "",
           position: portfolio.draft_data.position || "",
           bio: bioData,
           avatar_url: portfolio.draft_data.avatar_url || null,
           sections: portfolio.draft_data.sections || [],
-        });
+        };
+
+        setPortfolioData(initialData);
         setPortfolioId(portfolio.id);
+
+        // Set initial state in change tracker
+        setInitialState(initialData, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
       } catch (err) {
         console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
@@ -144,20 +150,24 @@ export function BioEditorContent({
     };
 
     loadPortfolio();
-  }, [user.user_id]);
+  }, [user.user_id, setInitialState]);
 
-  const handleUpdateBio = useCallback((updates: Partial<BioData>) => {
-    setPortfolioData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        bio: {
-          ...prev.bio,
-          ...updates,
-        },
-      };
-    });
-  }, []);
+  const handleUpdateBio = useCallback(
+    (updates: Partial<BioData>) => {
+      setPortfolioData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bio: {
+            ...prev.bio,
+            ...updates,
+          },
+        };
+      });
+      markAsChanged();
+    },
+    [markAsChanged]
+  );
 
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
@@ -165,15 +175,10 @@ export function BioEditorContent({
       return;
     }
 
-    if (isSaving) {
-      return; // Prevent multiple save operations
-    }
-
     const toastId = toast.loading("Saving bio...");
 
     try {
-      setIsSaving(true);
-      onSavingChange?.(true);
+      setSaving(true);
       setError(null);
 
       if (portfolioId) {
@@ -201,16 +206,20 @@ export function BioEditorContent({
 
       toast.success("Bio saved successfully!", { id: toastId });
       console.log("Bio saved successfully");
+
+      // Mark as saved with the current portfolio data
+      if (portfolioData) {
+        markAsSaved(portfolioData);
+      }
     } catch (err) {
       console.error("Failed to save bio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to save bio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
     } finally {
-      setIsSaving(false);
-      onSavingChange?.(false);
+      setSaving(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, setSaving, markAsSaved]);
 
   const handlePublishPortfolio = useCallback(async () => {
     if (!portfolioId || !user?.user_id) {
@@ -218,15 +227,10 @@ export function BioEditorContent({
       return;
     }
 
-    if (isSaving) {
-      return; // Prevent multiple operations
-    }
-
     const toastId = toast.loading("Publishing portfolio...");
 
     try {
-      setIsPublishing(true);
-      onPublishingChange?.(true);
+      setPublishing(true);
 
       // First save any pending changes
       if (!portfolioData) {
@@ -252,22 +256,24 @@ export function BioEditorContent({
 
       toast.success("Portfolio published successfully!", { id: toastId });
       console.log("Portfolio published successfully");
+
+      // Mark as published
+      markAsPublished(new Date().toISOString());
     } catch (err) {
       console.error("Failed to publish portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to publish portfolio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
     } finally {
-      setIsPublishing(false);
-      onPublishingChange?.(false);
+      setPublishing(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onPublishingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, setPublishing, markAsPublished]);
 
-  // Set refs for parent component to call functions
+  // Set refs in change tracker
   useEffect(() => {
-    onSaveRef?.(handleSavePortfolio);
-    onPublishRef?.(handlePublishPortfolio);
-  }, [onSaveRef, onPublishRef, handleSavePortfolio, handlePublishPortfolio]);
+    saveBioRef.current = handleSavePortfolio;
+    publishRef.current = handlePublishPortfolio;
+  }, [handleSavePortfolio, handlePublishPortfolio, saveBioRef, publishRef]);
 
   // Listen for custom events dispatched by parent
   useEffect(() => {

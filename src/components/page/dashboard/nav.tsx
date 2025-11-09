@@ -19,9 +19,11 @@ interface NavProps {
   label: string;
   items: {
     title: string;
-    url: string;
+    url?: string;
+    onClick?: () => void;
     icon: LucideIcon;
     isActive?: boolean;
+    disabled?: boolean;
     items?: {
       title: string;
       url: string;
@@ -39,18 +41,31 @@ export function Nav({ label, items, currentPath = "/dashboard" }: NavProps) {
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const isItemActive = normalizedPath === item.url;
+          const isItemActive = item.url ? normalizedPath === item.url : false;
           const hasActiveSubItem = item.items?.some((subItem) => normalizedPath === subItem.url);
           const isExpanded = isItemActive || hasActiveSubItem;
 
           return (
             <Collapsible key={item.title} asChild defaultOpen={isExpanded}>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={item.title} isActive={isItemActive}>
-                  <Link to={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </Link>
+                <SidebarMenuButton
+                  asChild={!!item.url}
+                  tooltip={item.title}
+                  isActive={isItemActive}
+                  disabled={item.disabled}
+                  onClick={item.onClick}
+                >
+                  {item.url ? (
+                    <Link to={item.url}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  ) : (
+                    <>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </>
+                  )}
                 </SidebarMenuButton>
                 {item.items?.length ? (
                   <>
