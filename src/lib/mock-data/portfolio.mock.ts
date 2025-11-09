@@ -7,45 +7,24 @@ import type { PortfolioData } from "@/types";
 export const mockPortfolioData: PortfolioData = {
   full_name: "Mark Coderfast",
   position: "Full-stack developer at Google",
-  bio: [
-    {
-      id: "default-avatar",
-      type: "avatar",
-      data: {
-        avatar_url: "/images/avatar.jpg",
+  bio: {
+    full_name: "Mark Coderfast",
+    position: "Full-stack Developer",
+    bio_text:
+      "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
+    avatar_url: "/images/avatar.jpg",
+    social_links: {
+      github: "https://github.com/markcoderfast",
+      linkedin: "https://linkedin.com/in/markcoderfast",
+      x: "https://twitter.com/markcoderfast",
+      email: "mark.coderfast@example.com",
+      custom_link: {
+        name: "Portfolio",
+        url: "https://markcoderfast.dev",
       },
-      visible: true,
+      website: [{ name: "Blog", url: "https://markcoderfast.com" }],
     },
-    {
-      id: "default-personal-info",
-      type: "personal_info",
-      data: {
-        full_name: "Mark Coderfast",
-        position: "Full-stack Developer",
-      },
-      visible: true,
-    },
-    {
-      id: "default-bio-text",
-      type: "text",
-      data: {
-        content:
-          "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
-      },
-      visible: true,
-    },
-    {
-      id: "default-social-links",
-      type: "social_links",
-      data: {
-        github: "https://github.com/markcoderfast",
-        linkedin: "https://linkedin.com/in/markcoderfast",
-        x: "https://twitter.com/markcoderfast",
-        website: [{ name: "Blog", url: "https://markcoderfast.com" }],
-      },
-      visible: true,
-    },
-  ],
+  },
   avatar_url: "/images/avatar.jpg",
   sections: [
     {
@@ -165,39 +144,4 @@ export const mockPortfolioData: PortfolioData = {
       ],
     },
   ],
-};
-
-/**
- * Extract social links from bio components for compatibility with existing BioSection
- */
-export const extractSocialLinks = (portfolioData: PortfolioData): Record<string, string> => {
-  return portfolioData.bio
-    .filter((component) => component.type === "social_links")
-    .reduce(
-      (links, component) => {
-        const data = component.data as any;
-        if (data.github) links.github = data.github;
-        if (data.linkedin) links.linkedin = data.linkedin;
-        if (data.x) links.twitter = data.x;
-        if (data.website) {
-          data.website.forEach((site: any) => {
-            if (site.name?.toLowerCase().includes("blog")) {
-              links.blog = site.url;
-            }
-          });
-        }
-        return links;
-      },
-      {} as Record<string, string>
-    );
-};
-
-/**
- * Extract bio text content from bio components for compatibility with existing BioSection
- */
-export const extractBioText = (portfolioData: PortfolioData): string => {
-  return portfolioData.bio
-    .filter((component) => component.type === "text")
-    .map((component) => (component.data as any).content)
-    .join(" ");
 };

@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 
-import type { Component, PortfolioData, User } from "@/types";
+import type { BioData, PortfolioData, PortfolioDto, User } from "@/types";
 
 import { BioSection } from "./components/bio-section";
 import { Spinner } from "@/components/ui/spinner";
@@ -11,44 +10,18 @@ import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 
 // Default empty bio structure
-const defaultBioComponents: Component[] = [
-  {
-    id: "default-personal-info",
-    type: "personal_info",
-    data: {
-      full_name: "",
-      position: "",
-    },
-    visible: true,
+const defaultBioData: BioData = {
+  full_name: "",
+  position: "",
+  bio_text: "",
+  avatar_url: "",
+  social_links: {
+    github: "",
+    linkedin: "",
+    x: "",
+    website: [],
   },
-  {
-    id: "default-avatar",
-    type: "avatar",
-    data: {
-      avatar_url: "",
-    },
-    visible: true,
-  },
-  {
-    id: "default-social-links",
-    type: "social_links",
-    data: {
-      github: "",
-      linkedin: "",
-      x: "",
-      website: [],
-    },
-    visible: true,
-  },
-  {
-    id: "default-bio-text",
-    type: "text",
-    data: {
-      content: "",
-    },
-    visible: true,
-  },
-];
+};
 
 // Portfolio API client for client-side use
 const PortfolioApiClient = {
@@ -70,7 +43,7 @@ const PortfolioApiClient = {
     return data.data;
   },
 
-  async getPortfolio(userId: string): Promise<PortfolioDto> {
+  async getPortfolio(): Promise<PortfolioDto> {
     const response = await fetch(`/api/v1/portfolios/me`, {
       method: "GET",
     });
@@ -117,19 +90,10 @@ export function BioEditorContent({
 }: BioEditorContentProps) {
   const [portfolioData, setPortfolioData] = useState<PortfolioData | null>(null);
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
-  const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
 
   // Load portfolio data on mount
   useEffect(() => {
@@ -138,17 +102,14 @@ export function BioEditorContent({
         setIsLoading(true);
         setError(null);
 
-        const portfolio = await PortfolioApiClient.getPortfolio(user.user_id);
+        const portfolio = await PortfolioApiClient.getPortfolio();
 
-        // Extract bio components from draft_data or use defaults
-        const bioComponents =
-          portfolio.draft_data.bio && portfolio.draft_data.bio.length > 0
-            ? portfolio.draft_data.bio
-            : defaultBioComponents;
+        // Use bio data from draft_data or use defaults
+        const bioData = portfolio.draft_data.bio || defaultBioData;
 
         setPortfolioData({
           ...portfolio.draft_data,
-          bio: bioComponents,
+          bio: bioData,
         });
         setPortfolioId(portfolio.id);
       } catch (err) {
@@ -160,7 +121,7 @@ export function BioEditorContent({
           setPortfolioData({
             full_name: "",
             position: "",
-            bio: defaultBioComponents,
+            bio: defaultBioData,
             avatar_url: null,
             sections: [],
           });
@@ -175,62 +136,33 @@ export function BioEditorContent({
     loadPortfolio();
   }, [user.user_id]);
 
-  const handleEditComponent = useCallback((componentId: string) => {
-    setEditingComponentId(componentId);
-  }, []);
-
-  const handleSaveBioComponent = useCallback((component: Component) => {
+  const handleUpdateBio = useCallback((updates: Partial<BioData>) => {
     setPortfolioData((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        bio: prev.bio.map((c) => (c.id === component.id ? component : c)),
+        bio: {
+          ...prev.bio,
+          ...updates,
+        },
       };
     });
-    setEditingComponentId(null);
   }, []);
 
-  const handleToggleBioComponentVisibility = (componentId: string) => {
-    setPortfolioData((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        bio: prev.bio.map((component) =>
-          component.id === componentId
-            ? { ...component, visible: component.visible !== false ? false : true }
-            : component
-        ),
-      };
-    });
-  };
-
-  const validateRequiredFields = () => {
+  const validateRequiredFields = useCallback(() => {
     if (!portfolioData) return "No portfolio data available";
 
-    // Check if personal info component has required fields
-    const personalInfoComponent = portfolioData.bio.find((c) => c.type === "personal_info");
-    if (!personalInfoComponent) {
-      return "Personal info component is missing";
-    }
-
-    const personalInfoData = personalInfoComponent.data as { full_name?: string; position?: string };
-    if (!personalInfoData.full_name?.trim()) {
+    // Check required bio fields
+    if (!portfolioData.bio.full_name?.trim()) {
       return "Full name is required";
     }
 
-    // Check if text component has content
-    const textComponent = portfolioData.bio.find((c) => c.type === "text");
-    if (!textComponent) {
-      return "Bio text component is missing";
-    }
-
-    const textData = textComponent.data as { content?: string };
-    if (!textData.content?.trim()) {
+    if (!portfolioData.bio.bio_text?.trim()) {
       return "Bio text is required";
     }
 
     return null; // No validation errors
-  };
+  }, [portfolioData]);
 
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
@@ -280,7 +212,7 @@ export function BioEditorContent({
       setIsSaving(false);
       onSavingChange?.(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, isSaving, onSavingChange, validateRequiredFields]);
 
   const handlePublishPortfolio = useCallback(async () => {
     if (!portfolioId || !user?.user_id) {
@@ -306,10 +238,13 @@ export function BioEditorContent({
       onPublishingChange?.(true);
 
       // First save any pending changes
+      if (!portfolioData) {
+        throw new Error("No portfolio data available");
+      }
       await PortfolioApiClient.updatePortfolio(portfolioId, {
-        bio: portfolioData!.bio,
-        full_name: portfolioData!.full_name,
-        position: portfolioData!.position,
+        bio: portfolioData.bio,
+        full_name: portfolioData.full_name,
+        position: portfolioData.position,
       });
 
       // Then publish
@@ -333,7 +268,7 @@ export function BioEditorContent({
       setIsPublishing(false);
       onPublishingChange?.(false);
     }
-  }, [portfolioData, portfolioId, user?.user_id, isSaving, onPublishingChange]);
+  }, [portfolioData, portfolioId, user?.user_id, isSaving, onPublishingChange, validateRequiredFields]);
 
   // Set refs for parent component to call functions
   useEffect(() => {
@@ -380,17 +315,9 @@ export function BioEditorContent({
         </p>
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter}>
-        <div className="space-y-3">
-          <BioSection
-            bio={portfolioData.bio}
-            editingComponentId={editingComponentId}
-            onEditComponent={handleEditComponent}
-            onSaveComponent={handleSaveBioComponent}
-            onToggleComponentVisibility={handleToggleBioComponentVisibility}
-          />
-        </div>
-      </DndContext>
+      <div className="space-y-3">
+        <BioSection bio={portfolioData.bio} onUpdateBio={handleUpdateBio} />
+      </div>
     </div>
   );
 }

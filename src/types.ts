@@ -43,6 +43,11 @@ export interface SocialLinksComponentData {
   github?: string;
   linkedin?: string;
   x?: string;
+  email?: string;
+  custom_link?: {
+    name: string;
+    url: string;
+  };
   website?: {
     name: string;
     url: string;
@@ -116,10 +121,18 @@ export interface Section {
   components: Component[];
 }
 
+export interface BioData {
+  full_name: string;
+  position?: string;
+  bio_text: string;
+  avatar_url: string;
+  social_links: SocialLinksComponentData;
+}
+
 export interface PortfolioData {
   full_name: string;
   position: string;
-  bio: Component[];
+  bio: BioData;
   avatar_url: string | null;
   sections: Section[];
 }

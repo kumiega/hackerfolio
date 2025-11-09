@@ -55,12 +55,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
     // Upload file to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("avatars")
-      .upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false,
-      });
+    const { data: uploadData, error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    });
 
     if (uploadError) {
       console.error("Upload error:", uploadError);
@@ -73,9 +71,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("avatars")
-      .getPublicUrl(fileName);
+    const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(fileName);
 
     const avatarUrl = urlData.publicUrl;
 
@@ -97,20 +93,12 @@ export const POST: APIRoute = async ({ request, locals }) => {
       );
     }
 
-    // Update the avatar component in the bio array
+    // Update the avatar URL in the bio data
     const draftData = portfolio.draft_data as any;
-    const updatedBio = draftData.bio.map((component: any) => {
-      if (component.type === "avatar") {
-        return {
-          ...component,
-          data: {
-            ...component.data,
-            avatar_url: avatarUrl,
-          },
-        };
-      }
-      return component;
-    });
+    const updatedBio = {
+      ...draftData.bio,
+      avatar_url: avatarUrl,
+    };
 
     // Update portfolio with new bio data
     const { error: updateError } = await supabase
