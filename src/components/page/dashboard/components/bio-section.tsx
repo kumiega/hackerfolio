@@ -14,9 +14,16 @@ import { toast } from "sonner";
 interface BioSectionProps {
   bio: BioData;
   onUpdateBio: (updates: Partial<BioData>) => void;
+  validationErrors?: {
+    full_name?: string;
+    position?: string;
+    bio_text?: string;
+    avatar_url?: string;
+    social_links?: string;
+  };
 }
 
-export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
+export function BioSection({ bio, onUpdateBio, validationErrors }: BioSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
 
   const handleRemoveAvatar = () => {
@@ -126,7 +133,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
                 value={bio.full_name || ""}
                 onChange={(e) => onUpdateBio({ full_name: e.target.value })}
                 placeholder="Enter your full name"
+                className={validationErrors?.full_name ? "border-red-500" : ""}
               />
+              {validationErrors?.full_name && <p className="text-sm text-red-500 mt-1">{validationErrors.full_name}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="position">
@@ -137,7 +146,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
                 value={bio.position || ""}
                 onChange={(e) => onUpdateBio({ position: e.target.value })}
                 placeholder="e.g. Software Engineer"
+                className={validationErrors?.position ? "border-red-500" : ""}
               />
+              {validationErrors?.position && <p className="text-sm text-red-500 mt-1">{validationErrors.position}</p>}
             </div>
           </div>
 
@@ -151,7 +162,9 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
               onChange={(e) => onUpdateBio({ bio_text: e.target.value })}
               placeholder="Tell us about yourself..."
               rows={4}
+              className={validationErrors?.bio_text ? "border-red-500" : ""}
             />
+            {validationErrors?.bio_text && <p className="text-sm text-red-500 mt-1">{validationErrors.bio_text}</p>}
           </div>
 
           <div className="space-y-4">
@@ -266,6 +279,11 @@ export function BioSection({ bio, onUpdateBio }: BioSectionProps) {
                 </div>
               </div>
             </div>
+            {validationErrors?.social_links && (
+              <div className="mt-2">
+                <p className="text-sm text-red-500">{validationErrors.social_links}</p>
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

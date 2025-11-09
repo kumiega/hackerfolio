@@ -101,13 +101,7 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
           Upload Image
         </FieldLabel>
         <div className="flex items-center gap-2">
-          <Input
-            type="file"
-            accept="image/*"
-            onChange={handleFileUpload}
-            disabled={isUploading}
-            className="flex-1"
-          />
+          <Input type="file" accept="image/*" onChange={handleFileUpload} disabled={isUploading} className="flex-1" />
           {isUploading && (
             <div className="flex items-center gap-1">
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -11,6 +11,7 @@ import type {
   CreatePortfolioCommand,
 } from "@/types";
 import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
+import { validateBioData, type BioValidationResult } from "@/lib/validation";
 
 import { BioSection } from "./components/bio-section";
 import { Spinner } from "@/components/ui/spinner";
@@ -90,6 +91,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
   const [portfolioId, setPortfolioId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [validationErrors, setValidationErrors] = useState<BioValidationResult["fieldErrors"]>({});
 
   // Use the global change tracker
   const {
@@ -97,6 +99,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
     markAsSaved,
     markAsPublished,
     setInitialState,
+    setValidForSave,
     saveBioRef,
     publishRef,
     setSaving,
@@ -116,10 +119,16 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         // Use bio data from draft_data or use defaults
         const bioData = portfolio.draft_data.bio || defaultBioData;
 
+        // Ensure social_links always exists (for backward compatibility)
+        const normalizedBioData = {
+          ...bioData,
+          social_links: bioData.social_links || defaultBioData.social_links,
+        };
+
         const initialData = {
           full_name: portfolio.draft_data.full_name || "",
           position: portfolio.draft_data.position || "",
-          bio: bioData,
+          bio: normalizedBioData,
           avatar_url: portfolio.draft_data.avatar_url || null,
           sections: portfolio.draft_data.sections || [],
         };
@@ -138,7 +147,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
           const defaultData = {
             full_name: "",
             position: "",
-            bio: defaultBioData,
+            bio: { ...defaultBioData }, // Ensure we have a copy
             avatar_url: null,
             sections: [],
           };
@@ -156,26 +165,54 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
     loadPortfolio();
   }, [user.user_id, setInitialState]);
 
+  const validateBio = useCallback(
+    (bioData: BioData) => {
+      const validation = validateBioData(bioData);
+      setValidationErrors(validation.fieldErrors);
+      setValidForSave(validation.isValid);
+      return validation;
+    },
+    [setValidForSave]
+  );
+
+  // Validate bio data when it changes
+  useEffect(() => {
+    if (portfolioData?.bio) {
+      validateBio(portfolioData.bio);
+    }
+  }, [portfolioData?.bio, validateBio]);
+
   const handleUpdateBio = useCallback(
     (updates: Partial<BioData>) => {
       setPortfolioData((prev) => {
         if (!prev) return prev;
+        const updatedBio = {
+          ...prev.bio,
+          ...updates,
+        };
+        // Validate after update
+        setTimeout(() => validateBio(updatedBio), 0);
         return {
           ...prev,
-          bio: {
-            ...prev.bio,
-            ...updates,
-          },
+          bio: updatedBio,
         };
       });
       markAsChanged();
     },
-    [markAsChanged]
+    [markAsChanged, validateBio]
   );
 
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
       console.warn("No portfolio data or user available");
+      return;
+    }
+
+    // Validate before saving
+    const validation = validateBioData(portfolioData.bio);
+    if (!validation.isValid) {
+      toast.error("Please fix validation errors before saving");
+      setValidationErrors(validation.fieldErrors);
       return;
     }
 
@@ -228,6 +265,19 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
   const handlePublishPortfolio = useCallback(async () => {
     if (!portfolioId || !user?.user_id) {
       toast.error("No portfolio available to publish");
+      return;
+    }
+
+    if (!portfolioData) {
+      toast.error("No portfolio data available");
+      return;
+    }
+
+    // Validate before publishing
+    const validation = validateBioData(portfolioData.bio);
+    if (!validation.isValid) {
+      toast.error("Please fix validation errors before publishing");
+      setValidationErrors(validation.fieldErrors);
       return;
     }
 
@@ -347,7 +397,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
       </div>
 
       <div className="space-y-3">
-        <BioSection bio={portfolioData.bio} onUpdateBio={handleUpdateBio} />
+        <BioSection bio={portfolioData.bio} onUpdateBio={handleUpdateBio} validationErrors={validationErrors} />
       </div>
     </div>
   );

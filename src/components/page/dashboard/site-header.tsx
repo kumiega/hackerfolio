@@ -45,48 +45,51 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
         <div className="ml-auto flex items-center gap-2">
           {isEditorPage && (
             <>
-              {(portfolioState.hasUnsavedChanges || (portfolioState.data && !portfolioState.lastSavedAt)) && (
+              {(portfolioState.hasUnsavedChanges || (portfolioState.data && !portfolioState.lastSavedAt)) &&
+                portfolioState.isValidForSave && (
+                  <Button
+                    variant="muted"
+                    onClick={handleSavePortfolio}
+                    disabled={isSaving}
+                    className="gap-2 min-w-36 transition-all duration-200"
+                    aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Spinner className="h-4 w-4" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save draft
+                      </>
+                    )}
+                  </Button>
+                )}
+
+              {/* Publish button */}
+              {portfolioState.isValidForSave && (
                 <Button
-                  variant="muted"
-                  onClick={handleSavePortfolio}
-                  disabled={isSaving}
+                  onClick={handlePublishPortfolio}
+                  disabled={isPublishing || isSaving}
                   className="gap-2 min-w-36 transition-all duration-200"
-                  aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
+                  variant="default"
+                  aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
                 >
-                  {isSaving ? (
+                  {isPublishing ? (
                     <>
                       <Spinner className="h-4 w-4" />
-                      Saving...
+                      Publishing...
                     </>
                   ) : (
                     <>
-                      <Save className="h-4 w-4" />
-                      Save draft
+                      <Send className="h-4 w-4" />
+                      Publish
                     </>
                   )}
                 </Button>
               )}
-
-              {/* Publish button */}
-              <Button
-                onClick={handlePublishPortfolio}
-                disabled={isPublishing || isSaving}
-                className="gap-2 min-w-36 transition-all duration-200"
-                variant="default"
-                aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
-              >
-                {isPublishing ? (
-                  <>
-                    <Spinner className="h-4 w-4" />
-                    Publishing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="h-4 w-4" />
-                    Publish
-                  </>
-                )}
-              </Button>
             </>
           )}
         </div>

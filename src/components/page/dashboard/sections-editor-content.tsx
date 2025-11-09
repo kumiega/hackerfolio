@@ -17,6 +17,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import type { Component, Section, PortfolioData, PortfolioDto, User } from "@/types";
 import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
+import { validateSectionsData } from "@/lib/validation";
 
 import { EmptySections } from "./components/empty-sections";
 import { DragOverlayContent } from "./components/drag-overlay-content";
@@ -70,7 +71,7 @@ const PortfolioApiClient = {
     return data.data;
   },
 
-  async getPortfolio(userId: string): Promise<PortfolioDto> {
+  async getPortfolio(): Promise<PortfolioDto> {
     const response = await fetch(`/api/v1/portfolios/me`, {
       method: "GET",
     });
@@ -110,7 +111,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   const [editingComponentId, setEditingComponentId] = useState<string | null>(null);
   const [addingComponentSectionId, setAddingComponentSectionId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeType, setActiveType] = useState<"section" | "component" | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -120,6 +120,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     markAsSaved,
     markAsPublished,
     setInitialState,
+    setValidForSave,
     saveSectionsRef,
     publishRef,
     setSaving,
@@ -138,6 +139,15 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     })
   );
 
+  const validateSections = useCallback(
+    (portfolioData: PortfolioData) => {
+      const validation = validateSectionsData(portfolioData);
+      setValidForSave(validation.isValid);
+      return validation;
+    },
+    [setValidForSave]
+  );
+
   // Load portfolio data on mount
   useEffect(() => {
     const loadPortfolio = async () => {
@@ -145,7 +155,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         setIsLoading(true);
         setError(null);
 
-        const portfolio = await PortfolioApiClient.getPortfolio(user.user_id);
+        const portfolio = await PortfolioApiClient.getPortfolio();
         setPortfolioData(portfolio.draft_data);
         setPortfolioId(portfolio.id);
 
@@ -174,6 +184,13 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
 
     loadPortfolio();
   }, [user.user_id, setInitialState]);
+
+  // Validate sections data when it changes
+  useEffect(() => {
+    if (portfolioData) {
+      validateSections(portfolioData);
+    }
+  }, [portfolioData, validateSections]);
 
   const handleUpdateSection = (sectionId: string, updates: Partial<Section>) => {
     setPortfolioData((prev) => ({
@@ -262,24 +279,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     markAsChanged();
   };
 
-  const handleToggleComponentVisibility = (componentId: string) => {
-    setPortfolioData((prev) => {
-      const updatedSections = prev.sections.map((section) => ({
-        ...section,
-        components: section.components.map((component) =>
-          component.id === componentId
-            ? { ...component, visible: component.visible !== false ? false : true }
-            : component
-        ),
-      }));
-      return {
-        ...prev,
-        sections: updatedSections,
-      };
-    });
-    markAsChanged();
-  };
-
   const handleAddComponent = (sectionId: string) => {
     setAddingComponentSectionId(sectionId);
   };
@@ -287,6 +286,13 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
       console.warn("No portfolio data or user available");
+      return;
+    }
+
+    // Validate before saving
+    const validation = validateSectionsData(portfolioData);
+    if (!validation.isValid) {
+      toast.error("Please fix validation errors before saving");
       return;
     }
 
@@ -328,18 +334,15 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       return;
     }
 
-    // Validate draft data before publishing
-    const sectionCount = portfolioData.sections?.length || 0;
-    const componentCount =
-      portfolioData.sections?.reduce((sum, section) => sum + (section.components?.length || 0), 0) || 0;
-
-    if (sectionCount < 1) {
-      toast.error("Portfolio must have at least 1 section to publish");
+    if (!portfolioData) {
+      toast.error("No portfolio data available");
       return;
     }
 
-    if (componentCount < 1) {
-      toast.error("Portfolio must have at least 1 component in sections to publish");
+    // Validate before publishing
+    const validation = validateSectionsData(portfolioData);
+    if (!validation.isValid) {
+      toast.error("Please fix validation errors before publishing");
       return;
     }
 
@@ -416,7 +419,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     setActiveId(active.id as string);
-    setActiveType(active.data.current?.type || null);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -424,7 +426,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
 
     if (!over) {
       setActiveId(null);
-      setActiveType(null);
       return;
     }
 
@@ -478,7 +479,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     }
 
     setActiveId(null);
-    setActiveType(null);
   };
 
   if (isLoading) {

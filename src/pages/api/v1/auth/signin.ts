@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     host: requestUrl.host,
     protocol: requestUrl.protocol,
     userAgent: request.headers.get("user-agent"),
-    fullUrl: request.url
+    fullUrl: request.url,
   });
 
   const supabase = createClientSSR({

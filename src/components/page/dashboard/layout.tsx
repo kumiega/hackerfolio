@@ -39,30 +39,19 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
   return (
     <div className="[--header-height:calc(--spacing(14))]">
       <SidebarProvider className="flex flex-col">
-        <SiteHeader
-          currentPath={location.pathname}
-        />
+        <SiteHeader currentPath={location.pathname} />
         <div className="flex flex-1">
           <AppSidebar user={user} currentPath={location.pathname} />
           <SidebarInset className="p-12">
             <Routes>
-              <Route
-                path="/dashboard/bio"
-                element={<BioEditorPage user={user} />}
-              />
-              <Route
-                path="/dashboard/editor"
-                element={<SectionsEditorPage user={user} />}
-              />
+              <Route path="/dashboard/bio" element={<BioEditorPage user={user} />} />
+              <Route path="/dashboard/editor" element={<SectionsEditorPage user={user} />} />
               <Route
                 path="/dashboard/settings"
                 element={<SettingsPage user={user} currentPath="/dashboard/settings" />}
               />
               <Route path="/dashboard/theme" element={<ThemePage user={user} currentPath="/dashboard/theme" />} />
-              <Route
-                path="/dashboard"
-                element={<BioEditorPage user={user} />}
-              />
+              <Route path="/dashboard" element={<BioEditorPage user={user} />} />
             </Routes>
           </SidebarInset>
         </div>

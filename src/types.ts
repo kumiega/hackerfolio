@@ -123,7 +123,7 @@ export interface Section {
 
 export interface BioData {
   full_name: string;
-  position?: string;
+  position: string;
   bio_text: string;
   avatar_url: string;
   social_links: SocialLinksComponentData;

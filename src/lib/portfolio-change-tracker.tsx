@@ -8,6 +8,7 @@ interface PortfolioState {
   hasUnsavedChanges: boolean;
   lastSavedAt: string | null;
   lastPublishedAt: string | null;
+  isValidForSave: boolean;
 }
 
 interface PortfolioChangeTrackerContextType {
@@ -20,6 +21,7 @@ interface PortfolioChangeTrackerContextType {
   markAsPublished: (publishedAt: string) => void;
   resetChanges: () => void;
   setInitialState: (data: PortfolioData, lastSavedAt?: string, lastPublishedAt?: string) => void;
+  setValidForSave: (isValid: boolean) => void;
 
   // Save functions refs (for header to call)
   saveBioRef: React.MutableRefObject<(() => void) | null>;
@@ -53,6 +55,7 @@ export function PortfolioChangeTrackerProvider({ children }: PortfolioChangeTrac
     hasUnsavedChanges: false,
     lastSavedAt: null,
     lastPublishedAt: null,
+    isValidForSave: false,
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -100,7 +103,15 @@ export function PortfolioChangeTrackerProvider({ children }: PortfolioChangeTrac
       hasUnsavedChanges: false,
       lastSavedAt: lastSavedAt || null,
       lastPublishedAt: lastPublishedAt || null,
+      isValidForSave: false, // Will be updated by components
     });
+  }, []);
+
+  const setValidForSave = useCallback((isValid: boolean) => {
+    setPortfolioState((prev) => ({
+      ...prev,
+      isValidForSave: isValid,
+    }));
   }, []);
 
   const setSaving = useCallback((saving: boolean) => {
@@ -118,6 +129,7 @@ export function PortfolioChangeTrackerProvider({ children }: PortfolioChangeTrac
     markAsPublished,
     resetChanges,
     setInitialState,
+    setValidForSave,
     saveBioRef,
     saveSectionsRef,
     publishRef,
