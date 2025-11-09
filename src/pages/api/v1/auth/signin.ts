@@ -5,8 +5,10 @@ import { GITHUB_OAUTH_PROVIDER, ALLOWED_OAUTH_PROVIDERS } from "@/lib/const";
 
 export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const provider = GITHUB_OAUTH_PROVIDER;
-
   const validProviders = ALLOWED_OAUTH_PROVIDERS;
+
+  const requestUrl = new URL(request.url);
+  const redirectTo = `${requestUrl.origin}/api/v1/auth/callback/github`;
 
   const supabase = createClientSSR({
     request: request,
@@ -24,18 +26,17 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
          * ! For production: https://yourdomain.com/api/v1/auth/callback/github
          * ! https://supabase.com/docs/guides/auth/redirect-urls
          */
-        redirectTo: `${new URL(request.url).origin}/api/v1/auth/callback/github`,
+        redirectTo,
       },
     });
 
     if (error) {
-      console.error("error in /signin :", error);
-      return new Response(error.message, { status: 500 });
+      const errorParam = encodeURIComponent(`Failed to initiate GitHub login: ${error.message}`);
+      return redirect(`/signin?error=${errorParam}`);
     }
 
     return redirect(data.url);
   }
 
-  console.error("❌ Invalid OAuth provider:", provider);
-  return redirect("/");
+  return redirect("/signin?error=Invalid%20OAuth%20provider");
 };

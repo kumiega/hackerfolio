@@ -3,6 +3,10 @@ import Layout from "@/layouts/layout-base.astro";
 import { Logo } from "@/components/ui/logo";
 import { Button } from "@/components/ui/button";
 import { Github } from "lucide-react";
+import { Callout } from "@/components/ui/callout";
+
+const url = new URL(Astro.request.url);
+const error = url.searchParams.get("error");
 ---
 
 <Layout>
@@ -12,6 +16,15 @@ import { Github } from "lucide-react";
         <h1 class="text-3xl font-bold text-foreground mb-5"><Logo className="text-2xl sm:text-5xl" /></h1>
         <p class="text-muted-foreground text-lg">Sign in with your GitHub account to get started</p>
       </div>
+
+      {
+        error && (
+          <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-md text-red-800 text-sm">
+            {decodeURIComponent(error)}
+          </div>
+        )
+      }
+
       <form aria-label="GitHub sign in form" class="space-y-4" method="POST" action="/api/v1/auth/signin">
         <Button variant="default" size="lg" type="submit" className="w-full" aria-label="Sign in with GitHub">
           <Github className="w-5 h-5" /> Sign in with GitHub

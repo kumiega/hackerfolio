@@ -4,39 +4,26 @@ import { createClientSSR } from "@/db/supabase.client";
 export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) => {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
+  const error = url.searchParams.get("error");
+  const errorDescription = url.searchParams.get("error_description");
+
+  // Check if GitHub returned an error
+  if (error) {
+    return redirect(`/?error=${encodeURIComponent(errorDescription || error)}`);
+  }
 
   if (!code) {
-    console.error("No code provided in URL params");
-    return redirect("/");
+    return redirect("/?error=no_code");
   }
 
   const supabase = createClientSSR({ request, cookies });
 
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) {
-    console.error("❌ Session exchange failed:", {
-      message: error.message,
-      status: error.status,
-      name: error.name,
-    });
-
-    // Try to get more details about the error
-    return new Response(
-      JSON.stringify({
-        error: error.message,
-        status: error.status,
-        name: error.name,
-        code: (error as any)?.code,
-        hint: (error as any)?.hint,
-      }),
-      {
-        status: 401,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+  if (exchangeError) {
+    // Redirect to signin with error instead of returning JSON
+    const errorParam = encodeURIComponent(`Authentication failed: ${exchangeError.message}`);
+    return redirect(`/signin?error=${errorParam}`);
   }
 
   return redirect("/dashboard");
