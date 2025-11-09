@@ -135,13 +135,16 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
 
         // If portfolio doesn't exist, create with default bio
         if (errorMessage.includes("not found")) {
-          setPortfolioData({
+          const defaultData = {
             full_name: "",
             position: "",
             bio: defaultBioData,
             avatar_url: null,
             sections: [],
-          });
+          };
+          setPortfolioData(defaultData);
+          // Set initial state for new users with unsaved changes
+          setInitialState(defaultData, undefined, undefined);
         } else {
           setError(errorMessage);
         }

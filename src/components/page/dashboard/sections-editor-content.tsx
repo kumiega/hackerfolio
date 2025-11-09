@@ -27,11 +27,25 @@ import { Plus } from "lucide-react";
 
 import { toast } from "sonner";
 
+// Default empty bio structure
+const defaultBioData = {
+  full_name: "",
+  position: "",
+  bio_text: "",
+  avatar_url: "",
+  social_links: {
+    github: "",
+    linkedin: "",
+    x: "",
+    website: [],
+  },
+};
+
 // Default empty portfolio structure
 const defaultPortfolioData: PortfolioData = {
   full_name: "",
   position: "",
-  bio: [],
+  bio: defaultBioData,
   avatar_url: null,
   sections: [],
 };
@@ -148,6 +162,8 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         // If portfolio doesn't exist, use default empty structure
         if (errorMessage.includes("not found")) {
           setPortfolioData(defaultPortfolioData);
+          // Set initial state for new users with unsaved changes
+          setInitialState(defaultPortfolioData, undefined, undefined);
         } else {
           setError(errorMessage);
         }
@@ -157,7 +173,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     };
 
     loadPortfolio();
-  }, [user.user_id]);
+  }, [user.user_id, setInitialState]);
 
   const handleUpdateSection = (sectionId: string, updates: Partial<Section>) => {
     setPortfolioData((prev) => ({

@@ -45,8 +45,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
         <div className="ml-auto flex items-center gap-2">
           {isEditorPage && (
             <>
-              {/* Save button - show when there are unsaved changes */}
-              {portfolioState.hasUnsavedChanges && (
+              {(portfolioState.hasUnsavedChanges || (portfolioState.data && !portfolioState.lastSavedAt)) && (
                 <Button
                   variant="muted"
                   onClick={handleSavePortfolio}
