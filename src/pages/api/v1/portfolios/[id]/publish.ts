@@ -13,7 +13,7 @@ export const prerender = false;
 const publishValidationSchema = z.object({
   bio: z.object({
     full_name: z.string().min(1, "Full name is required").max(100),
-    bio_text: z.string().min(1, "Bio text is required").max(2000),
+    summary: z.string().min(1, "Bio text is required").max(2000),
     position: z.string().min(1, "Position is required").max(100),
   }),
 });

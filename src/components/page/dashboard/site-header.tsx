@@ -38,7 +38,7 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
   const hasRequiredBioFields = !!(
     portfolioState.data?.bio?.full_name?.trim() &&
     portfolioState.data?.bio?.position?.trim() &&
-    portfolioState.data?.bio?.bio_text?.trim()
+    portfolioState.data?.bio?.summary?.trim()
   );
 
   return (

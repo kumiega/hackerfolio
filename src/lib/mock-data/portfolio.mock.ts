@@ -8,7 +8,7 @@ export const mockPortfolioData: PortfolioData = {
   bio: {
     full_name: "Mark Coderfast",
     position: "Full-stack Developer",
-    bio_text:
+    summary:
       "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
     avatar_url: "/images/avatar.jpg",
   },

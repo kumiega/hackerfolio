@@ -9,7 +9,7 @@ export interface BioValidationResult extends ValidationResult {
   fieldErrors: {
     full_name?: string;
     position?: string;
-    bio_text?: string;
+    summary?: string;
     avatar_url?: string;
     social_links?: string;
   };
@@ -47,13 +47,13 @@ export function validateBioData(bioData: BioData): BioValidationResult {
     fieldErrors.position = "Position must be 100 characters or less";
   }
 
-  // Validate bio_text
-  if (!bioData.bio_text || bioData.bio_text.trim().length === 0) {
+  // Validate summary
+  if (!bioData.summary || bioData.summary.trim().length === 0) {
     errors.push("Bio text is required");
-    fieldErrors.bio_text = "Bio text is required";
-  } else if (bioData.bio_text.length > 2000) {
+    fieldErrors.summary = "Bio text is required";
+  } else if (bioData.summary.length > 2000) {
     errors.push("Bio text must be 2000 characters or less");
-    fieldErrors.bio_text = "Bio text must be 2000 characters or less";
+    fieldErrors.summary = "Bio text must be 2000 characters or less";
   }
 
   // Validate avatar_url (can be empty but if provided should be valid URL)
@@ -381,8 +381,8 @@ export function canSaveBio(bioData: BioData): boolean {
     bioData.full_name.trim().length > 0 &&
     bioData.position &&
     bioData.position.trim().length > 0 &&
-    bioData.bio_text &&
-    bioData.bio_text.trim().length > 0
+    bioData.summary &&
+    bioData.summary.trim().length > 0
   );
 }
 

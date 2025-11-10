@@ -17,7 +17,7 @@ interface BioSectionProps {
   validationErrors?: {
     full_name?: string;
     position?: string;
-    bio_text?: string;
+    summary?: string;
     avatar_url?: string;
     social_links?: string;
   };
@@ -153,18 +153,18 @@ export function BioSection({ bio, onUpdateBio, validationErrors }: BioSectionPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="bio_text">
+            <Label htmlFor="summary">
               Bio Text <span className="text-red-500">*</span>
             </Label>
             <Textarea
-              id="bio_text"
-              value={bio.bio_text || ""}
-              onChange={(e) => onUpdateBio({ bio_text: e.target.value })}
+              id="summary"
+              value={bio.summary || ""}
+              onChange={(e) => onUpdateBio({ summary: e.target.value })}
               placeholder="Tell us about yourself..."
               rows={4}
-              className={validationErrors?.bio_text ? "border-red-500" : ""}
+              className={validationErrors?.summary ? "border-red-500" : ""}
             />
-            {validationErrors?.bio_text && <p className="text-sm text-red-500 mt-1">{validationErrors.bio_text}</p>}
+            {validationErrors?.summary && <p className="text-sm text-red-500 mt-1">{validationErrors.summary}</p>}
           </div>
 
           <div className="space-y-4">

@@ -32,7 +32,7 @@ import { toast } from "sonner";
 const defaultBioData = {
   full_name: "",
   position: "",
-  bio_text: "",
+  summary: "",
   avatar_url: "",
   social_links: {
     github: "",

@@ -124,7 +124,7 @@ export interface Section {
 export interface BioData {
   full_name: string;
   position?: string;
-  bio_text: string;
+  summary: string;
   avatar_url: string;
   social_links: SocialLinksComponentData;
 }

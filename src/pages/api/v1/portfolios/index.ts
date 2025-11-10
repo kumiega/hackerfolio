@@ -31,7 +31,7 @@ const socialLinksSchema = z.object({
 const bioDataSchema = z.object({
   full_name: z.string().max(100),
   position: z.string().max(100).optional(),
-  bio_text: z.string().max(2000),
+  summary: z.string().max(2000),
   avatar_url: z.string().optional(),
   social_links: socialLinksSchema.optional(),
 });
