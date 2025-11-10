@@ -516,7 +516,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight mb-3">Portfolio Editor</h1>
+            <h1 className="text-3xl font-bold tracking-tight mb-3">Sections</h1>
             <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
 
             {/* Timestamp info */}

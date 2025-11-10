@@ -18,7 +18,9 @@ export function ThemePage({ user, currentPath }: ThemePageProps) {
           </div>
         </div>
       </div>
-      <div className="bg-muted/20 aspect-video animate-pulse max-h-[40vh] grid place-items-center">Coming soon...</div>
+      <div className="border border-dashed bg-card aspect-video animate-pulse max-h-[40vh] grid place-items-center">
+        Coming soon...
+      </div>
     </div>
   );
 }

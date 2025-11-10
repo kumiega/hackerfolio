@@ -35,7 +35,7 @@ const getPortfolioNavItems = (
   handlePreview: () => void
 ) => [
   {
-    title: "Bio",
+    title: "Personal info",
     url: "/dashboard/bio",
     icon: UserIcon,
   },
