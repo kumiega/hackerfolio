@@ -121,6 +121,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
     markAsPublished,
     setInitialState,
     setValidForSave,
+    updatePortfolioData,
     saveSectionsRef,
     publishRef,
     setSaving,
@@ -201,20 +202,28 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   };
 
   const handleDeleteSection = (sectionId: string) => {
-    setPortfolioData((prev) => ({
-      ...prev,
-      sections: prev.sections.filter((section) => section.id !== sectionId),
-    }));
+    setPortfolioData((prev) => {
+      const updatedData = {
+        ...prev,
+        sections: prev.sections.filter((section) => section.id !== sectionId),
+      };
+      updatePortfolioData(updatedData);
+      return updatedData;
+    });
     markAsChanged();
   };
 
   const handleToggleSectionVisibility = (sectionId: string) => {
-    setPortfolioData((prev) => ({
-      ...prev,
-      sections: prev.sections.map((section) =>
-        section.id === sectionId ? { ...section, visible: !section.visible } : section
-      ),
-    }));
+    setPortfolioData((prev) => {
+      const updatedData = {
+        ...prev,
+        sections: prev.sections.map((section) =>
+          section.id === sectionId ? { ...section, visible: !section.visible } : section
+        ),
+      };
+      updatePortfolioData(updatedData);
+      return updatedData;
+    });
     markAsChanged();
   };
 
@@ -229,15 +238,17 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
           ...section,
           components: section.components.map((c) => (c.id === component.id ? component : c)),
         }));
-        return {
+        const updatedData = {
           ...prev,
           sections: updatedSections,
         };
+        updatePortfolioData(updatedData);
+        return updatedData;
       });
       setEditingComponentId(null);
       markAsChanged();
     },
-    [markAsChanged]
+    [markAsChanged, updatePortfolioData]
   );
 
   const handleSaveNewComponent = useCallback(
@@ -254,15 +265,17 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
           }
           return section;
         });
-        return {
+        const updatedData = {
           ...prev,
           sections: updatedSections,
         };
+        updatePortfolioData(updatedData);
+        return updatedData;
       });
       setAddingComponentSectionId(null);
       markAsChanged();
     },
-    [addingComponentSectionId, markAsChanged]
+    [addingComponentSectionId, markAsChanged, updatePortfolioData]
   );
 
   const handleDeleteComponent = (componentId: string) => {
@@ -271,10 +284,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         ...section,
         components: section.components.filter((component) => component.id !== componentId),
       }));
-      return {
+      const updatedData = {
         ...prev,
         sections: updatedSections,
       };
+      updatePortfolioData(updatedData);
+      return updatedData;
     });
     markAsChanged();
   };
@@ -391,12 +406,16 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       components: [],
     };
 
-    setPortfolioData((prev) => ({
-      ...prev,
-      sections: [...prev.sections, newSection],
-    }));
+    setPortfolioData((prev) => {
+      const updatedData = {
+        ...prev,
+        sections: [...prev.sections, newSection],
+      };
+      updatePortfolioData(updatedData);
+      return updatedData;
+    });
     markAsChanged();
-  }, [markAsChanged]);
+  }, [markAsChanged, updatePortfolioData]);
 
   // Set up event listeners for parent component actions and change tracker refs
   useEffect(() => {

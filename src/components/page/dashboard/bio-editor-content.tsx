@@ -100,6 +100,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
     markAsPublished,
     setInitialState,
     setValidForSave,
+    updatePortfolioData,
     saveBioRef,
     publishRef,
     setSaving,
@@ -192,14 +193,17 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         };
         // Validate after update
         setTimeout(() => validateBio(updatedBio), 0);
-        return {
+        const updatedData = {
           ...prev,
           bio: updatedBio,
         };
+        // Update global portfolio state
+        updatePortfolioData(updatedData);
+        return updatedData;
       });
       markAsChanged();
     },
-    [markAsChanged, validateBio]
+    [markAsChanged, validateBio, updatePortfolioData]
   );
 
   const handleSavePortfolio = useCallback(async () => {

@@ -34,6 +34,13 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
   // Show editor buttons only on bio and sections editor pages
   const isEditorPage = currentPath === "/dashboard/bio" || currentPath === "/dashboard/editor";
 
+  // Check if required bio fields are filled to show save/publish buttons
+  const hasRequiredBioFields = !!(
+    portfolioState.data?.bio?.full_name?.trim() &&
+    portfolioState.data?.bio?.position?.trim() &&
+    portfolioState.data?.bio?.bio_text?.trim()
+  );
+
   return (
     <header className="bg-sidebar sticky top-0 z-50 flex w-full items-center border-b">
       <div className="flex h-(--header-height) w-full items-center gap-2 px-4">
@@ -45,31 +52,30 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
         <div className="ml-auto flex items-center gap-2">
           {isEditorPage && (
             <>
-              {(portfolioState.hasUnsavedChanges || (portfolioState.data && !portfolioState.lastSavedAt)) &&
-                portfolioState.isValidForSave && (
-                  <Button
-                    variant="muted"
-                    onClick={handleSavePortfolio}
-                    disabled={isSaving}
-                    className="gap-2 min-w-36 transition-all duration-200"
-                    aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
-                  >
-                    {isSaving ? (
-                      <>
-                        <Spinner className="h-4 w-4" />
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="h-4 w-4" />
-                        Save draft
-                      </>
-                    )}
-                  </Button>
-                )}
+              {hasRequiredBioFields && (
+                <Button
+                  variant="muted"
+                  onClick={handleSavePortfolio}
+                  disabled={isSaving}
+                  className="gap-2 min-w-36 transition-all duration-200"
+                  aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
+                >
+                  {isSaving ? (
+                    <>
+                      <Spinner className="h-4 w-4" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      Save draft
+                    </>
+                  )}
+                </Button>
+              )}
 
               {/* Publish button */}
-              {portfolioState.isValidForSave && (
+              {hasRequiredBioFields && (
                 <Button
                   onClick={handlePublishPortfolio}
                   disabled={isPublishing || isSaving}
