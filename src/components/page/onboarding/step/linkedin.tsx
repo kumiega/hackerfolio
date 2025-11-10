@@ -1,4 +1,3 @@
-import { LightbulbIcon } from "lucide-react";
 import LinkedInForm from "@/components/feature/onboarding/linkedin-form";
 
 function LinkedInImportStep() {
@@ -14,9 +13,9 @@ function LinkedInImportStep() {
 
       <LinkedInForm />
 
-      <p className="flex items-center gap-1.5 text-xs text-muted-foreground px-1.5 py-1 border border-secondary/10 bg-secondary/5 text-secondary/86 max-w-fit">
-        <LightbulbIcon className="w-4 h-4" />
-        You can customize your generated bio in the editor afterward.
+      <p className="text-xs text-red-800 mb-3 text-balance">
+        Portfolio content will be AI-generated. Please review carefully before publishing. You can customize it in the
+        editor afterward.
       </p>
     </div>
   );
