@@ -1,72 +1,50 @@
 ---
-interface SocialLinks {
-  github?: string;
-  linkedin?: string;
-  x?: string;
-  website?: { name: string; url: string }[];
-}
-
 interface Props {
   github?: string;
   linkedin?: string;
   x?: string;
   website?: { name: string; url: string }[];
-  title?: string;
 }
 
-const { github, linkedin, x, website, title } = Astro.props;
+const { github, linkedin, x, website } = Astro.props;
 ---
 
-<section>
+<nav class="flex flex-wrap gap-2" aria-label="Social links">
   {
-    title && (
-      <h2 class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
-        <span class="text-primary" aria-hidden="true">
-          ▷
-        </span>
-        {title}
-      </h2>
+    github && github.trim() && (
+      <a class="link-button" href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
+        GitHub
+      </a>
     )
   }
-
-  <nav class="flex flex-wrap gap-2" aria-label="Social links">
-    {
-      github && github.trim() && (
-        <a class="link-button" href={github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile">
-          GitHub
-        </a>
-      )
-    }
-    {
-      linkedin && linkedin.trim() && (
-        <a class="link-button" href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
-          LinkedIn
-        </a>
-      )
-    }
-    {
-      x && x.trim() && (
-        <a class="link-button" href={x} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter) profile">
-          X
-        </a>
-      )
-    }
-    {
-      website &&
-        website
-          .filter((site) => site.name?.trim() && site.url?.trim())
-          .map((site) => (
-            <a
-              key={site.url}
-              class="link-button"
-              href={site.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${site.name} website`}
-            >
-              {site.name}
-            </a>
-          ))
-    }
-  </nav>
-</section>
+  {
+    linkedin && linkedin.trim() && (
+      <a class="link-button" href={linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile">
+        LinkedIn
+      </a>
+    )
+  }
+  {
+    x && x.trim() && (
+      <a class="link-button" href={x} target="_blank" rel="noopener noreferrer" aria-label="X (Twitter) profile">
+        X
+      </a>
+    )
+  }
+  {
+    website &&
+      website
+        .filter((site) => site.name?.trim() && site.url?.trim())
+        .map((site) => (
+          <a
+            class="link-button"
+            href={site.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`${site.name} website`}
+          >
+            {site.name}
+          </a>
+        ))
+  }
+</nav>

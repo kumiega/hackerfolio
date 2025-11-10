@@ -8,45 +8,37 @@ interface CardData {
 
 interface Props {
   items: CardData[];
-  title: string;
 }
 
-const { items, title } = Astro.props;
+const { items } = Astro.props;
 ---
 
-<section aria-labelledby="projects-heading">
-  <h2 id="projects-heading" class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
-    <span class="text-primary" aria-hidden="true">▷</span>
-    {title}
-  </h2>
-
-  <nav aria-label="Selected projects">
-    <ul class="flex flex-col space-y-4" role="list">
-      {
-        items.map((item) => (
-          <li>
-            <a href={item.repo_url || "#"} class="link-card">
-              <div class="link-card-content">
-                <h3 class="text-foreground font-medium">{item.title}</h3>
-                <p class="text-muted-foreground text-sm mb-2">{item.summary}</p>
-                {item.tech && item.tech.length > 0 && (
-                  <div class="flex flex-wrap gap-1">
-                    {item.tech.slice(0, 5).map((tech) => (
-                      <span class="bg-muted text-muted-foreground text-xs px-2 py-1 rounded">{tech}</span>
-                    ))}
-                    {item.tech.length > 5 && (
-                      <span class="text-muted-foreground text-xs">+{item.tech.length - 5} more</span>
-                    )}
-                  </div>
-                )}
-              </div>
-              <span class="link-card-arrow" aria-hidden="true">
-                →
-              </span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
-</section>
+<nav>
+  <ul class="flex flex-col space-y-4" role="list">
+    {
+      items.map((item) => (
+        <li>
+          <a href={item.repo_url || "#"} class="link-card">
+            <div class="link-card-content">
+              <h3 class="text-foreground font-medium">{item.title}</h3>
+              <p class="text-muted-foreground text-sm mb-2">{item.summary}</p>
+              {item.tech && item.tech.length > 0 && (
+                <div class="flex flex-wrap gap-1">
+                  {item.tech.slice(0, 5).map((tech) => (
+                    <span class="bg-muted text-muted-foreground text-xs px-2 py-1 rounded">{tech}</span>
+                  ))}
+                  {item.tech.length > 5 && (
+                    <span class="text-muted-foreground text-xs">+{item.tech.length - 5} more</span>
+                  )}
+                </div>
+              )}
+            </div>
+            <span class="link-card-arrow" aria-hidden="true">
+              →
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

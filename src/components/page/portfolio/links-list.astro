@@ -9,29 +9,22 @@ interface Props {
   title: string;
 }
 
-const { items, title } = Astro.props;
+const { items } = Astro.props;
 ---
 
-<section aria-labelledby="other-places-heading">
-  <h2 id="other-places-heading" class="text-foreground/64 font-mono uppercase text-sm mt-12 mb-3">
-    <span class="text-primary" aria-hidden="true">▷</span>
-    {title}
-  </h2>
-
-  <nav aria-label="Other online profiles">
-    <ul class="link-list" role="list">
-      {
-        items.map((item) => (
-          <li class="link-list-item">
-            <a href={item.url} class="hover:text-primary" target="_blank" rel="noopener noreferrer">
-              {item.label}{" "}
-              <span aria-hidden="true" class="list-link-arrow">
-                ↗
-              </span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </nav>
-</section>
+<nav>
+  <ul class="link-list" role="list">
+    {
+      items.map((item) => (
+        <li class="link-list-item">
+          <a href={item.url} class="hover:text-primary" target="_blank" rel="noopener noreferrer">
+            {item.label}{" "}
+            <span aria-hidden="true" class="list-link-arrow">
+              ↗
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

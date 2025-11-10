@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, useCallback, useRef } from "react";
+import type { ReactNode } from "react";
 import type { PortfolioData } from "@/types";
 
 interface PortfolioState {
@@ -22,6 +23,7 @@ interface PortfolioChangeTrackerContextType {
   resetChanges: () => void;
   setInitialState: (data: PortfolioData, lastSavedAt?: string, lastPublishedAt?: string) => void;
   setValidForSave: (isValid: boolean) => void;
+  updatePortfolioData: (data: PortfolioData) => void;
 
   // Save functions refs (for header to call)
   saveBioRef: React.MutableRefObject<(() => void) | null>;
@@ -114,6 +116,13 @@ export function PortfolioChangeTrackerProvider({ children }: PortfolioChangeTrac
     }));
   }, []);
 
+  const updatePortfolioData = useCallback((data: PortfolioData) => {
+    setPortfolioState((prev) => ({
+      ...prev,
+      data,
+    }));
+  }, []);
+
   const setSaving = useCallback((saving: boolean) => {
     setIsSaving(saving);
   }, []);
@@ -130,6 +139,7 @@ export function PortfolioChangeTrackerProvider({ children }: PortfolioChangeTrac
     resetChanges,
     setInitialState,
     setValidForSave,
+    updatePortfolioData,
     saveBioRef,
     saveSectionsRef,
     publishRef,

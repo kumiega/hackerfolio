@@ -1,4 +1,5 @@
 ---
+import Title from "./title.astro";
 import TextSection from "./text.astro";
 import PillsSection from "./pills.astro";
 import CardsSection from "./cards.astro";
@@ -6,71 +7,60 @@ import LinksListSection from "./links-list.astro";
 import SocialLinksSection from "./social-links.astro";
 import ImageSection from "./image.astro";
 
-import type { Section } from "@/types";
+import type { Section, ComponentDataByType, ComponentType } from "@/types";
 
 interface Props {
   sections: Section[];
 }
 
 const { sections } = Astro.props;
+
+// Type-safe helper to get component data
+function getComponentData<T extends ComponentType>(type: T, data: unknown): ComponentDataByType<T> {
+  return data as ComponentDataByType<T>;
+}
 ---
 
 {
   sections
     .filter((section) => section.visible)
     .map((section) => (
-      <div>
-        {section.components.map((component) => {
-          const componentData = component.data;
+      <section>
+        {section.title && <Title>{section.title}</Title>}
+        {section.description && <p class="mb-4">{section.description}</p>}
 
+        {section.components.map((component) => {
           switch (component.type) {
-            case "text":
+            case "text": {
+              const data = getComponentData("text", component.data);
+              return <TextSection content={data.content || ""} />;
+            }
+            case "pills": {
+              const data = getComponentData("pills", component.data);
+              return <PillsSection items={data.items || []} />;
+            }
+            case "cards": {
+              const data = getComponentData("cards", component.data);
+              return <CardsSection items={data.cards || []} />;
+            }
+            case "list": {
+              const data = getComponentData("list", component.data) as { items: { label: string; url: string }[] };
+              return <LinksListSection items={data.items || []} title={section.title} />;
+            }
+            case "social_links": {
+              const data = getComponentData("social_links", component.data);
               return (
-                <TextSection
-                  title={(componentData.title as string) || section.title}
-                  content={(componentData.content as string) || ""}
-                />
+                <SocialLinksSection github={data.github} linkedin={data.linkedin} x={data.x} website={data.website} />
               );
-            case "pills":
-              return (
-                <PillsSection
-                  title={(componentData.title as string) || section.title}
-                  description={(componentData.description as string) || ""}
-                  items={(componentData.items as string[]) || []}
-                />
-              );
-            case "cards":
-              return <CardsSection title={section.title} items={(componentData.cards as any[]) || []} />;
-            case "list":
-              return (
-                <LinksListSection
-                  title={(componentData.title as string) || section.title}
-                  items={(componentData.items as any[]) || []}
-                />
-              );
-            case "social_links":
-              return (
-                <SocialLinksSection
-                  title={(componentData.title as string) || section.title}
-                  github={componentData.github as string}
-                  linkedin={componentData.linkedin as string}
-                  x={componentData.x as string}
-                  website={componentData.website as any[]}
-                />
-              );
-            case "image":
-              return (
-                <ImageSection
-                  title={(componentData.title as string) || section.title}
-                  url={(componentData.url as string) || ""}
-                  alt={(componentData.alt as string) || ""}
-                  maxSizeMB={componentData.maxSizeMB as number}
-                />
-              );
+            }
+            case "image": {
+              const data = getComponentData("image", component.data);
+              return <ImageSection url={data.url || ""} alt={data.alt || ""} />;
+            }
             default:
               return null;
           }
         })}
-      </div>
+      </section>
     ))
 }
