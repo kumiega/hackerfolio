@@ -42,14 +42,11 @@ const previewData = apiResponse.data;
 // Extract data from the API response
 const data = previewData.draft_data;
 
-// Extract bio data from simple key:value structure
-const bioData = data.bio;
-
-const fullName = bioData.full_name || "";
-const position = bioData.position || null;
-const bioText = bioData.bio_text || "";
-const avatarUrl = bioData.avatar_url || null;
-const socialLinks = bioData.social_links || {};
+const fullName = data.bio.full_name || "";
+const position = data.bio.position || null;
+const bioText = data.bio.bio_text || "";
+const avatarUrl = data.bio.avatar_url || null;
+const socialLinks = data.bio.social_links || {};
 ---
 
 <Layout title="Portfolio - Hackerfolio">
