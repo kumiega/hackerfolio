@@ -210,7 +210,7 @@ Note: Sections and components are managed via `PATCH /api/v1/portfolios/:id` by 
 ```
 - Errors: 401 if missing token
 
-2) POST `/api/v1/imports/github/generate-cards`
+2) POST `/api/v1/imports/github/cards`
 - Description: Generate card components for selected repos by reading README and detecting tech stack; returns components to be added to draft_data
 - Body
 ```json
@@ -243,7 +243,7 @@ Note: Sections and components are managed via `PATCH /api/v1/portfolios/:id` by 
 Note: Client receives generated components and adds them to a section in draft_data, then calls PATCH `/api/v1/portfolios/:id`
 
 ### 2.6 Imports — LinkedIn
-POST `/api/v1/imports/linkedin/generate`
+POST `/api/v1/imports/linkedin/profile`
 - Description: Generate portfolio structure from manually entered LinkedIn data using AI
 - Body
 ```json
@@ -568,8 +568,8 @@ Summarized types for reference; actual responses follow examples above.
 - [x] PATCH /api/v1/portfolios/:id (updates full draft_data JSONB with validation)
 - [x] POST /api/v1/portfolios/:id/publish (copies draft_data → published_data via DB function)
 - [x] GET /api/v1/imports/github/repos
-- [x] POST /api/v1/imports/github/generate-cards (returns component data for client-side merge)
-- [x] POST /api/v1/imports/linkedin/generate (accepts manual data, returns generated sections)
+- [x] POST /api/v1/imports/github/cards (returns component data for client-side merge)
+- [x] POST /api/v1/imports/linkedin/profile (accepts manual data, returns generated sections)
 - [x] GET /api/v1/public/portfolios/:username (SSR endpoint for published_data)
 - [x] GET /api/v1/preview/portfolios/:username (owner-only draft preview)
 - [x] POST /api/v1/errors
