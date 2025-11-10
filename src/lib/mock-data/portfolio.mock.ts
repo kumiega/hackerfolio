@@ -5,27 +5,13 @@ import type { PortfolioData } from "@/types";
  * Matches the complete PortfolioData JSONB structure
  */
 export const mockPortfolioData: PortfolioData = {
-  full_name: "Mark Coderfast",
-  position: "Full-stack developer at Google",
   bio: {
     full_name: "Mark Coderfast",
     position: "Full-stack Developer",
     bio_text:
       "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
     avatar_url: "/images/avatar.jpg",
-    social_links: {
-      github: "https://github.com/markcoderfast",
-      linkedin: "https://linkedin.com/in/markcoderfast",
-      x: "https://twitter.com/markcoderfast",
-      email: "mark.coderfast@example.com",
-      custom_link: {
-        name: "Portfolio",
-        url: "https://markcoderfast.dev",
-      },
-      website: [{ name: "Blog", url: "https://markcoderfast.com" }],
-    },
   },
-  avatar_url: "/images/avatar.jpg",
   sections: [
     {
       id: "tech-stack",
