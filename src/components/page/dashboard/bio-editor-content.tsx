@@ -10,7 +10,7 @@ import type {
   UpdatePortfolioCommand,
   CreatePortfolioCommand,
 } from "@/types";
-import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
 import { validateBioData, type BioValidationResult } from "@/lib/validation";
 
 import { BioSection } from "./components/bio-section";

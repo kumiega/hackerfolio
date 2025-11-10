@@ -6,7 +6,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
 import { Toaster } from "@/components/ui/sonner";
-import { PortfolioChangeTrackerProvider } from "@/lib/portfolio-change-tracker";
+import { PortfolioChangeTrackerProvider } from "@/components/feature/dashboard/portfolio-change-tracker";
 
 import type { User } from "@/types";
 

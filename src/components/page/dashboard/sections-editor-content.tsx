@@ -16,7 +16,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import type { Component, Section, PortfolioData, PortfolioDto, User } from "@/types";
-import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
 import { validateSectionsData } from "@/lib/validation";
 
 import { EmptySections } from "./components/empty-sections";

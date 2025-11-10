@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { useSidebar } from "@/components/ui/sidebar";
 import { Breadcrumbs } from "@/components/page/dashboard/breadcrumbs";
 import { Spinner } from "@/components/ui/spinner";
-import { usePortfolioChangeTracker } from "@/lib/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
 
 interface SiteHeaderProps {
   currentPath?: string;
