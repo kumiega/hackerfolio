@@ -127,10 +127,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         };
 
         const initialData = {
-          full_name: portfolio.draft_data.full_name || "",
-          position: portfolio.draft_data.position || "",
           bio: normalizedBioData,
-          avatar_url: portfolio.draft_data.avatar_url || null,
           sections: portfolio.draft_data.sections || [],
         };
 
@@ -146,10 +143,7 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         // If portfolio doesn't exist, create with default bio
         if (errorMessage.includes("not found")) {
           const defaultData = {
-            full_name: "",
-            position: "",
             bio: { ...defaultBioData }, // Ensure we have a copy
-            avatar_url: null,
             sections: [],
           };
           setPortfolioData(defaultData);
@@ -231,8 +225,6 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         await PortfolioApiClient.updatePortfolio(portfolioId, {
           draft_data: {
             bio: portfolioData.bio,
-            full_name: portfolioData.full_name,
-            position: portfolioData.position,
           },
         });
       } else {
@@ -240,9 +232,6 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         const newPortfolio = await PortfolioApiClient.createPortfolio({
           draft_data: {
             bio: portfolioData.bio,
-            full_name: portfolioData.full_name,
-            position: portfolioData.position,
-            avatar_url: portfolioData.avatar_url,
             sections: portfolioData.sections,
           },
         });
@@ -297,8 +286,6 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
       await PortfolioApiClient.updatePortfolio(portfolioId, {
         draft_data: {
           bio: portfolioData.bio,
-          full_name: portfolioData.full_name,
-          position: portfolioData.position,
         },
       });
 

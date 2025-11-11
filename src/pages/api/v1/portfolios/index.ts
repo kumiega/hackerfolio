@@ -39,10 +39,7 @@ const bioDataSchema = z.object({
 const createPortfolioSchema = z.object({
   draft_data: z
     .object({
-      full_name: z.string().max(100).optional(),
-      position: z.string().max(100).optional(),
       bio: bioDataSchema.optional(),
-      avatar_url: z.string().nullable().optional(),
       sections: z.array(z.any()).optional(),
     })
     .optional(),

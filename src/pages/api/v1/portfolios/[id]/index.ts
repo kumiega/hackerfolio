@@ -70,10 +70,7 @@ const bioDataSchema = z.object({
 
 const updatePortfolioSchema = z.object({
   draft_data: z.object({
-    full_name: z.string().max(100).optional(),
-    position: z.string().max(100).optional(),
     bio: bioDataSchema.optional(),
-    avatar_url: z.string().nullable().optional(),
     sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed").optional(),
   }),
 });

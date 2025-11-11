@@ -44,10 +44,7 @@ const defaultBioData = {
 
 // Default empty portfolio structure
 const defaultPortfolioData: PortfolioData = {
-  full_name: "",
-  position: "",
   bio: defaultBioData,
-  avatar_url: null,
   sections: [],
 };
 
@@ -157,15 +154,27 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         setError(null);
 
         const portfolio = await PortfolioApiClient.getPortfolio();
-        setPortfolioData(portfolio.draft_data);
+
+        // Ensure all sections have valid slugs
+        const processedData = {
+          ...portfolio.draft_data,
+          sections: portfolio.draft_data.sections.map((section) => ({
+            ...section,
+            slug:
+              section.slug ||
+              section.title
+                .toLowerCase()
+                .replace(/\s+/g, "-")
+                .replace(/[^a-z0-9-]/g, "") ||
+              `section-${section.id}`,
+          })),
+        };
+
+        setPortfolioData(processedData);
         setPortfolioId(portfolio.id);
 
         // Set initial state in change tracker
-        setInitialState(
-          portfolio.draft_data,
-          portfolio.updated_at || undefined,
-          portfolio.last_published_at || undefined
-        );
+        setInitialState(processedData, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
       } catch (err) {
         console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
@@ -457,10 +466,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         const oldIndex = prev.sections.findIndex((section) => section.id === activeId);
         const newIndex = prev.sections.findIndex((section) => section.id === overId);
 
-        return {
+        const updatedData = {
           ...prev,
           sections: arrayMove(prev.sections, oldIndex, newIndex),
         };
+        updatePortfolioData(updatedData);
+        return updatedData;
       });
       markAsChanged();
     }
@@ -491,10 +502,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
             const updatedSections = [...prev.sections];
             updatedSections[sectionIndex] = updatedSection;
 
-            return {
+            const updatedData = {
               ...prev,
               sections: updatedSections,
             };
+            updatePortfolioData(updatedData);
+            return updatedData;
           });
           markAsChanged();
         } else {
@@ -536,10 +549,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
             updatedSections[activeSectionIndex] = updatedActiveSection;
             updatedSections[overSectionIndex] = updatedOverSection;
 
-            return {
+            const updatedData = {
               ...prev,
               sections: updatedSections,
             };
+            updatePortfolioData(updatedData);
+            return updatedData;
           });
           markAsChanged();
         }
@@ -581,10 +596,12 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
             updatedSections[activeSectionIndex] = updatedActiveSection;
             updatedSections[targetSectionIndex] = updatedTargetSection;
 
-            return {
+            const updatedData = {
               ...prev,
               sections: updatedSections,
             };
+            updatePortfolioData(updatedData);
+            return updatedData;
           });
           markAsChanged();
         }
