@@ -68,6 +68,7 @@ export function SectionContent({
                   <SortableComponent
                     key={component.id}
                     component={component}
+                    sectionId={section.id}
                     onEdit={onEditComponent}
                     onDelete={onDeleteComponent}
                   >

@@ -9,12 +9,13 @@ import type { Component } from "@/types";
 
 interface SortableComponentProps {
   component: Component;
+  sectionId: string;
   children: React.ReactNode;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export function SortableComponent({ component, children, onEdit, onDelete }: SortableComponentProps) {
+export function SortableComponent({ component, sectionId, children, onEdit, onDelete }: SortableComponentProps) {
   const [isPressed, setIsPressed] = React.useState(false);
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -22,6 +23,7 @@ export function SortableComponent({ component, children, onEdit, onDelete }: Sor
     data: {
       type: "component",
       component,
+      sectionId,
     },
     transition: {
       duration: 100,

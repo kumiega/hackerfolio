@@ -465,35 +465,129 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       markAsChanged();
     }
 
-    // Handle component reordering within sections
-    if (active.data.current?.type === "component" && over.data.current?.type === "component") {
+    // Handle component reordering within sections or moving between sections
+    if (active.data.current?.type === "component") {
       const activeSectionId = active.data.current.sectionId;
-      const overSectionId = over.data.current.sectionId;
 
-      if (activeSectionId === overSectionId) {
-        // Reordering within the same section
-        setPortfolioData((prev) => {
-          const sectionIndex = prev.sections.findIndex((section) => section.id === activeSectionId);
-          if (sectionIndex === -1) return prev;
+      // Component dropped on another component (reordering within section or between sections)
+      if (over.data.current?.type === "component") {
+        const overSectionId = over.data.current.sectionId;
 
-          const section = prev.sections[sectionIndex];
-          const oldIndex = section.components.findIndex((component) => component.id === activeId);
-          const newIndex = section.components.findIndex((component) => component.id === overId);
+        if (activeSectionId === overSectionId) {
+          // Reordering within the same section
+          setPortfolioData((prev) => {
+            const sectionIndex = prev.sections.findIndex((section) => section.id === activeSectionId);
+            if (sectionIndex === -1) return prev;
 
-          const updatedSection = {
-            ...section,
-            components: arrayMove(section.components, oldIndex, newIndex),
-          };
+            const section = prev.sections[sectionIndex];
+            const oldIndex = section.components.findIndex((component) => component.id === activeId);
+            const newIndex = section.components.findIndex((component) => component.id === overId);
 
-          const updatedSections = [...prev.sections];
-          updatedSections[sectionIndex] = updatedSection;
+            const updatedSection = {
+              ...section,
+              components: arrayMove(section.components, oldIndex, newIndex),
+            };
 
-          return {
-            ...prev,
-            sections: updatedSections,
-          };
-        });
-        markAsChanged();
+            const updatedSections = [...prev.sections];
+            updatedSections[sectionIndex] = updatedSection;
+
+            return {
+              ...prev,
+              sections: updatedSections,
+            };
+          });
+          markAsChanged();
+        } else {
+          // Moving component between different sections
+          setPortfolioData((prev) => {
+            const activeSectionIndex = prev.sections.findIndex((section) => section.id === activeSectionId);
+            const overSectionIndex = prev.sections.findIndex((section) => section.id === overSectionId);
+
+            if (activeSectionIndex === -1 || overSectionIndex === -1) return prev;
+
+            const activeSection = prev.sections[activeSectionIndex];
+            const overSection = prev.sections[overSectionIndex];
+
+            // Find the component to move
+            const componentIndex = activeSection.components.findIndex((component) => component.id === activeId);
+            const overComponentIndex = overSection.components.findIndex((component) => component.id === overId);
+
+            if (componentIndex === -1 || overComponentIndex === -1) return prev;
+
+            const componentToMove = activeSection.components[componentIndex];
+
+            // Remove component from active section
+            const updatedActiveSection = {
+              ...activeSection,
+              components: activeSection.components.filter((component) => component.id !== activeId),
+            };
+
+            // Add component to over section at the position of the over component
+            const updatedOverSection = {
+              ...overSection,
+              components: [
+                ...overSection.components.slice(0, overComponentIndex),
+                componentToMove,
+                ...overSection.components.slice(overComponentIndex),
+              ],
+            };
+
+            const updatedSections = [...prev.sections];
+            updatedSections[activeSectionIndex] = updatedActiveSection;
+            updatedSections[overSectionIndex] = updatedOverSection;
+
+            return {
+              ...prev,
+              sections: updatedSections,
+            };
+          });
+          markAsChanged();
+        }
+      }
+      // Component dropped on a section droppable area (moving to end of section)
+      else if (over.data.current?.type === "section") {
+        const targetSectionId = over.data.current.sectionId;
+
+        if (activeSectionId !== targetSectionId) {
+          // Moving component to a different section
+          setPortfolioData((prev) => {
+            const activeSectionIndex = prev.sections.findIndex((section) => section.id === activeSectionId);
+            const targetSectionIndex = prev.sections.findIndex((section) => section.id === targetSectionId);
+
+            if (activeSectionIndex === -1 || targetSectionIndex === -1) return prev;
+
+            const activeSection = prev.sections[activeSectionIndex];
+            const targetSection = prev.sections[targetSectionIndex];
+
+            // Find the component to move
+            const componentIndex = activeSection.components.findIndex((component) => component.id === activeId);
+            if (componentIndex === -1) return prev;
+
+            const componentToMove = activeSection.components[componentIndex];
+
+            // Remove component from active section
+            const updatedActiveSection = {
+              ...activeSection,
+              components: activeSection.components.filter((component) => component.id !== activeId),
+            };
+
+            // Add component to end of target section
+            const updatedTargetSection = {
+              ...targetSection,
+              components: [...targetSection.components, componentToMove],
+            };
+
+            const updatedSections = [...prev.sections];
+            updatedSections[activeSectionIndex] = updatedActiveSection;
+            updatedSections[targetSectionIndex] = updatedTargetSection;
+
+            return {
+              ...prev,
+              sections: updatedSections,
+            };
+          });
+          markAsChanged();
+        }
       }
     }
 
