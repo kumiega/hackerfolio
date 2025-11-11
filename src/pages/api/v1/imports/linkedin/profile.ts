@@ -1,58 +1,24 @@
 import type { APIRoute } from "astro";
-import type { LinkedInGenerateResultDto, LinkedInGenerateCommand } from "@/types";
-import { z } from "zod";
+import type { PortfolioData } from "@/types";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
-import { randomUUID } from "crypto";
+import { OpenRouterService } from "@/lib/services/open-router.service";
+import { PortfolioService } from "@/lib/services/portfolio.service";
+import { linkedinAuthCommandSchema } from "@/lib/schemas/linkedin.schemas";
 
 // Disable prerendering for this API route
 export const prerender = false;
 
 /**
- * Zod schema for LinkedIn data input validation
- */
-const linkedInGenerateSchema = z.object({
-  name: z.string().min(1).max(200),
-  headline: z.string().min(1).max(300),
-  about: z.string().optional(),
-  experience: z
-    .array(
-      z.object({
-        title: z.string(),
-        company: z.string(),
-        start_date: z.string().optional(),
-        end_date: z.string().nullable().optional(),
-        description: z.string().optional(),
-      })
-    )
-    .optional()
-    .default([]),
-  education: z
-    .array(
-      z.object({
-        school: z.string(),
-        degree: z.string().optional(),
-        field: z.string().optional(),
-        start_date: z.string().optional(),
-        end_date: z.string().optional(),
-      })
-    )
-    .optional()
-    .default([]),
-  skills: z.array(z.string()).optional().default([]),
-});
-
-/**
- * POST /api/v1/imports/linkedin/generate
+ * POST /api/v1/imports/linkedin/profile
  *
- * Generates portfolio structure (sections and components) from manually entered LinkedIn data.
- * Uses AI to intelligently organize the data into a portfolio structure that the client
- * can merge into their draft_data.
+ * Generates complete portfolio data from manually entered LinkedIn data using AI.
+ * Creates a full portfolio structure and saves it as draft_data for the user.
  *
- * The endpoint requires user authentication and does NOT save data to the database.
- * It returns generated sections with components for the client to add to their portfolio.
+ * The endpoint requires user authentication and saves the generated portfolio as draft data.
+ * It returns the generated portfolio data.
  *
- * @param body - LinkedIn data input (name, headline, about, experience, education, skills)
- * @returns 200 - Generated sections with components
+ * @param body - LinkedIn form data (fullName, position, summary, experience)
+ * @returns 200 - Generated portfolio data
  * @returns 401 - User not authenticated
  * @returns 422 - Invalid input data or validation errors
  * @returns 429 - AI model rate limit exceeded
@@ -78,113 +44,72 @@ export const POST: APIRoute = async (context) => {
     }
 
     // Step 3: Validate request data using Zod schema
-    const validation = linkedInGenerateSchema.safeParse(requestBody);
+    const validation = linkedinAuthCommandSchema.safeParse(requestBody);
     if (!validation.success) {
       return createErrorResponse("VALIDATION_ERROR", requestId, "Invalid request data", {
         issues: validation.error.issues,
       });
     }
 
-    const command: LinkedInGenerateCommand = validation.data;
+    const formData = validation.data;
 
-    // Step 4: Generate portfolio structure from LinkedIn data
-    // For MVP, we'll create a simple structure without AI
-    // In production, this would call OpenRouter AI to intelligently organize the data
-    const sections = [];
-
-    // Create "About" section with bio component
-    if (command.name || command.headline || command.about) {
-      sections.push({
-        id: randomUUID(),
-        title: "About",
-        slug: "about",
-        description: "Introduction and professional summary",
-        visible: true,
-        components: [
-          {
-            id: randomUUID(),
-            type: "bio" as const,
-            data: {
-              headline: command.headline || command.name,
-              about: command.about || "",
-            },
-          },
-        ],
-      });
+    // Step 4: Generate portfolio data using AI
+    let portfolioData: PortfolioData;
+    try {
+      console.log("Starting AI portfolio generation...");
+      portfolioData = await OpenRouterService.generatePortfolioFromLinkedIn(formData);
+      console.log("AI portfolio generation completed successfully");
+    } catch (error) {
+      console.log("AI portfolio generation error:", error);
+      if (error instanceof Error) {
+        console.log("Error message:", error.message);
+        console.log("Error name:", error.name);
+        if (error.message.includes("rate limit")) {
+          return createErrorResponse(
+            "RATE_LIMIT_EXCEEDED",
+            requestId,
+            "AI service rate limit exceeded. Please try again later."
+          );
+        }
+        if (error.message.includes("timeout")) {
+          return createErrorResponse("AI_TIMEOUT", requestId, "AI service timeout. Please try again.");
+        }
+        if (error.message.includes("unavailable")) {
+          return createErrorResponse("AI_UNAVAILABLE", requestId, "AI service unavailable. Please try again later.");
+        }
+      }
+      throw error; // Re-throw for general error handling
     }
 
-    // Create "Experience" section with list components
-    if (command.experience && command.experience.length > 0) {
-      sections.push({
-        id: randomUUID(),
-        title: "Experience",
-        slug: "experience",
-        description: "Professional work experience",
-        visible: true,
-        components: [
-          {
-            id: randomUUID(),
-            type: "list" as const,
-            data: {
-              items: command.experience.map((exp) => ({
-                label: `${exp.title} at ${exp.company}`,
-                url: "",
-              })),
-            },
-          },
-        ],
-      });
+    // Step 5: Save generated portfolio data as draft data
+    try {
+      console.log("Starting portfolio save operation...");
+      // Check if user already has a portfolio
+      const existingPortfolio = await PortfolioService.getUserPortfolio(locals.user.user_id);
+      console.log("Existing portfolio check result:", !!existingPortfolio);
+
+      if (existingPortfolio) {
+        // Update existing portfolio
+        console.log("Updating existing portfolio:", existingPortfolio.id);
+        await PortfolioService.updatePortfolio(existingPortfolio.id, locals.user.user_id, {
+          draft_data: portfolioData,
+        });
+        console.log("Portfolio updated successfully");
+      } else {
+        // Create new portfolio
+        console.log("Creating new portfolio");
+        await PortfolioService.createPortfolio(locals.user.user_id, {
+          draft_data: portfolioData,
+        });
+        console.log("Portfolio created successfully");
+      }
+    } catch (error) {
+      console.log("Database save error:", error);
+      return createErrorResponse("DATABASE_ERROR", requestId, "Failed to save portfolio data");
     }
 
-    // Create "Education" section with list components
-    if (command.education && command.education.length > 0) {
-      sections.push({
-        id: randomUUID(),
-        title: "Education",
-        slug: "education",
-        description: "Educational background",
-        visible: true,
-        components: [
-          {
-            id: randomUUID(),
-            type: "list" as const,
-            data: {
-              items: command.education.map((edu) => ({
-                label: `${edu.degree || "Degree"} at ${edu.school}`,
-                url: "",
-              })),
-            },
-          },
-        ],
-      });
-    }
-
-    // Create "Skills" section with pills component
-    if (command.skills && command.skills.length > 0) {
-      sections.push({
-        id: randomUUID(),
-        title: "Skills",
-        slug: "skills",
-        description: "Technical and professional skills",
-        visible: true,
-        components: [
-          {
-            id: randomUUID(),
-            type: "pills" as const,
-            data: {
-              items: command.skills.slice(0, 30), // Limit to 30 skills
-            },
-          },
-        ],
-      });
-    }
-
-    // Step 5: Return success response with generated sections
-    const response: LinkedInGenerateResultDto = {
-      sections,
-    };
-
-    return new Response(JSON.stringify({ data: response }), {
+    // Step 6: Return success response with generated portfolio data
+    return new Response(JSON.stringify({ data: portfolioData }), {
       status: 200,
       headers: {
         "Content-Type": "application/json",
@@ -194,7 +119,7 @@ export const POST: APIRoute = async (context) => {
     return handleApiError(error, {
       supabase,
       requestId,
-      endpoint: "POST /api/v1/imports/linkedin/generate",
+      endpoint: "POST /api/v1/imports/linkedin/profile",
       route: request.url,
       userId: locals.user?.user_id,
     });

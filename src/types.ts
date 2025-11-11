@@ -130,11 +130,28 @@ export interface BioData {
 }
 
 export interface PortfolioData {
-  full_name: string;
-  position: string;
   bio: BioData;
-  avatar_url: string | null;
   sections: Section[];
+}
+
+/**
+ * Interface for AI-generated portfolio response (partial data)
+ * Contains only the fields that AI generates, excluding user-configurable fields
+ */
+export interface AIPortfolioResponse {
+  bio: {
+    full_name: string;
+    position: string;
+    summary: string;
+  };
+  sections: {
+    id: string;
+    title: string;
+    slug: string;
+    description: string;
+    visible: boolean;
+    components: Component[];
+  }[];
 }
 
 // ============================================================================

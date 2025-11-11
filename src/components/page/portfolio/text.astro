@@ -4,8 +4,10 @@ interface Props {
 }
 
 const { content } = Astro.props;
+
+const paragraphs = content.split("\n\n");
 ---
 
-<div class="text-foreground text-base max-w-prose prose prose-sm prose-invert">
-  {content}
+<div class="space-y-4 text-foreground text-base max-w-prose prose prose-sm prose-invert">
+  {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 </div>

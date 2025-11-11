@@ -5,8 +5,8 @@ import type { Section, Component } from "@/types";
 import { SortableSection } from "./sortable-section";
 import { ComponentEditor } from "./component-editor";
 import { SortableComponent } from "./sortable-component";
-import { ComponentPreview } from "./component-preview";
-import { AddComponentForm } from "./add-component-form";
+import { ComponentPreview } from "./previews/component-preview";
+import { AddComponentForm } from "./forms/add-component-form";
 
 interface SectionContentProps {
   sections: Section[];

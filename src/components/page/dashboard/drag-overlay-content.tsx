@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Section } from "@/types";
-import { ComponentPreview } from "./component-preview";
+import { ComponentPreview } from "./previews/component-preview";
 
 interface DragOverlayContentProps {
   activeId: string | null;

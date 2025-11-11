@@ -10,10 +10,10 @@ import type {
   UpdatePortfolioCommand,
   CreatePortfolioCommand,
 } from "@/types";
-import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio-change-tracker";
 import { validateBioData, type BioValidationResult } from "@/lib/validation";
 
-import { BioSection } from "./components/bio-section";
+import { BioSection } from "./bio-section";
 import { Spinner } from "@/components/ui/spinner";
 
 import { toast } from "sonner";

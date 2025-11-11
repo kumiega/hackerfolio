@@ -18,11 +18,11 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import type { Component, Section, PortfolioData, User } from "@/types";
 
-import { BioSection } from "./components/bio-section";
-import { EmptySections } from "./components/empty-sections";
-import { DragOverlayContent } from "./components/drag-overlay-content";
-import { SectionContent } from "./components/section-content";
-import { EditorHeader } from "./components/editor-header";
+import { BioSection } from "./bio-section";
+import { EmptySections } from "./empty-sections";
+import { DragOverlayContent } from "./drag-overlay-content";
+import { SectionContent } from "./section-content";
+import { EditorHeader } from "./editor-header";
 import { Spinner } from "@/components/ui/spinner";
 
 import { validateComponentData } from "@/lib/schemas/component.schemas";

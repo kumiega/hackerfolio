@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -12,75 +12,50 @@ import { Button } from "@/components/ui/button";
 import { useStepper } from "@/components/ui/stepper";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Spinner } from "@/components/ui/spinner";
 
 type LinkedInFormData = z.infer<typeof linkedinAuthCommandSchema>;
 
-const LINKEDIN_OAUTH_API_URL = "/api/v1/auth/linkedin";
-
-const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) return error.message;
-  return "Something went wrong. Please try again.";
-};
-
-const useLinkedInAuth = () => {
-  const [state, setState] = useState<{
-    state: QueryState;
-    error: string | null;
-  }>({
-    state: "idle",
-    error: null,
-  });
-
-  const authorize = useCallback(async () => {
-    setState({ state: "loading", error: null });
-
-    try {
-      await fetch(LINKEDIN_OAUTH_API_URL);
-
-      setState({
-        state: "success",
-        error: null,
-      });
-      return { success: true };
-    } catch (error) {
-      const errorMessage = getErrorMessage(error);
-      setState({
-        state: "error",
-        error: errorMessage,
-      });
-      return { success: false };
-    }
-  }, []);
-
-  return {
-    ...state,
-    authorize,
-  };
-};
-
 function LinkedInForm() {
   const { navigateTo } = useStepper();
-  const { state, authorize } = useLinkedInAuth();
+  const [generationState, setGenerationState] = useState<QueryState>("idle");
 
   const form = useForm<LinkedInFormData>({
     resolver: zodResolver(linkedinAuthCommandSchema),
     defaultValues: {
       fullName: "",
-      headline: "",
-      aboutMe: "",
+      position: "",
+      summary: "",
       experience: "",
     },
     mode: "onChange",
   });
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (data: LinkedInFormData) => {
     try {
-      const result = await authorize();
-      if (result.success) {
-        console.log("success");
+      setGenerationState("loading");
+
+      // Make API call to generate portfolio
+      const response = await fetch("/api/v1/imports/linkedin/profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to generate portfolio");
       }
+
+      setGenerationState("success");
+      alert("Portfolio generated successfully");
+      // Navigate to dashboard or next step
+      // navigateTo("dashboard");
     } catch {
-      // Handle authorization error
+      setGenerationState("error");
+      // TODO: Add toast notification for error feedback
     }
   };
   return (
@@ -109,20 +84,19 @@ function LinkedInForm() {
 
       <Controller
         control={form.control}
-        name="headline"
+        name="position"
         render={({ field, fieldState }) => (
           <Field className="items-stretch">
-            <FieldLabel htmlFor="headline">Headline</FieldLabel>
-            <Textarea
-              id="headline"
+            <FieldLabel htmlFor="position">Position</FieldLabel>
+            <Input
+              id="position"
               name={field.name}
               ref={field.ref}
               aria-invalid={fieldState.invalid}
-              placeholder="Enter your professional headline"
+              placeholder="Enter your position"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}
-              rows={2}
             />
             {fieldState.error && <FieldError>{fieldState.error.message}</FieldError>}
           </Field>
@@ -131,12 +105,12 @@ function LinkedInForm() {
 
       <Controller
         control={form.control}
-        name="aboutMe"
+        name="summary"
         render={({ field, fieldState }) => (
           <Field className="items-stretch">
-            <FieldLabel htmlFor="aboutMe">About Me</FieldLabel>
+            <FieldLabel htmlFor="summary">About Me</FieldLabel>
             <Textarea
-              id="aboutMe"
+              id="summary"
               name={field.name}
               ref={field.ref}
               aria-invalid={fieldState.invalid}
@@ -174,11 +148,18 @@ function LinkedInForm() {
       />
 
       <div className="flex gap-4">
-        <Button type="submit" disabled={state === "loading"}>
-          Continue
+        <Button type="submit" disabled={form.formState.isSubmitting || generationState === "loading"}>
+          {generationState === "loading" ? (
+            <>
+              <Spinner className="mr-2" />
+              Generating Portfolio...
+            </>
+          ) : (
+            "Continue"
+          )}
         </Button>
 
-        <Button variant="link" onClick={() => navigateTo("github-import")}>
+        <Button variant="link" onClick={() => navigateTo("github-import")} disabled={generationState === "loading"}>
           Skip
         </Button>
       </div>

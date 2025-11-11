@@ -6,16 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Component, ComponentType, ComponentData } from "@/types";
 import { validateComponentData } from "@/lib/schemas/component.schemas";
-import { TypeSelection } from "./forms/type-selection";
-import { TextForm } from "./forms/text-form";
-import { CardForm } from "./forms/card-form";
-import { PillsForm } from "./forms/pills-form";
-import { SocialLinksForm } from "./forms/social-links-form";
-import { ListForm } from "./forms/list-form";
-import { ImageForm } from "./forms/image-form";
-import { BioForm } from "./forms/bio-form";
-import { PersonalInfoForm } from "./forms/personal-info-form";
-import { AvatarForm } from "./forms/avatar-form";
+import { TypeSelection } from "./type-selection";
+import { TextForm } from "./text-form";
+import { CardForm } from "./card-form";
+import { PillsForm } from "./pills-form";
+import { SocialLinksForm } from "./social-links-form";
+import { ListForm } from "./list-form";
+import { ImageForm } from "./image-form";
+import { BioForm } from "./bio-form";
+import { PersonalInfoForm } from "./personal-info-form";
+import { AvatarForm } from "./avatar-form";
 
 interface AddComponentFormProps {
   sectionId: string;

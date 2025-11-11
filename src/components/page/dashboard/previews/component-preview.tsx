@@ -1,14 +1,14 @@
 import type { Component } from "@/types";
-import { TextPreview } from "./previews/text-preview";
-import { CardPreview } from "./previews/card-preview";
-import { PillsPreview } from "./previews/pills-preview";
-import { SocialLinksPreview } from "./previews/social-links-preview";
-import { ListPreview } from "./previews/list-preview";
-import { ImagePreview } from "./previews/image-preview";
-import { BioPreview } from "./previews/bio-preview";
-import { PersonalInfoPreview } from "./previews/personal-info-preview";
-import { AvatarPreview } from "./previews/avatar-preview";
-import { UnknownPreview } from "./previews/unknown-preview";
+import { TextPreview } from "./text-preview";
+import { CardPreview } from "./card-preview";
+import { PillsPreview } from "./pills-preview";
+import { SocialLinksPreview } from "./social-links-preview";
+import { ListPreview } from "./list-preview";
+import { ImagePreview } from "./image-preview";
+import { BioPreview } from "./bio-preview";
+import { PersonalInfoPreview } from "./personal-info-preview";
+import { AvatarPreview } from "./avatar-preview";
+import { UnknownPreview } from "./unknown-preview";
 
 interface ComponentPreviewProps {
   component: Component;

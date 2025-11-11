@@ -1,4 +1,4 @@
-import LinkedInForm from "@/components/feature/onboarding/linkedin-form";
+import LinkedInForm from "@/components/page/onboarding/linkedin-form";
 
 function LinkedInImportStep() {
   return (
@@ -13,7 +13,7 @@ function LinkedInImportStep() {
 
       <LinkedInForm />
 
-      <p className="text-xs text-red-800 mb-3 text-balance">
+      <p className="px-2 py-1.5 bg-red-50 border border-dashed border-red-200 text-xs text-red-800 mb-3 text-balance">
         Portfolio content will be AI-generated. Please review carefully before publishing. You can customize it in the
         editor afterward.
       </p>

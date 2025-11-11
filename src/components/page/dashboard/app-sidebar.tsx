@@ -3,7 +3,7 @@ import { Settings2, User as UserIcon, FileText, LogOut, Palette, EyeIcon, KeyRou
 import { Link } from "react-router";
 
 import { Nav } from "@/components/page/dashboard/nav";
-import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio-change-tracker";
 import type { PortfolioData } from "@/types";
 
 interface PortfolioState {

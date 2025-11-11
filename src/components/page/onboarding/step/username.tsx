@@ -1,4 +1,4 @@
-import UsernameAvailabilityForm from "@/components/feature/onboarding/username-availabilty-form";
+import UsernameAvailabilityForm from "@/components/page/onboarding/username-availabilty-form";
 
 function UsernameStep() {
   return (

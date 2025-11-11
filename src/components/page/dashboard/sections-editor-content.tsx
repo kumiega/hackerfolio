@@ -16,12 +16,12 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
 import type { Component, Section, PortfolioData, PortfolioDto, User } from "@/types";
-import { usePortfolioChangeTracker } from "@/components/feature/dashboard/portfolio-change-tracker";
+import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio-change-tracker";
 import { validateSectionsData } from "@/lib/validation";
 
-import { EmptySections } from "./components/empty-sections";
-import { DragOverlayContent } from "./components/drag-overlay-content";
-import { SectionContent } from "./components/section-content";
+import { EmptySections } from "./empty-sections";
+import { DragOverlayContent } from "./drag-overlay-content";
+import { SectionContent } from "./section-content";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
