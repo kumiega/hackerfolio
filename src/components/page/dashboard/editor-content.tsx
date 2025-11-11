@@ -16,9 +16,8 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 
-import type { Component, Section, PortfolioData, User } from "@/types";
+import type { Component, Section, PortfolioData, User, UpdatePortfolioCommand } from "@/types";
 
-import { BioSection } from "./bio-section";
 import { EmptySections } from "./empty-sections";
 import { DragOverlayContent } from "./drag-overlay-content";
 import { SectionContent } from "./section-content";
@@ -31,47 +30,18 @@ import { toast } from "sonner";
 
 // Default empty portfolio structure
 const defaultPortfolioData: PortfolioData = {
-  full_name: "",
-  position: "",
-  bio: [
-    {
-      id: "default-avatar",
-      type: "avatar",
-      data: {
-        avatar_url: "",
-      },
-      visible: true,
+  bio: {
+    full_name: "",
+    position: "",
+    summary: "",
+    avatar_url: "",
+    social_links: {
+      github: "",
+      linkedin: "",
+      x: "",
+      website: [],
     },
-    {
-      id: "default-personal-info",
-      type: "personal_info",
-      data: {
-        full_name: "",
-        position: "",
-      },
-      visible: true,
-    },
-    {
-      id: "default-bio-text",
-      type: "text",
-      data: {
-        content: "",
-      },
-      visible: true,
-    },
-    {
-      id: "default-social-links",
-      type: "social_links",
-      data: {
-        github: "",
-        linkedin: "",
-        x: "",
-        website: [],
-      },
-      visible: true,
-    },
-  ],
-  avatar_url: null,
+  },
   sections: [],
 };
 
@@ -119,16 +89,14 @@ const PortfolioApiClient = {
 
   async updatePortfolio(
     portfolioId: string,
-    draftData: PortfolioData
+    command: UpdatePortfolioCommand
   ): Promise<{ id: string; draft_data: PortfolioData }> {
     const response = await fetch(`/api/v1/portfolios/${portfolioId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        draft_data: draftData,
-      }),
+      body: JSON.stringify(command),
     });
     return this.handleResponse(response);
   },
@@ -192,7 +160,45 @@ export function EditorContent({ user }: EditorContentProps) {
         console.log("Portfolio response:", portfolio);
 
         if (portfolio) {
-          setPortfolioData(portfolio.draft_data);
+          // Ensure the loaded data has the correct structure
+          const draftData = portfolio.draft_data;
+
+          // Migrate old format (bio as array) to new format (bio as object)
+          let normalizedData: PortfolioData;
+          if (Array.isArray(draftData.bio)) {
+            // Old format: bio is an array of components
+            // Extract bio data from components
+            const bioComponents = draftData.bio || [];
+            const personalInfo = bioComponents.find((c) => c.type === "personal_info");
+            const textComponent = bioComponents.find((c) => c.type === "text");
+            const avatarComponent = bioComponents.find((c) => c.type === "avatar");
+            const socialLinksComponent = bioComponents.find((c) => c.type === "social_links");
+
+            normalizedData = {
+              bio: {
+                full_name: personalInfo?.data?.full_name || "",
+                position: personalInfo?.data?.position || "",
+                summary: textComponent?.data?.content || "",
+                avatar_url: avatarComponent?.data?.avatar_url || draftData.bio?.avatar_url || "",
+                social_links: socialLinksComponent?.data || defaultPortfolioData.bio.social_links,
+              },
+              sections: draftData.sections || [],
+            };
+          } else if (typeof draftData.bio === "object" && draftData.bio !== null) {
+            // New format: bio is already an object
+            normalizedData = {
+              bio: {
+                ...defaultPortfolioData.bio,
+                ...draftData.bio,
+              },
+              sections: draftData.sections || [],
+            };
+          } else {
+            // Fallback to default
+            normalizedData = defaultPortfolioData;
+          }
+
+          setPortfolioData(normalizedData);
           setPortfolioId(portfolio.id);
           setIsDataLoaded(true);
         } else {
@@ -452,12 +458,6 @@ export function EditorContent({ user }: EditorContentProps) {
   const handleSaveNewComponent = (component: Component) => {
     if (!addingComponentSectionId) return;
 
-    // Enforce: Bio can only exist in fixed Bio section, not within sections
-    if (component.type === "bio") {
-      toast.error("Bio can only be added in the fixed Bio section at the top.");
-      return;
-    }
-
     const totalComponents = portfolioData.sections.reduce((acc, section) => acc + section.components.length, 0);
     if (totalComponents >= 15) {
       toast.error("Maximum 15 components allowed across all sections");
@@ -519,66 +519,15 @@ export function EditorContent({ user }: EditorContentProps) {
     }));
   };
 
-  const handleSaveBioComponent = (component: Component) => {
-    const validationError = validateComponentData(component.type, component.data);
-    if (validationError) {
-      toast.error(validationError);
-      return;
-    }
-
-    setPortfolioData((prev) => ({
-      ...prev,
-      bio: prev.bio.map((comp) => (comp.id === component.id ? component : comp)),
-    }));
-
-    setEditingComponentId(null);
-  };
-
-  const handleToggleBioComponentVisibility = (componentId: string) => {
-    setPortfolioData((prev) => ({
-      ...prev,
-      bio: prev.bio.map((component) =>
-        component.id === componentId ? { ...component, visible: component.visible !== false ? false : true } : component
-      ),
-    }));
-  };
-
-  const handleDeleteBioComponent = (componentId: string) => {
-    // Only allow deleting non-default bio components
-    const component = portfolioData.bio.find((c) => c.id === componentId);
-    if (component && (component.type === "personal_info" || component.type === "text")) {
-      // Don't delete default bio components
-      return;
-    }
-
-    setPortfolioData((prev) => ({
-      ...prev,
-      bio: prev.bio.filter((component) => component.id !== componentId),
-    }));
-  };
-
   const handleSavePortfolio = useCallback(async () => {
     const validateRequiredFields = () => {
-      // Check if personal info component has required fields
-      const personalInfoComponent = portfolioData.bio.find((c) => c.type === "personal_info");
-      if (!personalInfoComponent) {
-        return "Personal info component is missing";
-      }
-
-      const personalInfoData = personalInfoComponent.data as { full_name?: string; position?: string };
-      if (!personalInfoData.full_name?.trim()) {
+      // Check if bio has required fields
+      if (!portfolioData.bio.full_name?.trim()) {
         return "Full name is required";
       }
 
-      // Check if text component has content
-      const textComponent = portfolioData.bio.find((c) => c.type === "text");
-      if (!textComponent) {
-        return "Bio text component is missing";
-      }
-
-      const textData = textComponent.data as { content?: string };
-      if (!textData.content?.trim()) {
-        return "Bio text is required";
+      if (!portfolioData.bio.summary?.trim()) {
+        return "Bio summary is required";
       }
 
       return null; // No validation errors
@@ -607,7 +556,9 @@ export function EditorContent({ user }: EditorContentProps) {
 
       if (portfolioId) {
         // Update existing portfolio
-        await PortfolioApiClient.updatePortfolio(portfolioId, portfolioData);
+        await PortfolioApiClient.updatePortfolio(portfolioId, {
+          draft_data: portfolioData,
+        });
       } else {
         // Create new portfolio
         const newPortfolio = await PortfolioApiClient.createPortfolio(portfolioData);
@@ -628,26 +579,13 @@ export function EditorContent({ user }: EditorContentProps) {
 
   const handlePublishPortfolio = useCallback(async () => {
     const validateRequiredFields = () => {
-      // Check if personal info component has required fields
-      const personalInfoComponent = portfolioData.bio.find((c) => c.type === "personal_info");
-      if (!personalInfoComponent) {
-        return "Personal info component is missing";
-      }
-
-      const personalInfoData = personalInfoComponent.data as { full_name?: string; position?: string };
-      if (!personalInfoData.full_name?.trim()) {
+      // Check if bio has required fields
+      if (!portfolioData.bio.full_name?.trim()) {
         return "Full name is required";
       }
 
-      // Check if text component has content
-      const textComponent = portfolioData.bio.find((c) => c.type === "text");
-      if (!textComponent) {
-        return "Bio text component is missing";
-      }
-
-      const textData = textComponent.data as { content?: string };
-      if (!textData.content?.trim()) {
-        return "Bio text is required";
+      if (!portfolioData.bio.summary?.trim()) {
+        return "Bio summary is required";
       }
 
       return null; // No validation errors
@@ -671,7 +609,6 @@ export function EditorContent({ user }: EditorContentProps) {
 
     // Validate draft data before publishing
     const sectionCount = portfolioData.sections?.length || 0;
-    const bioCount = portfolioData.bio?.length || 0;
     const componentCount =
       portfolioData.sections?.reduce((sum, section) => sum + (section.components?.length || 0), 0) || 0;
 
@@ -680,8 +617,8 @@ export function EditorContent({ user }: EditorContentProps) {
       return;
     }
 
-    if (componentCount < 1 && bioCount < 1) {
-      toast.error("Portfolio must have at least 1 component (in sections or bio) to publish");
+    if (componentCount < 1) {
+      toast.error("Portfolio must have at least 1 component in sections to publish");
       return;
     }
 
@@ -790,15 +727,6 @@ export function EditorContent({ user }: EditorContentProps) {
         />
 
         <div className="space-y-3">
-          <BioSection
-            bio={portfolioData.bio}
-            editingComponentId={editingComponentId}
-            onEditComponent={handleEditComponent}
-            onSaveComponent={handleSaveBioComponent}
-            onToggleComponentVisibility={handleToggleBioComponentVisibility}
-            onDeleteComponent={handleDeleteBioComponent}
-          />
-
           <SectionContent
             sections={portfolioData.sections}
             editingComponentId={editingComponentId}

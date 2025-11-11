@@ -117,8 +117,35 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
 
         const portfolio = await PortfolioApiClient.getPortfolio();
 
-        // Use bio data from draft_data or use defaults
-        const bioData = portfolio.draft_data.bio || defaultBioData;
+        // Handle data migration from old format (bio as array) to new format (bio as object)
+        const draftData = portfolio.draft_data;
+        let bioData: BioData;
+
+        if (Array.isArray(draftData.bio)) {
+          // Old format: bio is an array of components
+          const bioComponents = draftData.bio || [];
+          const personalInfo = bioComponents.find((c) => c.type === "personal_info");
+          const textComponent = bioComponents.find((c) => c.type === "text");
+          const avatarComponent = bioComponents.find((c) => c.type === "avatar");
+          const socialLinksComponent = bioComponents.find((c) => c.type === "social_links");
+
+          bioData = {
+            full_name: personalInfo?.data?.full_name || "",
+            position: personalInfo?.data?.position || "",
+            summary: textComponent?.data?.content || "",
+            avatar_url: avatarComponent?.data?.avatar_url || draftData.avatar_url || "",
+            social_links: socialLinksComponent?.data || defaultBioData.social_links,
+          };
+        } else if (typeof draftData.bio === "object" && draftData.bio !== null) {
+          // New format: bio is already an object
+          bioData = {
+            ...defaultBioData,
+            ...draftData.bio,
+          };
+        } else {
+          // Fallback
+          bioData = defaultBioData;
+        }
 
         // Ensure social_links always exists (for backward compatibility)
         const normalizedBioData = {

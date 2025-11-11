@@ -7,7 +7,7 @@
 create table if not exists public.portfolios (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null unique references public.user_profiles(id) on delete cascade,
-  draft_data jsonb not null default '{"full_name": "", "position": "", "bio": [], "avatar_url": null, "sections": []}'::jsonb,
+  draft_data jsonb not null default '{"bio": {"full_name": "", "position": "", "summary": "", "avatar_url": "", "social_links": {"github": "", "linkedin": "", "x": "", "website": []}}, "sections": []}'::jsonb,
   published_data jsonb default null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
@@ -15,7 +15,7 @@ create table if not exists public.portfolios (
 );
 
 comment on table public.portfolios is 'User portfolios with draft and published versions stored as JSONB';
-comment on column public.portfolios.draft_data is 'Draft portfolio data in JSONB format: {"full_name": "string", "position": "string", "bio": [{"id": "uuid", "type": "text|image|social_links", "data": {}}], "avatar_url": "string|null", "sections": [{"id": "uuid", "title": "string", "slug": "string", "description": "string", "visible": true, "components": [{"id": "uuid", "type": "text|card|pills|social_links|list|image|bio", "data": {}}]}]}';
+comment on column public.portfolios.draft_data is 'Draft portfolio data in JSONB format: {"bio": {"full_name": "string", "position": "string", "summary": "string", "avatar_url": "string", "social_links": {"github": "string", "linkedin": "string", "x": "string", "website": [{"name": "string", "url": "string"}]}}, "sections": [{"id": "uuid", "title": "string", "slug": "string", "description": "string", "visible": true, "components": [{"id": "uuid", "type": "text|cards|pills|social_links|list|image", "data": {}}]}]}';
 comment on column public.portfolios.published_data is 'Published portfolio data (same structure as draft_data), NULL if never published';
 comment on column public.portfolios.last_published_at is 'Timestamp of last publish action';
 
@@ -95,7 +95,6 @@ as $$
 declare
   result public.portfolios;
   section_count int;
-  bio_count int;
   component_count int;
 begin
   -- Validate user owns the portfolio
@@ -109,27 +108,26 @@ begin
   -- Get draft_data to validate
   select
     jsonb_array_length(draft_data->'sections'),
-    jsonb_array_length(coalesce(draft_data->'bio', '[]'::jsonb)),
     (
       select coalesce(sum(jsonb_array_length(section->'components')), 0)
       from jsonb_array_elements(draft_data->'sections') as section
     )
-  into section_count, bio_count, component_count
+  into section_count, component_count
   from public.portfolios
   where id = portfolio_id;
 
-  -- Validate at least 1 section and some content (bio or section components)
+  -- Validate at least 1 section and some content
   if section_count is null or section_count < 1 then
     raise exception 'Portfolio must have at least 1 section';
   end if;
 
-  if (component_count is null or component_count < 1) and (bio_count is null or bio_count < 1) then
-    raise exception 'Portfolio must have at least 1 component (in sections or bio)';
+  if component_count is null or component_count < 1 then
+    raise exception 'Portfolio must have at least 1 component in sections';
   end if;
 
   -- Publish: copy draft_data to published_data
   update public.portfolios
-  set 
+  set
     published_data = draft_data,
     last_published_at = now()
   where id = portfolio_id and user_id = auth.uid()

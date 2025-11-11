@@ -75,13 +75,13 @@ const PortfolioApiClient = {
     return this.handleResponse<PortfolioDto>(response);
   },
 
-  async updatePortfolio(id: string, data: Partial<PortfolioData>): Promise<PortfolioData> {
+  async updatePortfolio(id: string, command: { draft_data: Partial<PortfolioData> }): Promise<PortfolioData> {
     const response = await fetch(`/api/v1/portfolios/${id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify(command),
     });
     return this.handleResponse<PortfolioData>(response);
   },
@@ -329,7 +329,9 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       if (portfolioId) {
         // Update existing portfolio
         await PortfolioApiClient.updatePortfolio(portfolioId, {
-          sections: portfolioData.sections,
+          draft_data: {
+            sections: portfolioData.sections,
+          },
         });
       } else {
         // Create new portfolio
@@ -377,7 +379,9 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
 
       // First save any pending changes
       await PortfolioApiClient.updatePortfolio(portfolioId, {
-        sections: portfolioData.sections,
+        draft_data: {
+          sections: portfolioData.sections,
+        },
       });
 
       // Then publish

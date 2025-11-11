@@ -19,24 +19,39 @@ const componentTypeSchema = z.enum([
   "list",
   "image",
   "bio",
-  "full_name",
+  "personal_info",
   "avatar",
+]);
+
+// Component data schemas
+const textComponentDataSchema = z.object({
+  content: z.string().max(2000),
+});
+
+const pillsComponentDataSchema = z.object({
+  items: z.array(z.string().max(20)).max(30),
+});
+
+const componentDataSchema = z.union([
+  textComponentDataSchema,
+  pillsComponentDataSchema,
+  z.object({}).catchall(z.unknown()), // Fallback for other component types
 ]);
 
 const componentSchema = z.object({
   id: z.string().min(1), // Allow any non-empty string for IDs
   type: componentTypeSchema,
-  data: z.object({}).catchall(z.unknown()), // Allow any object structure for component data
+  data: componentDataSchema,
   visible: z.boolean().optional(), // Optional for backward compatibility
 });
 
 const sectionSchema = z.object({
   id: z.string().min(1), // Allow any non-empty string for IDs
   title: z.string().min(1).max(150),
-  slug: z.string(), // Allow empty slugs for now
-  description: z.string(), // Allow empty descriptions for now
-  visible: z.boolean().optional().default(true), // Make optional with default
-  components: z.array(componentSchema),
+  slug: z.string().min(1), // Slug must be non-empty
+  description: z.string().min(1), // Description must be non-empty
+  visible: z.boolean(), // Required boolean
+  components: z.array(componentSchema).min(1), // At least 1 component required
 });
 
 const socialLinksSchema = z.object({
@@ -64,8 +79,8 @@ const bioDataSchema = z.object({
   full_name: z.string().max(100),
   position: z.string().max(100).optional(),
   summary: z.string().max(2000),
-  avatar_url: z.string().optional(),
-  social_links: socialLinksSchema.optional(),
+  avatar_url: z.string(),
+  social_links: socialLinksSchema,
 });
 
 const updatePortfolioSchema = z.object({

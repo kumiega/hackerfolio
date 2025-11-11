@@ -83,14 +83,22 @@ export class PortfolioService {
       });
     }
 
-    // Step 2: Merge partial update with existing data
+    // Step 2: Verify ownership
+    if (existingPortfolio.user_id !== userId) {
+      throw new AppError(ERROR_CODES.PORTFOLIO_NOT_FOUND, "Portfolio not found or access denied", {
+        portfolioId,
+        userId,
+      });
+    }
+
+    // Step 3: Merge partial update with existing data
     const mergedDraftData = {
       ...existingPortfolio.draft_data,
       ...command.draft_data,
     };
 
-    // Step 3: Validate limits (max 10 sections, max 15 components total including bio)
-    const { sections, bio } = mergedDraftData;
+    // Step 4: Validate limits (max 10 sections, max 15 components total)
+    const { sections } = mergedDraftData;
 
     if (sections.length > 10) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, undefined, {
@@ -99,14 +107,12 @@ export class PortfolioService {
       });
     }
 
-    const bioComponents = bio?.length || 0;
     const sectionComponents = sections.reduce((sum, section) => sum + section.components.length, 0);
-    const totalComponents = bioComponents + sectionComponents;
 
-    if (totalComponents > 15) {
+    if (sectionComponents > 15) {
       throw new AppError(ERROR_CODES.VALIDATION_ERROR, undefined, {
         userId,
-        details: "Maximum 15 components allowed per portfolio (including bio components)",
+        details: "Maximum 15 components allowed per portfolio",
       });
     }
 
