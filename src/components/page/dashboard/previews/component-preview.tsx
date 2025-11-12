@@ -3,7 +3,7 @@ import { TextPreview } from "./text-preview";
 import { CardPreview } from "./card-preview";
 import { PillsPreview } from "./pills-preview";
 import { SocialLinksPreview } from "./social-links-preview";
-import { ListPreview } from "./list-preview";
+import { ListPreview } from "./link-list-preview";
 import { ImagePreview } from "./image-preview";
 import { BioPreview } from "./bio-preview";
 import { PersonalInfoPreview } from "./personal-info-preview";

@@ -45,6 +45,7 @@
     "es-toolkit": "^1.41.0",
     "linkedin-api-client": "^0.3.0",
     "lucide-react": "^0.546.0",
+    "marked": "^17.0.0",
     "mathjs": "^15.0.0",
     "next-themes": "^0.4.6",
     "postprocessing": "^6.37.8",

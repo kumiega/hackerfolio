@@ -22,7 +22,6 @@ export const aiPortfolioResponseSchema = {
           id: { type: "string" },
           title: { type: "string", maxLength: 100 },
           slug: { type: "string" },
-          description: { type: "string", maxLength: 500 },
           visible: { type: "boolean" },
           components: {
             type: "array",
@@ -37,7 +36,7 @@ export const aiPortfolioResponseSchema = {
             },
           },
         },
-        required: ["id", "title", "slug", "description", "visible", "components"],
+        required: ["id", "title", "slug", "visible", "components"],
       },
     },
   },

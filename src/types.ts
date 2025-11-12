@@ -10,7 +10,7 @@ export type ComponentType =
   | "cards"
   | "pills"
   | "social_links"
-  | "list"
+  | "links_list"
   | "image"
   | "bio"
   | "personal_info"
@@ -116,7 +116,6 @@ export interface Section {
   id: string;
   title: string;
   slug: string;
-  description: string;
   visible: boolean;
   components: Component[];
 }
@@ -148,7 +147,6 @@ export interface AIPortfolioResponse {
     id: string;
     title: string;
     slug: string;
-    description: string;
     visible: boolean;
     components: Component[];
   }[];

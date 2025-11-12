@@ -37,7 +37,6 @@ export interface PublicPortfolioDisplay {
     id: string;
     title: string;
     slug: string;
-    description: string;
     visible: boolean;
     components: {
       id: string;

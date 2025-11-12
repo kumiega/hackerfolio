@@ -10,7 +10,7 @@ export function ListPreview({ items }: ListPreviewProps) {
   return (
     <div>
       <Badge variant="outline" className="mb-4">
-        List
+        Links (list)
       </Badge>
       <p className="text-xs text-muted-foreground">
         {itemCount} link{itemCount !== 1 ? "s" : ""}

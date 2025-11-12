@@ -39,9 +39,8 @@ Generate **at least 2-3 sections total** (including Experience). Section order:
 #### Experience Section (REQUIRED)
 - **title**: "Experience"
 - **slug**: "experience"
-- **description**: Brief, engaging description of professional background
 - **Components**: 
-  - A `text` component with a **concise, impactful** summary of work experience. Write in a human, engaging tone that recruiters can scan quickly. Include company names if they are well-known. Summarize positions and key achievements. DO NOT include dates unless they add significant context. **CRITICAL: Maximum 2-3 paragraphs of 2 sentences each, separated by double newlines (\n\n). Keep it extremely concise. If there's more content, create additional sections instead.**
+  - A `text` component with a **concise, impactful** summary of work experience. Write in a human, engaging tone that recruiters can scan quickly. Include company names if they are well-known. DO NOT include dates unless they add significant context. **CRITICAL: Keep paragraphs short and concise, separated by double newlines (\n\n). If there's more content, create additional sections instead.**
   - A `pills` component listing standardized technology names extracted from the experience text. Only include explicitly mentioned technologies.
 
 #### Additional Sections (Generate only if sufficient content exists)
@@ -58,10 +57,8 @@ Based on the provided experience and context, intelligently create additional re
 **Rules for additional sections:**
 - Only create sections where you have concrete information from the inputs
 - Each section must have meaningful, specific content - work with available data without mentioning gaps or limitations
-- **Each text component: Maximum 2-3 paragraphs of 2 sentences each, separated by double newlines (\n\n)**
-- **Prefer 2 paragraphs over 3** - be extremely concise
+- Prefer short, concise paragraphs
 - If you have rich content, **create multiple focused sections** rather than long text blocks
-- Use appropriate component types (text for descriptions, pills for lists of items)
 - Keep content professional, human-sounding, and diverse across thousands of users
 
 ### 3. Technical Specifications
@@ -71,17 +68,16 @@ Based on the provided experience and context, intelligently create additional re
 
 #### Character Limits (CRITICAL)
 - Section titles: max 100 characters
-- Section descriptions: max 500 characters
 - Bio summary: max 500 characters
 
 #### Component Types
 Only use these component types:
-- `text`: For paragraphs and descriptions
+- `text`: For paragraphs 
 - `pills`: For technology stacks, skills, tags
 
 #### Field Requirements
 - All bio fields are required (full_name, position, summary)
-- All sections must have: id, title, slug, description, visible (true), components array
+- All sections must have: id, title, slug, visible (true), components array
 - All components must have: id, type, data object
 - Text components must have: content in data
 - Pills components must have: items array in data
@@ -129,7 +125,6 @@ Return ONLY valid JSON. No markdown, no explanations, no code blocks. Just the r
     "id": "xxx-yyy-zzz-aaa-bbb",
     "title": "string (max 100)",
     "slug": "kebab-case",
-    "description": "string (max 500)",
     "visible": true,
     "components": [{
       "id": "xxx-yyy-zzz-aaa-bbb",
@@ -147,8 +142,7 @@ Return ONLY valid JSON. No markdown, no explanations, no code blocks. Just the r
 
 - Work with the provided input confidently
 - Never mention missing or unavailable information
-- **Maximum 2-3 paragraphs per text component, prefer 2** (exactly 2 sentences each)
-- **Rich content = multiple sections**, NOT longer sections
+- **Rich content = multiple sections**
 - Break all text into short paragraphs separated by \n\n
 - Generate professional, human content that feels unique
 - Return ONLY valid JSON

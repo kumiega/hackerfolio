@@ -11,21 +11,19 @@ export const mockPortfolioData: PortfolioData = {
     summary:
       "I'm Mark Coderfast a New York-based designer, developer, and serial tinkerer. I am working as full-stack developer since 2012.",
     avatar_url: "/images/avatar.jpg",
+    social_links: {},
   },
   sections: [
     {
       id: "tech-stack",
       title: "Tech stack",
       slug: "tech-stack",
-      description: "Technologies that I used to work with:",
       visible: true,
       components: [
         {
           id: "tech-pills",
           type: "pills",
           data: {
-            title: "Tech stack",
-            description: "Technologies that I used to work with:",
             items: [
               "react.js",
               "next.js",
@@ -50,7 +48,6 @@ export const mockPortfolioData: PortfolioData = {
       id: "projects",
       title: "My projects",
       slug: "projects",
-      description: "Some of my recent work",
       visible: true,
       components: [
         {
@@ -85,28 +82,23 @@ export const mockPortfolioData: PortfolioData = {
       id: "links",
       title: "My other places",
       slug: "links",
-      description: "Find me online",
       visible: true,
       components: [
         {
           id: "social-links",
-          type: "list",
+          type: "social_links",
           data: {
-            title: "My other places",
-            items: [
+            website: [
               {
-                label: "My blog",
+                name: "My blog",
                 url: "https://markcoderfast.com",
               },
               {
-                label: "My current company",
+                name: "My current company",
                 url: "https://google.com",
               },
-              {
-                label: "My Twitter",
-                url: "https://twitter.com/markcoderfast",
-              },
             ],
+            x: "https://twitter.com/markcoderfast",
           },
         },
       ],
@@ -115,14 +107,12 @@ export const mockPortfolioData: PortfolioData = {
       id: "about",
       title: "About me",
       slug: "about",
-      description: "More about my background",
       visible: true,
       components: [
         {
           id: "about-text",
           type: "text",
           data: {
-            title: "Background",
             content:
               "I have been working in software development for over 8 years, specializing in full-stack web development with modern technologies. My passion lies in creating efficient, scalable solutions that solve real-world problems.",
           },

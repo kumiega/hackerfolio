@@ -13,7 +13,7 @@ import { SocialLinksForm } from "./forms/social-links-form";
 import { BioForm } from "./forms/bio-form";
 import { PersonalInfoForm } from "./forms/personal-info-form";
 import { AvatarForm } from "./forms/avatar-form";
-import { ListForm } from "./forms/list-form";
+import { LinksListForm } from "./forms/links-list-form";
 
 interface ComponentEditorProps {
   component: Component;
@@ -126,8 +126,8 @@ export function ComponentEditor({ component, onSave, onCancel, githubAvatarUrl }
           />
         );
 
-      case "list":
-        return <ListForm items={formData.items as { label: string; url: string }[]} onChange={updateFormData} />;
+      case "links_list":
+        return <LinksListForm items={formData.items as { label: string; url: string }[]} onChange={updateFormData} />;
 
       default:
         return <div className="text-center py-4 text-muted-foreground">Unknown component type</div>;

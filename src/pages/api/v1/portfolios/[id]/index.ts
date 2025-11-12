@@ -49,7 +49,6 @@ const sectionSchema = z.object({
   id: z.string().min(1), // Allow any non-empty string for IDs
   title: z.string().min(1).max(150),
   slug: z.string().min(1), // Slug must be non-empty
-  description: z.string().min(1), // Description must be non-empty
   visible: z.boolean(), // Required boolean
   components: z.array(componentSchema).min(1), // At least 1 component required
 });

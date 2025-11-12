@@ -11,7 +11,7 @@ import { TextForm } from "./text-form";
 import { CardForm } from "./card-form";
 import { PillsForm } from "./pills-form";
 import { SocialLinksForm } from "./social-links-form";
-import { ListForm } from "./list-form";
+import { LinksListForm } from "./links-list-form";
 import { ImageForm } from "./image-form";
 import { BioForm } from "./bio-form";
 import { PersonalInfoForm } from "./personal-info-form";
@@ -98,8 +98,8 @@ export function AddComponentForm({ onSave, onCancel }: AddComponentFormProps) {
           />
         );
 
-      case "list":
-        return <ListForm items={formData.items as { label: string; url: string }[]} onChange={updateFormData} />;
+      case "links_list":
+        return <LinksListForm items={formData.items as { label: string; url: string }[]} onChange={updateFormData} />;
 
       case "image":
         return <ImageForm url={formData.url as string} alt={formData.alt as string} onChange={updateFormData} />;

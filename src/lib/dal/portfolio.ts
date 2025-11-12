@@ -84,7 +84,6 @@ export async function getPublicPortfolioByUsername(username: string): Promise<Pu
         id: string;
         title: string;
         slug: string;
-        description: string;
         visible: boolean;
         components: {
           id: string;

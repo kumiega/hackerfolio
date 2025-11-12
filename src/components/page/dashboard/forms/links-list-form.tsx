@@ -7,17 +7,17 @@ interface LinkItem {
   url: string;
 }
 
-interface ListFormProps {
+interface LinksListFormProps {
   items: LinkItem[];
   onChange: (field: string, value: LinkItem[]) => void;
 }
 
-export function ListForm({ items, onChange }: ListFormProps) {
+export function LinksListForm({ items, onChange }: LinksListFormProps) {
   const safeItems = items || [];
 
   return (
     <Field className="items-stretch">
-      <FieldLabel>Links</FieldLabel>
+      <FieldLabel>Links (list)</FieldLabel>
       <div className="space-y-2">
         {safeItems.map((item, index) => (
           <div key={index} className="flex gap-2">
