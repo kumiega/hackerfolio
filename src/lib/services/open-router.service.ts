@@ -26,7 +26,7 @@ export class OpenRouterService {
   /**
    * Default AI model for LinkedIn profile parsing
    */
-  private static readonly DEFAULT_MODEL = "google/gemma-3-27b-it:free";
+  private static readonly DEFAULT_MODEL = "mistralai/mistral-7b-instruct:free";
 
   /**
    * Timeout for AI API calls (30 seconds)

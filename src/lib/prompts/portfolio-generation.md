@@ -29,7 +29,7 @@ You have now seen the user input. Remember:
 Generate the bio object with:
 - `full_name`: Use the exact provided name
 - `position`: Use the exact provided position
-- `summary`: Enhance the provided summary to be professional, HR-friendly, and human-sounding (max 500 characters). Maintain the user's tone and style. If summary is minimal or empty, create one based on position and experience that highlights key strengths and expertise.
+- `summary`: Enhance the provided summary to be professional, HR-friendly, and human-sounding. Maintain the user's tone and style. If summary is minimal or empty, create one based on position and experience that highlights key strengths and expertise.
 
 ### 2. Sections Generation
 Generate **at least 2-3 sections total** (including Experience). Section order:
@@ -73,7 +73,6 @@ Based on the provided experience and context, intelligently create additional re
 - Section titles: max 100 characters
 - Section descriptions: max 500 characters
 - Bio summary: max 500 characters
-- Text component content: max 2000 characters
 
 #### Component Types
 Only use these component types:
@@ -105,7 +104,7 @@ Only use these component types:
 - **Maximum 2-3 paragraphs per text component, prefer 2** (exactly 2 sentences each, separated by \n\n)
 - **Always prefer creating multiple sections** over longer text blocks
 - Ensure each portfolio feels unique and personal
-- **NEVER use phrases like:** "information not provided", "details unavailable", "not specified", "would need more information", "insufficient details", "no information available", or any similar language that suggests missing data
+- **NEVER use phrases like:** "information not provided", "not specified", "would need more information", or any similar language that suggests missing data
 - **ALWAYS write with confidence** - if you don't have specific details, create believable, professional content based on the position and context
 - Each paragraph should cover ONE focused idea or achievement
 
