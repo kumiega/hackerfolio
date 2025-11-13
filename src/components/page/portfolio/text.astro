@@ -1,13 +1,14 @@
 ---
+import { marked } from "marked";
+
 interface Props {
   content: string;
 }
 
 const { content } = Astro.props;
 
-const paragraphs = content.split("\n\n");
+// Convert markdown to HTML
+const htmlContent = marked(content);
 ---
 
-<div class="space-y-4 text-foreground text-base max-w-prose prose prose-sm prose-invert">
-  {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
-</div>
+<div class="space-y-4 text-foreground text-base max-w-prose prose prose-sm prose-invert" set:html={htmlContent} />

@@ -14,6 +14,39 @@
     footer {
         @apply text-[12px] font-mono mt-24 py-3 bg-neutral-200;
     }
+
+    ul,
+    ol {
+        font-weight: 400;
+        color: color-mix(in oklch, var(--color-foreground) 86%, transparent);
+        @apply list-inside;
+    }
+
+    :is(ul):not([class]) li::marker {
+        font-family: var(--font-mono);
+        content: "✧ ";
+        color: var(--color-primary);
+    }
+
+    :is(ol):not([class]) {
+        list-style: decimal inside;
+        counter-reset: list-counter;
+    }
+
+    :is(ol):not([class]) li {
+        counter-increment: list-counter;
+    }
+
+    :is(ol):not([class]) li::marker {
+        font-family: var(--font-mono);
+        font-size: 0.75em;
+        content: counter(list-counter) ". ";
+        color: var(--color-primary);
+    }
+
+    strong {
+        font-weight: 550;
+    }
 }
 
 .link-button {

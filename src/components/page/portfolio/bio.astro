@@ -1,5 +1,6 @@
 ---
 import { Image } from "astro:assets";
+import { marked } from "marked";
 
 interface Props {
   name: string;
@@ -10,6 +11,8 @@ interface Props {
 }
 
 const { name, title, description, avatarSrc, links } = Astro.props;
+
+const htmlDescription = marked(description);
 ---
 
 <section>
@@ -37,9 +40,10 @@ const { name, title, description, avatarSrc, links } = Astro.props;
     )
   }
 
-  <p class="text-foreground text-base mb-5 max-w-prose">
-    {description}
-  </p>
+  <div
+    class="text-foreground text-base mb-5 max-w-prose prose prose-sm prose-invert space-y-4"
+    set:html={htmlDescription}
+  />
 
   <nav class="flex flex-wrap">
     {
