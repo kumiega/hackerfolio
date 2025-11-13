@@ -3,6 +3,7 @@ import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
+import { toast } from "sonner";
 import { linkedinAuthCommandSchema } from "@/lib/schemas/linkedin.schemas";
 
 import type { QueryState } from "@/types";
@@ -50,12 +51,13 @@ function LinkedInForm() {
       }
 
       setGenerationState("success");
-      alert("Portfolio generated successfully");
-      // Navigate to dashboard or next step
-      // navigateTo("dashboard");
-    } catch {
+      toast.success("Portfolio content generated successfully");
+
+      navigateTo("github-import");
+    } catch (error) {
       setGenerationState("error");
-      // TODO: Add toast notification for error feedback
+      toast.error("Failed to generate portfolio");
+      console.error("Failed to generate portfolio:", error);
     }
   };
   return (
