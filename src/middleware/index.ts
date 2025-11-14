@@ -3,6 +3,43 @@ import { getActionContext } from "astro:actions";
 import { createClientSSR } from "@/db/supabase.client";
 import { repositories } from "@/lib/repositories";
 
+// Route patterns using glob matching
+const PUBLIC_PAGE_PATTERNS = [
+  "/", // Homepage
+  "/signin", // Sign in page
+  "/onboarding", // Onboarding flow
+  "/401",
+  "/403",
+  "/404",
+  "/429",
+  "/500",
+  "/503",
+];
+
+const PUBLIC_API_PATTERNS = [
+  "/api/v1/auth/signin",
+  "/api/v1/auth/callback/github",
+  "/api/v1/health",
+  "/api/v1/version",
+];
+
+const PROTECTED_PATTERNS = [
+  "/dashboard/**",
+  "/api/v1/**", // All API routes except public ones
+  "/preview/**", // Preview routes (owner-only protection handled separately)
+];
+
+// Check if a path matches any of the patterns
+function matchesPattern(pathname: string, patterns: string[]): boolean {
+  return patterns.some((pattern) => {
+    if (pattern.endsWith("/**")) {
+      const basePattern = pattern.slice(0, -3);
+      return pathname.startsWith(basePattern);
+    }
+    return pathname === pattern;
+  });
+}
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { locals, redirect, url } = context;
 
@@ -15,6 +52,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.supabase = supabase;
   locals.requestId = crypto.randomUUID();
 
+  // Check if this is a completely public route (no auth needed)
+  if (matchesPattern(url.pathname, PUBLIC_PAGE_PATTERNS) || matchesPattern(url.pathname, PUBLIC_API_PATTERNS)) {
+    return next();
+  }
+
   /**
    * Do not run code between createServerClient and supabase.auth.getUser(). A simple mistake could make it very hard to debug issues with users being randomly logged out.
    *
@@ -24,18 +66,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Routes that are public but should check for user (homepage, etc.)
-  const publicWithOptionalAuth = ["/"];
-
-  // Routes that are completely public (signin, callback)
-  const publicNoAuth = ["/signin", "/api/v1/auth/signin", "/api/v1/auth/callback/github"];
-
-  // For completely public routes, skip user fetching
-  if (publicNoAuth.includes(url.pathname)) {
-    return next();
-  }
-
-  // For all other routes (including publicWithOptionalAuth), fetch user if exists
+  // For protected routes, fetch user profile if authenticated
   if (user) {
     const profile = await repositories.userProfiles.findById(user.id);
 
@@ -59,36 +90,82 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  // If it's a public route with optional auth, continue
-  if (publicWithOptionalAuth.includes(url.pathname)) {
-    return next();
-  }
-
-  // Protected routes - require authentication
-  if (!user || !locals.user) {
-    if (url.pathname.startsWith("/api")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      });
+  // Check if this is a protected route that requires authentication
+  if (matchesPattern(url.pathname, PROTECTED_PATTERNS)) {
+    if (!user || !locals.user) {
+      // For API routes, return JSON error
+      if (url.pathname.startsWith("/api")) {
+        return new Response(
+          JSON.stringify({
+            error: {
+              code: "UNAUTHORIZED",
+              message: "Authentication required",
+              requestId: locals.requestId,
+            },
+          }),
+          {
+            status: 401,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+      // For pages, redirect to signin (unless it's an error page)
+      if (!matchesPattern(url.pathname, PUBLIC_PAGE_PATTERNS)) {
+        return redirect("/signin");
+      }
     }
-    return redirect("/signin");
+
+    // Special handling for preview routes - check if user owns the preview
+    if (url.pathname.startsWith("/preview/")) {
+      const urlParts = url.pathname.split("/");
+      if (urlParts.length >= 3) {
+        const previewUsername = urlParts[2];
+        if (locals.user && locals.user.username !== previewUsername) {
+          // User is trying to access someone else's preview
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: "FORBIDDEN",
+                message: "Access denied",
+                requestId: locals.requestId,
+              },
+            }),
+            {
+              status: 403,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+    }
   }
 
   /**
    * In Astro, Actions are accessible as public endpoints based on the name of the action.
-   * For example, the action  flows.instruct_then_draft() will be accessible from /_actions/flows.instruct_then_draft.
+   * For example, the action flows.instruct_then_draft() will be accessible from /_actions/flows.instruct_then_draft.
    * This means we must use the same authorization checks that we would consider for API endpoints and on-demand rendered pages.
    */
   const { action } = getActionContext(context);
 
   /**
-   * Check if the action was called from a client-side function
+   * Check if the action was called from a client-side function (RPC)
    */
   if (action?.calledFrom === "rpc") {
-    // If so, check for a user session token, and if necessary, block the request
+    // RPC actions require authentication
     if (!user) {
-      return new Response("Forbidden", { status: 403 });
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "FORBIDDEN",
+            message: "Authentication required for RPC actions",
+            requestId: locals.requestId,
+          },
+        }),
+        {
+          status: 403,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
     }
   }
 
