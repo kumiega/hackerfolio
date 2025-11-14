@@ -1,5 +1,3 @@
-"use client";
-
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
 import { useState, useRef, useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";

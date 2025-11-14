@@ -1,4 +1,3 @@
-"use client";
 
 import { useState } from "react";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";

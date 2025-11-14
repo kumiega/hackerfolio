@@ -6,6 +6,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { Breadcrumbs } from "@/components/page/dashboard/breadcrumbs";
 import { Spinner } from "@/components/ui/spinner";
 import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio-change-tracker";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 interface SiteHeaderProps {
   currentPath?: string;
@@ -98,6 +99,9 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
               )}
             </>
           )}
+
+          {/* Theme toggle - always visible */}
+          <ModeToggle />
         </div>
       </div>
     </header>

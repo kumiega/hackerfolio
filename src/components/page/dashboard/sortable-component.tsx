@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Edit3, Trash2, GripVertical } from "lucide-react";

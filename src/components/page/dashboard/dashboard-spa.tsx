@@ -1,4 +1,3 @@
-"use client";
 
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
 import { useState, useRef } from "react";

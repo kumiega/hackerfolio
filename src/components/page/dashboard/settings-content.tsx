@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { Trash2 } from "lucide-react";
@@ -32,7 +31,7 @@ export function SettingsContent({ user }: SettingsContentProps) {
             <CardTitle>Change Username</CardTitle>
             <CardDescription>
               Update your portfolio URL. It will be available at{" "}
-              <code className="text-xs bg-neutral-300 px-1 py-0.5 ">https://{"{username}"}.hackerfolio.com</code>
+              <code className="text-xs bg-muted px-1 py-0.5 ">https://{"{username}"}.hackerfolio.com</code>
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -1,5 +1,3 @@
-"use client";
-
 import { SectionsEditorContent } from "@/components/page/dashboard/sections-editor-content";
 import type { User } from "@/types";
 

@@ -1,5 +1,3 @@
-"use client";
-
 import { SettingsContent } from "@/components/page/dashboard/settings-content";
 import type { User } from "@/types";
 

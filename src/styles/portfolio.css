@@ -11,10 +11,6 @@
         color: color-mix(in oklch, var(--color-foreground) 86%, transparent);
     }
 
-    footer {
-        @apply text-[12px] font-mono mt-24 py-3 bg-neutral-200;
-    }
-
     ul,
     ol {
         font-weight: 400;
@@ -78,7 +74,7 @@
 }
 
 .link-card {
-    @apply flex items-center justify-between gap-2 px-4 py-3 border border-dashed border-neutral-300 hover:border-primary;
+    @apply flex items-center justify-between gap-2 px-4 py-3 border border-dashed border-neutral-300 hover:border-primary dark:border-neutral-700 dark:hover:border-primary;
 
     &:hover {
         position: relative;

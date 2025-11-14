@@ -1,5 +1,3 @@
-"use client";
-
 import { BioEditorContent } from "@/components/page/dashboard/bio-editor-content";
 import type { User } from "@/types";
 

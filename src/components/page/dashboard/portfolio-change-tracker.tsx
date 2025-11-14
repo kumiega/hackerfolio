@@ -1,5 +1,3 @@
-"use client";
-
 import { createContext, useContext, useState, useCallback, useRef } from "react";
 import type { ReactNode } from "react";
 import type { PortfolioData } from "@/types";

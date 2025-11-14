@@ -1,4 +1,3 @@
-"use client";
 
 import { useState } from "react";
 import { Upload, User, X } from "lucide-react";
