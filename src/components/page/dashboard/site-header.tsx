@@ -101,7 +101,9 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
           )}
 
           {/* Theme toggle - always visible */}
-          <ModeToggle />
+          <div className="ms-4">
+            <ModeToggle />
+          </div>
         </div>
       </div>
     </header>
