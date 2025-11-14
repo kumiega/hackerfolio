@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import {
   DndContext,
@@ -653,7 +652,7 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
             <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
 
             {/* Timestamp info */}
-            <div className="text-[10px] font-mono text-muted mt-4 space-y-1">
+            <div className="text-[12px] font-mono text-muted mt-4 space-y-1">
               <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
               {portfolioState.lastPublishedAt && (
                 <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>

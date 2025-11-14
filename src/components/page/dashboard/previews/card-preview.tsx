@@ -32,18 +32,18 @@ export function CardPreview({ cards }: CardPreviewProps) {
       </Badge>
       <div className="space-y-2">
         {safeCards.slice(0, 3).map((card, index) => (
-          <div key={index} className="border-l-2 border-secondary/33 pl-2">
+          <div key={index}>
             <h4 className="font-medium text-xs">{card.title || "Untitled"}</h4>
             <p className="text-xs text-muted-foreground line-clamp-1">{card.summary || "No summary"}</p>
             {card.tech && card.tech.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-1">
                 {card.tech.slice(0, 3).map((tech, techIndex) => (
-                  <Badge key={techIndex} variant="muted" className="px-1 text-[8px] tracking-widest">
+                  <Badge key={techIndex} variant="muted" className="text-[8px] px-1.5 py-0 tracking-widest">
                     {tech}
                   </Badge>
                 ))}
                 {card.tech.length > 3 && (
-                  <Badge variant="muted" className="px-1 text-[8px] tracking-widest">
+                  <Badge variant="muted" className="text-[8px] px-1.5 py-0 tracking-widest">
                     +{card.tech.length - 3}
                   </Badge>
                 )}
