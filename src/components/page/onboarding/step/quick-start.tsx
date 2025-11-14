@@ -20,7 +20,7 @@ function QuickStartStep() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight mb-2">We can import your data</h1>
         <p className="text-sm text-muted-foreground leading-relaxed text-balance">
-          Coderpage allows you to use your GitHub and LinkedIn profile to create your portfolio. You can also skip the
+          Hackerfolio allows you to use your GitHub and LinkedIn profile to create your portfolio. You can also skip the
           imports and start from scratch.
         </p>
       </div>

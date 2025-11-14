@@ -32,7 +32,7 @@ export function SettingsContent({ user }: SettingsContentProps) {
             <CardTitle>Change Username</CardTitle>
             <CardDescription>
               Update your portfolio URL. It will be available at{" "}
-              <code className="text-xs bg-neutral-300 px-1 py-0.5 ">https://{"{username}"}.coderpage.dev</code>
+              <code className="text-xs bg-neutral-300 px-1 py-0.5 ">https://{"{username}"}.hackerfolio.com</code>
             </CardDescription>
           </CardHeader>
           <CardContent>

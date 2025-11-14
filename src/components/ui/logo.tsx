@@ -6,14 +6,14 @@ const Logo = ({ className, link }: { className?: string; link?: boolean }) => {
   if (link) {
     return (
       <a href="/">
-        <span className="font-mono font-normal">coder</span>page
+        <span className="font-mono font-normal">hacker</span>folio
       </a>
     );
   }
 
   return (
     <p className={classNames}>
-      <span className="font-mono font-normal">coder</span>page
+      <span className="font-mono font-normal">hacker</span>folio
     </p>
   );
 };
