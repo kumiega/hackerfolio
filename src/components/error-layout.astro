@@ -12,14 +12,7 @@ interface Props {
   showHomeButton?: boolean;
 }
 
-const {
-  title,
-  code,
-  description,
-  actionText,
-  actionHref,
-  showHomeButton = true
-} = Astro.props;
+const { title, code, description, actionText, actionHref, showHomeButton = true } = Astro.props;
 ---
 
 <Layout title={title}>
@@ -42,16 +35,20 @@ const {
       </div>
 
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        {actionText && actionHref && (
-          <Button variant="default" href={actionHref}>
-            {actionText}
-          </Button>
-        )}
-        {showHomeButton && (
-          <Button variant="outline" href="/">
-            Go Home
-          </Button>
-        )}
+        {
+          actionText && actionHref && (
+            <Button variant="default" href={actionHref}>
+              {actionText}
+            </Button>
+          )
+        }
+        {
+          showHomeButton && (
+            <Button variant="outline" href="/">
+              Go Home
+            </Button>
+          )
+        }
       </div>
     </div>
   </div>
