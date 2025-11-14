@@ -73,8 +73,8 @@ export class OpenRouterService {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
-            "HTTP-Referer": "https://coderpage.com",
-            "X-Title": "CoderPage Profile Generation",
+            "HTTP-Referer": "https://hackerfolio.com",
+            "X-Title": "Hackerfolio Profile Generation",
           },
           body: JSON.stringify({
             model: model,
