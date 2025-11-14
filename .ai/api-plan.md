@@ -303,7 +303,7 @@ POST `/api/v1/imports/linkedin/profile`
 Note: Client receives generated sections and merges them into draft_data, then calls PATCH `/api/v1/portfolios/:id`
 
 ### 2.7 Public Portfolio (SSR)
-GET `/api/v1/public/portfolios/:username`
+GET `/api/v1/portfolios/:username`
 - Description: Server-side endpoint for SSR rendering of published portfolios
 - Query: none
 - Auth: Service role (server-side only, bypasses RLS)
@@ -570,7 +570,7 @@ Summarized types for reference; actual responses follow examples above.
 - [x] GET /api/v1/imports/github/repos
 - [x] POST /api/v1/imports/github/cards (returns component data for client-side merge)
 - [x] POST /api/v1/imports/linkedin/profile (accepts manual data, returns generated sections)
-- [x] GET /api/v1/public/portfolios/:username (SSR endpoint for published_data)
+- [x] GET /api/v1/portfolios/:username (SSR endpoint for published_data)
 - [x] GET /api/v1/preview/portfolios/:username (owner-only draft preview)
 - [x] POST /api/v1/errors
 - [x] GET /api/v1/health

@@ -67,14 +67,14 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
   - Po udanej autoryzacji następuje przekierowanie do aplikacji z sesją zalogowanego użytkownika
   - W przypadku błędu wyświetlany jest komunikat
 
-- ID: US-002  
-  Tytuł: Logowanie przez email i hasło  
-  Opis: Użytkownik może utworzyć konto i zalogować się przy użyciu email i hasła  
+- ID: US-002
+  Tytuł: Onboarding
+  Opis: Użytkownik przy pierwszym logowaniu przekierowany jest na onboarding.
   Kryteria akceptacji:
 
-  - Formularz rejestracji waliduje poprawny format email i wystarczającą długość hasła
-  - Po rejestracji użytkownik otrzymuje sesję zalogowanego użytkownika
-  - Błędy walidacji wyświetlane w formularzu
+  - Przy pierwszej autoryzacji użytkownik jest oznaczony jako nowy i zostaje przeniesiony do formularza onboardingowego
+  - Wejście na dashboard jest niemożliwe dopóki onboarding nie zostanie zakończony
+  - Po wykonaniu wymaganych akcji użytkownik może pominąć dalsze kroki i zakończyć onboarding
 
 - ID: US-003  
   Tytuł: Wybór subdomeny  
@@ -82,15 +82,16 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
   Kryteria akceptacji:
 
   - System sprawdza unikalność subdomeny w czasie rzeczywistym
-  - Po zapisaniu użytkownik nie może zmienić subdomeny później
+  - Po zapisaniu użytkownik może zmienić subdomenę później, jeśli jest dostępna
+  - Gdy subdomena jest wolna, użytkownik jest przeniesiony do kolejnego kroku
+  - Po wybraniu subdomeny nie można cofnąć się do poprzedniego kroku
 
-- ID: US-004  
-  Tytuł: Import z GitHub  
-  Opis: Użytkownik wybiera 3–10 repozytoriów z GitHub do zaimportowania  
+- ID: US-004
+- Tytuł: Pominięcie onboardingu
+- Opis: Możliwość pominięcia onboardingu po wybraniu subdomeny
   Kryteria akceptacji:
-
-  - Wyświetlana jest lista repozytoriów z konta użytkownika
-  - Po zaznaczeniu i zatwierdzeniu generowane są karty projektów z danymi z README oraz wykrytymi technologiami
+  
+  - Użytkownik przechodzi do kolejnego kroku lub kończy proces onboardingu
 
 - ID: US-005  
   Tytuł: Import z LinkedIn  
@@ -100,6 +101,14 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
   - Formularz pozwala wprowadzić nazwę, headline, doświadczenie zawodowe i edukację
   - AI generuje sekcje i komponenty na podstawie wprowadzonych danych
   - Użytkownik może edytować wygenerowaną strukturę przed zapisaniem
+
+- ID: US-006  
+  Tytuł: Import z GitHub  
+  Opis: Użytkownik wybiera 1-10 repozytoriów z GitHub do zaimportowania  
+  Kryteria akceptacji:
+
+  - Wyświetlana jest lista repozytoriów z konta użytkownika
+  - Po zaznaczeniu i zatwierdzeniu generowane są karty projektów z danymi z README oraz wykrytymi technologiami
 
 - ID: US-006  
   Tytuł: Zarządzanie sekcjami i komponentami  
