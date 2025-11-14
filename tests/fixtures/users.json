@@ -1,0 +1,16 @@
+[
+  {
+    "id": "test-user-1",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "onboarded": true,
+    "hasPortfolio": true
+  },
+  {
+    "id": "test-user-2",
+    "username": "janedoe",
+    "email": "jane@example.com",
+    "onboarded": true,
+    "hasPortfolio": false
+  }
+]

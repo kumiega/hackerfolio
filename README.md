@@ -16,14 +16,15 @@
 
 ## Project Description
 
-Hackerfolio is an MVP application that enables developers to generate a professional portfolio in under 5 minutes—no design skills required. It integrates with GitHub and LinkedIn and leverages AI (GPT-4o-mini) to automate content creation. Built with Astro and React islands for interactivity, styled using Shadcn/ui and Tailwind CSS, with a Supabase backend and DigitalOcean hosting supporting wildcard subdomains.
+Hackerfolio is an MVP application that enables developers to generate a professional portfolio in under 5 minutes—no design skills required. It integrates with GitHub and LinkedIn and leverages AI (GPT-4o-mini) to automate content creation. Built with Astro and React islands for interactivity, styled using Shadcn/ui and Tailwind CSS, with a Supabase backend and DigitalOcean hosting supporting wildcard subdomains. Testing is implemented using Vitest for unit/integration tests and Playwright for end-to-end testing.
 
 ## Tech Stack
 
-- **Frontend:** Astro 5, React 19, TypeScript 5  
-- **Styling:** Tailwind CSS 4, Shadcn/ui  
-- **Backend & Database:** Supabase  
-- **AI Integration:** openrouter.ai (GPT-4o-mini)  
+- **Frontend:** Astro 5, React 19, TypeScript 5
+- **Styling:** Tailwind CSS 4, Shadcn/ui
+- **Backend & Database:** Supabase
+- **AI Integration:** openrouter.ai (GPT-4o-mini)
+- **Testing:** Vitest, Playwright, React Testing Library
 - **CI/CD & Hosting:** GitHub Actions, DigitalOcean  
 
 ## Getting Started
@@ -70,6 +71,11 @@ npm run dev
 | `npm run lint`    | Run ESLint                      |
 | `npm run lint:fix`| Fix lint errors automatically   |
 | `npm run format`  | Run Prettier to format code     |
+| `npm run test`    | Run all tests with Vitest       |
+| `npm run test:unit` | Run unit tests                 |
+| `npm run test:integration` | Run integration tests     |
+| `npm run test:e2e`| Run end-to-end tests with Playwright |
+| `npm run test:coverage` | Run tests with coverage report |
 
 ## Project Scope
 
