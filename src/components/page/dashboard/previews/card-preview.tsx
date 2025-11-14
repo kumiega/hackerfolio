@@ -18,9 +18,9 @@ export function CardPreview({ cards }: CardPreviewProps) {
     return (
       <div>
         <Badge variant="outline" className="mb-4">
-          Project Cards
+          Project Card
         </Badge>
-        <p className="text-xs text-muted-foreground">No cards added</p>
+        <p className="text-xs text-muted-foreground">Card is empty</p>
       </div>
     );
   }
@@ -28,7 +28,7 @@ export function CardPreview({ cards }: CardPreviewProps) {
   return (
     <div className="flex flex-col items-start">
       <Badge variant="outline" className="mb-4">
-        Cards ({safeCards.length})
+        Project Card
       </Badge>
       <div className="space-y-2">
         {safeCards.slice(0, 3).map((card, index) => (
@@ -51,11 +51,6 @@ export function CardPreview({ cards }: CardPreviewProps) {
             )}
           </div>
         ))}
-        {safeCards.length > 3 && (
-          <p className="text-xs text-muted-foreground">
-            +{safeCards.length - 3} more card{safeCards.length - 3 !== 1 ? "s" : ""}
-          </p>
-        )}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { Field, FieldLabel, FieldDescription, FieldError } from "@/components/ui
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 interface CardData {
   repo_url: string;
@@ -26,12 +26,6 @@ export function CardForm({ cards, onChange, errors }: CardFormProps) {
     onChange("cards", newCards);
   };
 
-  const addCard = () => {
-    if (safeCards.length >= 10) return;
-    const newCards = [...safeCards, { repo_url: "", title: "", summary: "", tech: [] }];
-    onChange("cards", newCards);
-  };
-
   const removeCard = (index: number) => {
     const newCards = safeCards.filter((_, i) => i !== index);
     onChange("cards", newCards);
@@ -40,8 +34,7 @@ export function CardForm({ cards, onChange, errors }: CardFormProps) {
   return (
     <div className="space-y-6">
       <Field className="items-stretch">
-        <FieldLabel>Project Cards</FieldLabel>
-        <FieldDescription>{safeCards.length}/10 cards</FieldDescription>
+        <FieldLabel>Project Card</FieldLabel>
       </Field>
 
       <div className="space-y-6">
@@ -117,13 +110,6 @@ export function CardForm({ cards, onChange, errors }: CardFormProps) {
           </div>
         ))}
       </div>
-
-      {safeCards.length < 10 && (
-        <Button type="button" variant="outline" onClick={addCard} className="w-full">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Card
-        </Button>
-      )}
     </div>
   );
 }
