@@ -1,0 +1,58 @@
+---
+import Layout from "../layouts/layout-marketing.astro";
+import { Logo } from "./ui/logo";
+import { Button } from "./ui/button";
+
+interface Props {
+  title: string;
+  code: string;
+  description: string;
+  actionText?: string;
+  actionHref?: string;
+  showHomeButton?: boolean;
+}
+
+const {
+  title,
+  code,
+  description,
+  actionText,
+  actionHref,
+  showHomeButton = true
+} = Astro.props;
+---
+
+<Layout title={title}>
+  <div class="min-h-screen flex flex-col items-center justify-center px-4 py-16">
+    <div class="max-w-md w-full text-center">
+      <div class="mb-8">
+        <Logo />
+      </div>
+
+      <div class="mb-6">
+        <div class="text-8xl font-bold text-primary font-mono mb-2">
+          {code}
+        </div>
+        <h1 class="text-2xl font-semibold text-foreground mb-4">
+          {title}
+        </h1>
+        <p class="text-muted-foreground text-lg leading-relaxed">
+          {description}
+        </p>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        {actionText && actionHref && (
+          <Button variant="default" href={actionHref}>
+            {actionText}
+          </Button>
+        )}
+        {showHomeButton && (
+          <Button variant="outline" href="/">
+            Go Home
+          </Button>
+        )}
+      </div>
+    </div>
+  </div>
+</Layout>
