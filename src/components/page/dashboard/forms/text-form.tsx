@@ -16,7 +16,7 @@ export function TextForm({ content, onChange, error }: TextFormProps) {
         value={content || ""}
         onChange={(e) => onChange("content", e.target.value)}
         placeholder="Enter your text content..."
-        rows={4}
+        rows={12}
         className={error ? "border-destructive" : ""}
       />
       <FieldDescription>{(content || "").length}/2000 characters</FieldDescription>
