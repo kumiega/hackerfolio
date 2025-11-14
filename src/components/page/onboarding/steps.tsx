@@ -1,3 +1,5 @@
+"use client";
+
 import { UsernameStep } from "@/components/page/onboarding/step/username";
 import { QuickStartStep } from "@/components/page/onboarding/step/quick-start";
 import { GitHubImportStep } from "@/components/page/onboarding/step/github";

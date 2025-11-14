@@ -5,9 +5,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Plus, Trash2, Eye, EyeOff, GripVertical, Edit3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Field, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
@@ -32,7 +30,6 @@ export function SortableSection({
 }: SortableSectionProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editingTitle, setEditingTitle] = useState(section.title);
-  const [editingDescription, setEditingDescription] = useState(section.description);
   const [isPressed, setIsPressed] = useState(false);
   const editContainerRef = useRef<HTMLDivElement>(null);
 
@@ -117,12 +114,6 @@ export function SortableSection({
     cursor: isDragging ? "grabbing" : "default",
   };
 
-  const handleDescriptionSave = () => {
-    if (editingDescription !== section.description) {
-      onUpdateSection(section.id, { description: editingDescription });
-    }
-  };
-
   return (
     <Card
       ref={setNodeRef}
@@ -204,20 +195,6 @@ export function SortableSection({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="mb-4">
-          <Field>
-            <FieldLabel>Description</FieldLabel>
-            <Textarea
-              value={editingDescription}
-              onChange={(e) => setEditingDescription(e.target.value)}
-              onBlur={handleDescriptionSave}
-              placeholder="Add a description for this section..."
-              className="text-sm bg-background text-muted-foreground border shadow-none focus:ring-0 resize-none min-h-[2rem]"
-              rows={1}
-            />
-          </Field>
-        </div>
-
         <h4 className="text-sm font-medium text-foreground mb-2">Components</h4>
         <div
           ref={setDroppableRef}

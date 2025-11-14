@@ -96,12 +96,6 @@ export class GitHubService {
         }
         throw new AppError("GITHUB_API_ERROR", "Failed to validate GitHub token");
       }
-
-      // Check rate limiting
-      const rateLimitRemaining = response.headers.get("x-ratelimit-remaining");
-      if (rateLimitRemaining && parseInt(rateLimitRemaining) === 0) {
-        throw new AppError("GITHUB_RATE_LIMITED", "GitHub API rate limit exceeded");
-      }
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -156,12 +150,6 @@ export class GitHubService {
       // Make API request to GitHub
       const response = await this.makeGitHubRequest(url.toString(), accessToken);
 
-      // Check for rate limiting
-      const rateLimitRemaining = response.headers["x-ratelimit-remaining"];
-      if (rateLimitRemaining && parseInt(rateLimitRemaining) === 0) {
-        throw new AppError("GITHUB_RATE_LIMITED", "GitHub API rate limit exceeded");
-      }
-
       // Transform and filter repositories
       let repos = response.data.map(this.transformGitHubRepo);
 
@@ -174,7 +162,7 @@ export class GitHubService {
       }
 
       // Extract pagination info from Link header
-      const paginationInfo = this.extractPaginationInfo();
+      const paginationInfo = this.extractPaginationInfo(response.headers.link, page, per_page);
 
       return {
         repos,
@@ -285,12 +273,38 @@ export class GitHubService {
   /**
    * Extracts pagination information from GitHub's Link header
    *
-   * @returns Object with total count and pagination info
+   * GitHub API provides pagination links in the Link header but not total count.
+   * We parse the "last" link to estimate total count based on current page and per_page.
+   *
+   * @param linkHeader - The Link header from GitHub API response
+   * @param currentPage - Current page number
+   * @param perPage - Items per page
+   * @returns Object with estimated total count
    */
-  private static extractPaginationInfo(): { total: number } {
-    // GitHub API doesn't provide total count in headers
-    // We'll return a placeholder - frontend can implement "load more" pattern
-    return { total: 0 };
+  private static extractPaginationInfo(linkHeader?: string, currentPage?: number, perPage?: number): { total: number } {
+    if (!linkHeader || !currentPage || !perPage) {
+      // No pagination info available, return 0 to indicate unknown total
+      return { total: 0 };
+    }
+
+    // Parse Link header to find the "last" page URL
+    // Format: <https://api.github.com/user/repos?page=5&per_page=30>; rel="last"
+    const links = linkHeader.split(",").map((link) => link.trim());
+    const lastLink = links.find((link) => link.includes('rel="last"'));
+
+    if (lastLink) {
+      // Extract page number from last link URL
+      const urlMatch = lastLink.match(/page=(\d+)/);
+      if (urlMatch) {
+        const lastPage = parseInt(urlMatch[1]);
+        // Estimate total: if we're on page 1 with per_page=30 and last page is 5, total ≈ 150
+        const estimatedTotal = lastPage * perPage;
+        return { total: estimatedTotal };
+      }
+    }
+
+    // If we can't parse the last link, return current page count as minimum estimate
+    return { total: currentPage * perPage };
   }
 
   /**
@@ -335,7 +349,10 @@ export class GitHubService {
           throw new AppError(ERROR_CODES.GITHUB_TOKEN_INSUFFICIENT, "GitHub access token lacks required permissions");
         }
         if (response.status === 404) {
-          throw new AppError(ERROR_CODES.VALIDATION_ERROR, "Repository not found or access denied");
+          throw new AppError(
+            ERROR_CODES.GITHUB_REPO_NOT_FOUND,
+            "Repository not found. It may be private or doesn't exist."
+          );
         }
         throw new AppError(ERROR_CODES.GITHUB_API_ERROR, `GitHub API error: ${response.status}`);
       }
@@ -388,7 +405,10 @@ export class GitHubService {
           throw new AppError(ERROR_CODES.GITHUB_TOKEN_INVALID, "Invalid or expired GitHub access token");
         }
         if (response.status === 403) {
-          throw new AppError(ERROR_CODES.GITHUB_TOKEN_INSUFFICIENT, "GitHub access token lacks required permissions");
+          throw new AppError(
+            ERROR_CODES.GITHUB_REPO_ACCESS_DENIED,
+            "Access denied to repository. It may be private and require additional permissions."
+          );
         }
         throw new AppError(ERROR_CODES.GITHUB_API_ERROR, `GitHub API error: ${response.status}`);
       }

@@ -86,8 +86,8 @@
 
         @apply bg-linear-30 from-primary/10 to-transparent to-60%;
 
-        p,
-        h3 {
+        * {
+            opacity: 1;
             color: var(--color-primary);
         }
 

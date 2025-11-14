@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import { GitHubService } from "@/lib/services/github.service";
 import { githubReposQuerySchema } from "@/lib/schemas/github.schemas";
 import { logError } from "@/lib/error-utils";
-import { checkRateLimit, githubRateLimiter } from "@/lib/rate-limit";
 import { AppError } from "@/lib/error-handler";
 import type { SupabaseClient } from "@/db/supabase.client";
 import type { ApiSuccessResponse, ApiErrorResponse } from "@/types";
@@ -44,13 +43,6 @@ export const GET: APIRoute = async (context) => {
     userId = user?.id;
   } catch {
     // Ignore auth errors here, will be handled in getGitHubAccessToken
-  }
-
-  // Apply rate limiting based on user ID (fallback to IP if user not authenticated)
-  const rateLimitIdentifier = userId || context.request.headers.get("x-forwarded-for") || "anonymous";
-  const rateLimitResponse = checkRateLimit(rateLimitIdentifier, githubRateLimiter);
-  if (rateLimitResponse) {
-    return rateLimitResponse;
   }
 
   // Initialize validated params for error logging
@@ -247,6 +239,7 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
 
   // Step 2: Retrieve GitHub access token from oauth_tokens table
   // This table is populated by OAuth webhooks or callback handlers
+  console.log("Looking for GitHub token for user:", user.id);
   const { data: tokenData, error: tokenError } = await supabase
     .from("oauth_tokens")
     .select("access_token, expires_at, refresh_token")
@@ -254,7 +247,15 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
     .eq("provider", "github")
     .single();
 
+  console.log("Token query result:", { tokenData: !!tokenData, error: tokenError });
+
   if (tokenError) {
+    console.error("OAuth token query error:", {
+      code: tokenError.code,
+      message: tokenError.message,
+      userId: user.id,
+    });
+
     if (tokenError.code === "PGRST116") {
       // Table doesn't exist
       throw new AppError("GITHUB_TOKEN_INVALID", "GitHub integration not configured. Please contact support.");
@@ -263,30 +264,25 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
   }
 
   if (!tokenData?.access_token) {
+    console.error("No access token found in oauth_tokens:", {
+      userId: user.id,
+      tokenData: !!tokenData,
+      hasAccessToken: !!tokenData?.access_token,
+    });
     throw new AppError("GITHUB_TOKEN_INVALID", "GitHub access token not found. Please reconnect your GitHub account.");
   }
 
-  // Step 3: Check if token is expired and attempt refresh if possible
+  // Step 3: Check if token is expired (GitHub tokens are typically long-lived but can be revoked)
   if (tokenData.expires_at) {
     const expiresAt = new Date(tokenData.expires_at);
     const now = new Date();
-    const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60 * 1000); // 5 minutes buffer
 
-    if (expiresAt <= fiveMinutesFromNow) {
-      // Token is expired or will expire soon
-      if (tokenData.refresh_token) {
-        // TODO: Implement token refresh logic here
-        // This would call GitHub's token refresh endpoint and update the database
-        throw new AppError(
-          "GITHUB_TOKEN_INVALID",
-          "GitHub access token has expired. Please reconnect your GitHub account."
-        );
-      } else {
-        throw new AppError(
-          "GITHUB_TOKEN_INVALID",
-          "GitHub access token has expired. Please reconnect your GitHub account."
-        );
-      }
+    if (expiresAt <= now) {
+      // Token is expired
+      throw new AppError(
+        "GITHUB_TOKEN_INVALID",
+        "GitHub access token has expired. Please reconnect your GitHub account."
+      );
     }
   }
 
