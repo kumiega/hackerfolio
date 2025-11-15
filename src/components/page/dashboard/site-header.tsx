@@ -32,9 +32,6 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
     }
   };
 
-  // Show editor buttons only on bio and sections editor pages
-  const isEditorPage = currentPath === "/dashboard/bio" || currentPath === "/dashboard/editor";
-
   // Check if required bio fields are filled to show save/publish buttons
   const hasRequiredBioFields = !!(
     portfolioState.data?.bio?.full_name?.trim() &&
@@ -51,53 +48,49 @@ export function SiteHeader({ currentPath }: SiteHeaderProps) {
         <Separator orientation="vertical" className="mr-2 h-4" />
         <Breadcrumbs pathname={currentPath} />
         <div className="ml-auto flex items-center gap-2">
-          {isEditorPage && (
-            <>
-              {hasRequiredBioFields && (
-                <Button
-                  variant="muted"
-                  onClick={handleSavePortfolio}
-                  disabled={isSaving}
-                  className="gap-2 min-w-36 transition-all duration-200"
-                  aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
-                >
-                  {isSaving ? (
-                    <>
-                      <Spinner className="h-4 w-4" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Save draft
-                    </>
-                  )}
-                </Button>
+          {hasRequiredBioFields && (
+            <Button
+              variant="muted"
+              onClick={handleSavePortfolio}
+              disabled={isSaving}
+              className="gap-2 min-w-36 transition-all duration-200"
+              aria-label={isSaving ? "Saving portfolio changes" : "Save portfolio changes"}
+            >
+              {isSaving ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Save draft
+                </>
               )}
+            </Button>
+          )}
 
-              {/* Publish button */}
-              {hasRequiredBioFields && (
-                <Button
-                  onClick={handlePublishPortfolio}
-                  disabled={isPublishing || isSaving}
-                  className="gap-2 min-w-36 transition-all duration-200"
-                  variant="default"
-                  aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
-                >
-                  {isPublishing ? (
-                    <>
-                      <Spinner className="h-4 w-4" />
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" />
-                      Publish
-                    </>
-                  )}
-                </Button>
+          {/* Publish button */}
+          {hasRequiredBioFields && (
+            <Button
+              onClick={handlePublishPortfolio}
+              disabled={isPublishing || isSaving}
+              className="gap-2 min-w-36 transition-all duration-200"
+              variant="default"
+              aria-label={isPublishing ? "Publishing portfolio" : "Publish portfolio"}
+            >
+              {isPublishing ? (
+                <>
+                  <Spinner className="h-4 w-4" />
+                  Publishing...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4" />
+                  Publish
+                </>
               )}
-            </>
+            </Button>
           )}
 
           {/* Theme toggle - always visible */}
