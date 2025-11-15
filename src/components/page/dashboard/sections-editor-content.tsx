@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 import { toast } from "sonner";
+import { PortfolioTimestamps } from "./portfolio-timestamps";
 
 // Default empty bio structure
 const defaultBioData = {
@@ -657,14 +658,11 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
           </Button>
         </div>
 
-        {/* Timestamp info */}
-        <div className="text-[12px] font-mono mt-4 space-y-1 flex flex-wrap gap-8 justify-between">
-          {portfolioState.lastPublishedAt && (
-            <div className="text-primary">Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
-          )}
-
-          <div className="text-muted ms-auto">Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
-        </div>
+        <PortfolioTimestamps
+          lastPublishedAt={portfolioState.lastPublishedAt}
+          lastSavedAt={portfolioState.lastSavedAt}
+          formatTimestamp={formatTimestamp}
+        />
       </div>
 
       <DndContext

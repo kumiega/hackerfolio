@@ -12,6 +12,7 @@ import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio
 import { validateBioData, type BioValidationResult } from "@/lib/validation";
 
 import { BioSection } from "./bio-section";
+import { PortfolioTimestamps } from "./portfolio-timestamps";
 import { Spinner } from "@/components/ui/spinner";
 
 import { toast } from "sonner";
@@ -404,13 +405,11 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         </p>
 
         {/* Timestamp info */}
-        <div className="text-[12px] font-mono mt-4 space-y-1 flex flex-wrap gap-8 justify-between">
-          {portfolioState.lastPublishedAt && (
-            <div className="text-primary">Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
-          )}
-
-          <div className="text-muted ms-auto">Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
-        </div>
+        <PortfolioTimestamps
+          lastPublishedAt={portfolioState.lastPublishedAt}
+          lastSavedAt={portfolioState.lastSavedAt}
+          formatTimestamp={formatTimestamp}
+        />
       </div>
 
       <div className="space-y-3">
