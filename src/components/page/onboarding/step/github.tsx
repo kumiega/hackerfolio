@@ -25,9 +25,9 @@ function GitHubImportStep() {
       setGenerationState("loading");
 
       // Make API call to fetch repositories
-        const response = await fetch("/api/v1/imports/github/repos", {
-          credentials: "include",
-        });
+      const response = await fetch("/api/v1/imports/github/repos", {
+        credentials: "include",
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -45,7 +45,7 @@ function GitHubImportStep() {
       const responseData = await response.json();
       setRepositories(responseData.data || []);
       setGenerationState("success");
-      toast.success("Repositories imported successfully! You will be redirected to the dashboard in a moment.");
+      toast.success("Repositories imported successfully!");
     } catch {
       setGenerationState("error");
       toast.error("Failed to fetch repositories");
@@ -53,23 +53,16 @@ function GitHubImportStep() {
   };
 
   const handleComplete = async () => {
-    console.log("handleComplete called - starting onboarding completion");
     try {
       const supabase = createClientBrowser();
-      console.log("Created Supabase client");
 
       repoService.initialize(supabase);
-      console.log("Initialized repositories");
 
       await repoService.userProfiles.update(userId, { is_onboarded: true });
-      console.log("Updated user profile to onboarded");
+      toast.success("Project cards generated successfully! You will be redirected to the dashboard in a moment.");
 
-      console.log("About to navigate to dashboard");
       // Small delay to ensure toast is visible before navigation
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-        console.log("Navigation to dashboard completed");
-      }, 1500);
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Error in handleComplete:", error);
       toast.error("Failed to complete onboarding");
@@ -81,9 +74,7 @@ function GitHubImportStep() {
     repoService.initialize(supabase);
     await repoService.userProfiles.update(userId, { is_onboarded: true });
     // Small delay to ensure any UI updates are visible before navigation
-    setTimeout(() => {
-      window.location.href = "/dashboard";
-    }, 500);
+    window.location.href = "/dashboard";
   };
 
   return (
