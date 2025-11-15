@@ -14,7 +14,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     server: {
-      allowedHosts: ["heroic-pony-exact.ngrok-free.app", ".hackerfolio.test", "hackerfolio.test"],
+      allowedHosts: ["heroic-pony-exact.ngrok-free.app", ".hackerfolio.com", "hackerfolio.com"],
     },
   },
   adapter: node({
@@ -27,7 +27,7 @@ export default defineConfig({
       SUPABASE_SERVICE_ROLE_KEY: envField.string({ context: "server", access: "secret" }),
       GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: envField.string({ context: "server", access: "secret" }),
       GOTRUE_EXTERNAL_GITHUB_SECRET: envField.string({ context: "server", access: "secret" }),
-      // OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret" }),
+      OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret" }),
     },
   },
 });
