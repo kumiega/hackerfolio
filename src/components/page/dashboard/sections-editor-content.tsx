@@ -650,19 +650,20 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
           <div>
             <h1 className="text-3xl font-bold tracking-tight mb-3">Sections</h1>
             <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
-
-            {/* Timestamp info */}
-            <div className="text-[12px] font-mono text-muted mt-4 space-y-1">
-              <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
-              {portfolioState.lastPublishedAt && (
-                <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
-              )}
-            </div>
           </div>
           <Button onClick={handleAddSection} variant="outline" className="gap-2" aria-label="Add new section">
             <Plus className="h-4 w-4" />
             Add Section
           </Button>
+        </div>
+
+        {/* Timestamp info */}
+        <div className="text-[12px] font-mono mt-4 space-y-1 flex flex-wrap gap-8 justify-between">
+          {portfolioState.lastPublishedAt && (
+            <div className="text-primary">Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
+          )}
+
+          <div className="text-muted ms-auto">Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
         </div>
       </div>
 

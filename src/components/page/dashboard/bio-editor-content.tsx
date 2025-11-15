@@ -404,11 +404,12 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         </p>
 
         {/* Timestamp info */}
-        <div className="text-[12px] font-mono text-muted  mt-4 space-y-1">
-          <div>Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
+        <div className="text-[12px] font-mono mt-4 space-y-1 flex flex-wrap gap-8 justify-between">
           {portfolioState.lastPublishedAt && (
-            <div>Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
+            <div className="text-primary">Last published: {formatTimestamp(portfolioState.lastPublishedAt)}</div>
           )}
+
+          <div className="text-muted ms-auto">Last saved: {formatTimestamp(portfolioState.lastSavedAt)}</div>
         </div>
       </div>
 
