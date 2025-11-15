@@ -1,0 +1,167 @@
+name: Pull Request Checks
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Run linter
+        run: npm run lint
+
+  unit-test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Run unit tests with coverage
+        run: npm run test:unit -- --coverage
+
+      - name: Upload unit test coverage
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: coverage-unit-tests
+          path: coverage
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    permissions:
+      contents: read
+
+    env:
+      NODE_ENV: test
+      E2E_TESTING: true
+      PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL || 'http://localhost:4321' }}
+      PUBLIC_SUPABASE_URL: ${{ secrets.PUBLIC_SUPABASE_URL }}
+      PUBLIC_SUPABASE_KEY: ${{ secrets.PUBLIC_SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GOTRUE_DISABLE_SIGNUP: ${{ secrets.GOTRUE_DISABLE_SIGNUP || 'false' }}
+      GOTRUE_EXTERNAL_HOSTS: ${{ secrets.GOTRUE_EXTERNAL_HOSTS || '127.0.0.1:4321' }}
+      GOTRUE_URI_ALLOW_LIST: ${{ secrets.GOTRUE_URI_ALLOW_LIST || 'http://127.0.0.1:4321' }}
+      GOTRUE_EXTERNAL_GITHUB_ENABLED: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_ENABLED || 'true' }}
+      GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_CLIENT_ID }}
+      GOTRUE_EXTERNAL_GITHUB_SECRET: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_SECRET }}
+      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'http://127.0.0.1:9999/callback' }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_DEFAULT_MODEL: ${{ secrets.OPENROUTER_DEFAULT_MODEL }}
+      OPENROUTER_FALLBACK_MODELS: ${{ secrets.OPENROUTER_FALLBACK_MODELS }}
+
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E tests with coverage
+        run: npm run test:e2e -- --reporter=html --reporter=list
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report
+
+  build:
+    name: Build Project
+    runs-on: ubuntu-latest
+    needs: [unit-test, e2e-test]
+    permissions:
+      contents: read
+
+    steps:
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Build project
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: build-dist
+          path: dist
+
+  status-comment:
+    name: Status Comment
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test, e2e-test, build]
+    if: always()
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Check job statuses
+        id: check
+        run: |
+          if [ "${{ needs.lint.result }}" = "failure" ] || \
+             [ "${{ needs.unit-test.result }}" = "failure" ] || \
+             [ "${{ needs.e2e-test.result }}" = "failure" ] || \
+             [ "${{ needs.build.result }}" = "failure" ]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "symbol=❌" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "symbol=✅" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download coverage reports
+        uses: actions/download-artifact@v6
+        if: always()
+        with:
+          path: reports
+
+      - name: Comment PR with status
+        uses: actions/github-script@v8
+        if: always()
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const status = '${{ steps.check.outputs.status }}';
+            const symbol = '${{ steps.check.outputs.symbol }}';
+            const lintStatus = '${{ needs.lint.result }}';
+            const unitTestStatus = '${{ needs.unit-test.result }}';
+            const e2eStatus = '${{ needs.e2e-test.result }}';
+            const buildStatus = '${{ needs.build.result }}';
+
+            const comment = `## ${symbol} Pull Request Status Report
+
+            ### Checks Summary
+            - **Linting**: ${lintStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+            - **Unit Tests**: ${unitTestStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+            - **E2E Tests**: ${e2eStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+            - **Build**: ${buildStatus === 'success' ? '✅ Passed' : '❌ Failed'}
+
+            ### Overall Status: ${status.toUpperCase()}
+
+            ${status === 'failure' ? '**Please review the failed checks above.**' : 'All checks passed successfully! 🎉'}
+
+            ---
+            *Generated by GitHub Actions*`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
