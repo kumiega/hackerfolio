@@ -1,4 +1,3 @@
-
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import type { Section, Component } from "@/types";
 import { SortableSection } from "./sortable-section";

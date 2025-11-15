@@ -1,5 +1,10 @@
 import { Badge } from "@/components/ui/badge";
 
+interface WebsiteLink {
+  name: string;
+  url: string;
+}
+
 interface SocialLinksPreviewProps {
   data?: Record<string, unknown>;
 }
@@ -22,8 +27,17 @@ export function SocialLinksPreview({ data }: SocialLinksPreviewProps) {
 
     // Add website links
     if (data.website && Array.isArray(data.website)) {
-      data.website.forEach((site: any) => {
-        if (site?.name?.trim() && site?.url?.trim()) {
+      data.website.forEach((site) => {
+        if (
+          site &&
+          typeof site === 'object' &&
+          'name' in site &&
+          'url' in site &&
+          typeof site.name === 'string' &&
+          typeof site.url === 'string' &&
+          site.name.trim() &&
+          site.url.trim()
+        ) {
           links.push({ platform: site.name, url: site.url });
         }
       });

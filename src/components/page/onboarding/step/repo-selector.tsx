@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { CheckboxCard } from "@/components/ui/checkbox-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-import type { GitHubRepoDto, Component } from "@/types";
+import type { GitHubRepoDto, Component, Section, ProjectCardData } from "@/types";
 
 interface RepoSelectorProps {
   repositories: GitHubRepoDto[];
@@ -32,15 +32,18 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
           const portfolio = data.data;
 
           // Check if there's already a projects section with selected repos
-          const projectsSection = portfolio.draft_data.sections?.find((section: any) => section.slug === "projects");
+          const projectsSection = portfolio.draft_data.sections?.find((section: Section) => section.slug === "projects");
 
           if (projectsSection?.components?.length > 0) {
             // Extract repo URLs from existing project cards
             const existingRepoUrls = new Set(
               projectsSection.components
-                .filter((component: any) => component.type === "cards")
-                .flatMap((component: any) => component.data.cards || [])
-                .map((card: any) => card.repo_url)
+                .filter((component: Component) => component.type === "cards")
+                .flatMap((component: Component) => {
+                  const cardData = component.data as { cards?: ProjectCardData[] };
+                  return cardData.cards || [];
+                })
+                .map((card: ProjectCardData) => card.repo_url)
             );
 
             // Mark repositories as selected if they exist in the portfolio
@@ -193,7 +196,7 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
     const currentPortfolio = portfolioData.data;
 
     // Find or create projects section
-    let projectsSection = currentPortfolio.draft_data.sections?.find((section: any) => section.slug === "projects");
+    let projectsSection = currentPortfolio.draft_data.sections?.find((section: Section) => section.slug === "projects");
 
     if (!projectsSection) {
       // Create new projects section

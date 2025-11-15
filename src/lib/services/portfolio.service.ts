@@ -140,10 +140,14 @@ export class PortfolioService {
     const publishedPortfolio = await repositories.portfolios.publish(portfolioId, userId);
 
     // Step 2: Return only the required fields for PublishStatusDto
+    if (!publishedPortfolio.published_data || !publishedPortfolio.last_published_at) {
+      throw new PortfolioError("DATABASE_ERROR", "Published portfolio missing required data");
+    }
+
     return {
       id: publishedPortfolio.id,
-      published_data: publishedPortfolio.published_data!,
-      last_published_at: publishedPortfolio.last_published_at!,
+      published_data: publishedPortfolio.published_data,
+      last_published_at: publishedPortfolio.last_published_at,
     };
   }
 

@@ -1,5 +1,6 @@
 import type { APIContext, APIRoute } from "astro";
 import { createClientSSR } from "@/db/supabase.client";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppError } from "@/lib/error-handler";
 import { logError } from "@/lib/error-utils";
 
@@ -61,7 +62,7 @@ export const GET: APIRoute = async ({ request, cookies, redirect }: APIContext) 
  * @param refreshToken - GitHub refresh token (optional)
  */
 async function storeGitHubToken(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   accessToken: string,
   refreshToken?: string
@@ -80,7 +81,7 @@ async function storeGitHubToken(
       updated_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase.from("oauth_tokens").upsert(tokenData, {
+    const { error } = await supabase.from("oauth_tokens").upsert(tokenData, {
       onConflict: "user_id,provider",
     });
 

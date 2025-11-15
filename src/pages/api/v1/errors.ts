@@ -2,7 +2,6 @@ import type { APIRoute } from "astro";
 import type { ApiSuccessResponse, ApiErrorResponse, ErrorIntakeResponseDto, ErrorIntakeCommand } from "@/types";
 import { logError } from "@/lib/error-utils";
 import { RateLimiter } from "@/lib/rate-limiter";
-import { ERROR_CODES } from "@/lib/error-constants";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -123,11 +122,11 @@ export const POST: APIRoute = async (context) => {
         windowMs: 60 * 1000, // 1 minute
         message: "Too many error reports. Please try again later.",
       });
-    } catch (rateLimitError: any) {
+    } catch (rateLimitError: unknown) {
       const errorResponse: ApiErrorResponse = {
         error: {
           code: "VALIDATION_ERROR", // Rate limiting uses VALIDATION_ERROR code
-          message: rateLimitError?.message || "Rate limit exceeded",
+          message: rateLimitError instanceof Error ? rateLimitError.message : "Rate limit exceeded",
           requestId,
         },
       };
@@ -172,7 +171,7 @@ export const POST: APIRoute = async (context) => {
         "Content-Type": "application/json",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Handle unexpected errors (500)
     // eslint-disable-next-line no-console
     console.error("Unexpected error in error intake endpoint:", error);

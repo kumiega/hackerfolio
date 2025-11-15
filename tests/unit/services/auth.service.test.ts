@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import { AuthService } from "../../../src/lib/services/auth.service";
 
 // Mock Supabase client
 vi.mock("../../../src/db/client", () => ({

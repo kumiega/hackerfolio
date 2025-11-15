@@ -1,5 +1,5 @@
 // Shared types for backend and frontend (Entities, DTOs)
-import type { Tables, TablesInsert, TablesUpdate } from "./db/database.types";
+import type { Tables } from "./db/database.types";
 
 // ============================================================================
 // Enums (mirroring component types)
@@ -291,7 +291,7 @@ export interface GenerateProjectCardsCommand {
 }
 
 // Import commands - LinkedIn
-export interface LinkedInGenerateCommand extends LinkedInDataInput {}
+export type LinkedInGenerateCommand = LinkedInDataInput;
 
 // Error intake command
 export interface ErrorIntakeCommand {

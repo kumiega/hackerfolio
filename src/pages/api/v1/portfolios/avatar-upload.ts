@@ -1,5 +1,6 @@
 import { createClientSSR } from "@/db/supabase.client";
 import type { APIRoute } from "astro";
+import type { PortfolioData } from "@/types";
 
 export const POST: APIRoute = async ({ request, locals }) => {
   try {
@@ -55,7 +56,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     const fileName = `${userId}_${Date.now()}.${fileExt}`;
 
     // Upload file to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
+    const { error: uploadError } = await supabase.storage.from("avatars").upload(fileName, file, {
       cacheControl: "3600",
       upsert: false,
     });
@@ -94,7 +95,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     }
 
     // Update the avatar URL in the bio data
-    const draftData = portfolio.draft_data as any;
+    const draftData = portfolio.draft_data as PortfolioData;
     const updatedBio = {
       ...draftData.bio,
       avatar_url: avatarUrl,

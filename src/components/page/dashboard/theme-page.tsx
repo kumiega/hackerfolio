@@ -1,11 +1,4 @@
-import type { User } from "@/types";
-
-interface ThemePageProps {
-  user: User;
-  currentPath: string;
-}
-
-export function ThemePage({ user, currentPath }: ThemePageProps) {
+export function ThemePage() {
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div>

@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
-import { useState, useRef, useEffect } from "react";
+import { useEffect } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/page/dashboard/app-sidebar";
 import { SiteHeader } from "@/components/page/dashboard/site-header";
@@ -19,9 +19,8 @@ interface DashboardLayoutProps {
   currentPath?: string;
 }
 
-function DashboardContent({ user, currentPath }: { user: User; currentPath?: string }) {
+function DashboardContent({ user }: { user: User; currentPath?: string }) {
   const location = useLocation();
-  const actualCurrentPath = currentPath || location.pathname;
 
   // Hide the loading skeleton once React mounts
   useEffect(() => {
@@ -30,9 +29,6 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
       skeleton.style.display = "none";
     }
   }, []);
-
-  // Determine if current page is an editor page
-  const isEditorPage = actualCurrentPath === "/dashboard/bio" || actualCurrentPath === "/dashboard/editor";
 
   return (
     <div className="[--header-height:calc(--spacing(14))]">
@@ -44,11 +40,8 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
             <Routes>
               <Route path="/dashboard/bio" element={<BioEditorPage user={user} />} />
               <Route path="/dashboard/editor" element={<SectionsEditorPage user={user} />} />
-              <Route
-                path="/dashboard/settings"
-                element={<SettingsPage user={user} currentPath="/dashboard/settings" />}
-              />
-              <Route path="/dashboard/theme" element={<ThemePage user={user} currentPath="/dashboard/theme" />} />
+              <Route path="/dashboard/settings" element={<SettingsPage user={user} />} />
+              <Route path="/dashboard/theme" element={<ThemePage />} />
               <Route path="/dashboard" element={<BioEditorPage user={user} />} />
             </Routes>
           </SidebarInset>

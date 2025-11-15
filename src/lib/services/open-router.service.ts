@@ -1,5 +1,4 @@
 import type { PortfolioData, AIPortfolioResponse } from "@/types";
-import { aiPortfolioResponseSchema } from "@/lib/schemas/ai.schemas";
 import { AppError } from "@/lib/error-handler";
 import { PORTFOLIO_GENERATION_PROMPT_TEMPERATURE, TOKENS_LIMIT } from "../const";
 import { replacePlaceholders, sanitizeInput } from "../prompt";
@@ -216,8 +215,6 @@ export class OpenRouterService {
     const options: Record<string, unknown> = {};
 
     // Use AI response schema if no schema provided
-    const responseSchema = schema || aiPortfolioResponseSchema;
-
     // options.response_format = {
     //   type: "json_schema",
     //   json_schema: {

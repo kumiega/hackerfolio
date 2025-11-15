@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Section } from "@/types";
 import { ComponentPreview } from "./previews/component-preview";

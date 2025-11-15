@@ -31,7 +31,7 @@ export function useAuth() {
    */
   const fetchSessionData = useCallback(async (): Promise<AuthSessionDto | null> => {
     try {
-      const sessionData = await AuthService.getCurrentSession();
+      const sessionData = await getCurrentSession();
       return sessionData;
     } catch {
       return null;

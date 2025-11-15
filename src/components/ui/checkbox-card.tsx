@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckIcon, StarIcon, ExternalLinkIcon } from "lucide-react";
+import { StarIcon, ExternalLinkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,6 +23,14 @@ function CheckboxCard({ repo, checked, onCheckedChange, className }: CheckboxCar
     onCheckedChange(!checked);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Trigger on Enter or Space
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onCheckedChange(!checked);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -31,6 +39,10 @@ function CheckboxCard({ repo, checked, onCheckedChange, className }: CheckboxCar
         className
       )}
       onClick={handleCardClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="checkbox"
+      aria-checked={checked}
     >
       <div className="flex items-start gap-3">
         <Checkbox checked={checked} onCheckedChange={onCheckedChange} className="mt-0.5" />

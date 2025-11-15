@@ -1,6 +1,13 @@
 import type { Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "../../../src/lib/env";
+import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
+
+interface TestUser {
+  id: string;
+  email: string;
+  user_metadata?: Record<string, unknown>;
+}
 
 // Test user credentials
 export const TEST_USER = {
@@ -34,7 +41,7 @@ interface EnsureTestUserOptions {
 }
 
 // Storage for created test users (will be populated during setup)
-const createdUsers: Record<string, any> = {};
+const createdUsers: Record<string, TestUser> = {};
 
 // Create Supabase admin client for managing test users
 export function createSupabaseAdminClient() {
@@ -69,7 +76,7 @@ export function createSupabaseClient() {
 }
 
 // Store a created user for later retrieval
-export function storeCreatedUser(key: string, user: any) {
+export function storeCreatedUser(key: string, user: TestUser) {
   createdUsers[key] = user;
 }
 
@@ -153,7 +160,7 @@ export async function generateTestUserSession(userId: string) {
     // Generate a magic link
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "magiclink",
-      email: userData.user.email!,
+      email: userData.user.email,
     });
 
     if (linkError || !linkData.properties) {
@@ -195,7 +202,7 @@ export async function generateTestUserSession(userId: string) {
 }
 
 // Set up authentication state in Playwright page
-export async function setPageAuthentication(page: Page, session: any) {
+export async function setPageAuthentication(page: Page, session: Session) {
   console.log("🔐 Setting page authentication with session:", {
     access_token: session.access_token ? "present" : "missing",
     refresh_token: session.refresh_token ? "present" : "missing",
@@ -245,7 +252,7 @@ export async function setPageAuthentication(page: Page, session: any) {
 }
 
 // Sign in a test user by creating session and setting auth state
-export async function signInTestUser(page: Page, user: any) {
+export async function signInTestUser(page: Page, user: TestUser) {
   try {
     // Generate session using the actual user ID
     const session = await generateTestUserSession(user.id);

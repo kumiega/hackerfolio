@@ -1,4 +1,3 @@
-
 import { BrowserRouter, Routes, Route, useLocation } from "react-router";
 import { useState, useRef } from "react";
 import { SidebarProvider } from "@/components/ui/sidebar";

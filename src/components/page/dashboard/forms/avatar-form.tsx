@@ -8,11 +8,10 @@ import { Upload, Github, Loader2 } from "lucide-react";
 interface AvatarFormProps {
   avatar_url: string;
   onChange: (field: string, value: string) => void;
-  error?: string;
   githubAvatarUrl?: string;
 }
 
-export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: AvatarFormProps) {
+export function AvatarForm({ avatar_url, onChange, githubAvatarUrl }: AvatarFormProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
@@ -69,8 +68,8 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
       // For GitHub avatars, we'll still just set the URL directly since it's already hosted
       // We could potentially download and re-upload to our storage, but for now we'll keep it simple
       onChange("avatar_url", githubAvatarUrl);
-    } catch (error) {
-      console.error("GitHub avatar error:", error);
+    } catch (_error) {
+      console.error("GitHub avatar error:", _error);
       setUploadError("Failed to set GitHub avatar");
     } finally {
       setIsUploading(false);
