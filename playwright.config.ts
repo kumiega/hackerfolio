@@ -1,26 +1,36 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
-  testDir: './tests/e2e',
-  fullyParallel: true,
+  testDir: "./tests/e2e",
+  fullyParallel: false, // Disable parallel execution for e2e tests that modify shared database state
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  workers: 1, // Use single worker to avoid database conflicts
+  reporter: "html",
   use: {
-    baseURL: 'http://localhost:4321',
-    trace: 'on-first-retry',
-    screenshot: 'only-on-failure',
+    baseURL: "http://localhost:4321",
+    trace: "on-first-retry",
+    screenshot: "only-on-failure",
   },
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:4321',
+    command: "NODE_ENV=test npx astro dev --port 4321 --host 0.0.0.0",
+    url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
+    env: {
+      // Use test environment variables for e2e tests
+      ...process.env,
+      NODE_ENV: "test",
+      E2E_TESTING: "true",
+    },
+    stdout: "pipe", // See server logs
+    stderr: "pipe",
   },
-})
+  globalSetup: "./tests/e2e/global-setup.ts",
+  globalTeardown: "./tests/e2e/global-teardown.ts",
+});

@@ -1,13 +1,14 @@
 import { createBrowserClient, createServerClient, parseCookieHeader } from "@supabase/ssr";
-import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY } from "astro:env/client";
 import type { AstroCookies } from "astro";
+import { getSupabaseConfig } from "@/lib/env";
 
 /**
  * Create SSR client that uses cookies for session storage
  * This ensures client-side and server-side (SSR) can share the same session
  */
 export const createClientSSR = ({ request, cookies }: { request: Request; cookies: AstroCookies }) => {
-  return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
+  const { url, anonKey } = getSupabaseConfig();
+  return createServerClient(url, anonKey, {
     cookies: {
       getAll() {
         return parseCookieHeader(request.headers.get("Cookie") ?? "").map((cookie) => ({
@@ -38,7 +39,8 @@ export const createClientSSR = ({ request, cookies }: { request: Request; cookie
  * Create browser client for client-side operations
  */
 export const createClientBrowser = () => {
-  return createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY);
+  const { url, anonKey } = getSupabaseConfig();
+  return createBrowserClient(url, anonKey);
 };
 
 // Pre-configured browser client instance for convenience

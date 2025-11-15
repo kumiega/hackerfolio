@@ -6,11 +6,14 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
 
+// Load environment setup early
+import "./src/setup";
+
 // https://astro.build/config
 export default defineConfig({
   output: "server",
   integrations: [react(), sitemap()],
-  server: { port: 3000, host: "0.0.0.0" },
+  server: { port: 4321, host: "0.0.0.0" },
   vite: {
     plugins: [tailwindcss()],
     server: {
