@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import { Trash2 } from "lucide-react";
 
@@ -28,10 +27,9 @@ export function SettingsContent({ user }: SettingsContentProps) {
         {/* Username Change Section */}
         <Card>
           <CardHeader>
-            <CardTitle>Change Username</CardTitle>
+            <CardTitle>Change username</CardTitle>
             <CardDescription>
-              Update your portfolio URL. It will be available at{" "}
-              <code className="text-xs bg-muted px-1 py-0.5 ">https://{"{username}"}.hackerfolio.com</code>
+              You can change your username here. This action will change your portfolio URL!
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -42,7 +40,7 @@ export function SettingsContent({ user }: SettingsContentProps) {
         {/* Delete Account Section */}
         <Card className="border-destructive/50 bg-destructive/5">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardTitle className="text-destructive">Delete account</CardTitle>
             <CardDescription className="text-destructive/90">
               Once you delete your account, there is no going back. This action cannot be undone.
             </CardDescription>

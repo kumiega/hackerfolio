@@ -245,7 +245,9 @@ export function UsernameChangeForm({ currentUsername }: UsernameChangeFormProps)
         render={({ field, fieldState }) => (
           <Field className="items-stretch">
             <FieldContent>
-              <FieldLabel htmlFor="username">New Username</FieldLabel>
+              <FieldLabel htmlFor="username" className="sr-only">
+                New Username
+              </FieldLabel>
               <FieldDescription className="flex-1 nth-last-child(2):mt-0">
                 {USERNAME_MIN_LENGTH}–{USERNAME_MAX_LENGTH} characters, lowercase letters, numbers, and hyphens only
               </FieldDescription>
