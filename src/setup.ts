@@ -9,7 +9,9 @@ console.log("🔧 SETUP.TS: Loading environment setup...");
 import "./lib/env";
 
 // Log environment information for debugging
-import { env, isDevelopment, isProduction, isTest } from "./lib/env";
+import { getServerEnv, isDevelopment, isProduction, isTest } from "./lib/env";
+
+const env = getServerEnv();
 
 console.log(`🚀 Starting Hackerfolio in ${env.NODE_ENV} environment (process.env.NODE_ENV: ${process.env.NODE_ENV})`);
 console.log(`🔍 isTest(): ${isTest()}, isDevelopment(): ${isDevelopment()}, isProduction(): ${isProduction()}`);

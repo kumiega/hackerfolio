@@ -26,12 +26,12 @@ export class OpenRouterService {
   /**
    * Default AI model for LinkedIn profile parsing
    */
-  private static readonly DEFAULT_MODEL = "openai/gpt-oss-120b";
+  private static readonly DEFAULT_MODEL = import.meta.env.OPENROUTER_DEFAULT_MODEL;
 
   /**
    * Fallback models to try if the default fails
    */
-  private static readonly FALLBACK_MODELS = ["meta-llama/llama-3.1-8b-instruct:free"];
+  private static readonly FALLBACK_MODELS = import.meta.env.OPENROUTER_FALLBACK_MODELS.split(",");
 
   /**
    * Timeout for AI API calls (30 seconds)
