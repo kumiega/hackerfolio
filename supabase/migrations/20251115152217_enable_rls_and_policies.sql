@@ -84,3 +84,4 @@ create policy portfolios_delete_anon
   for delete
   to anon
   using (false);
+
