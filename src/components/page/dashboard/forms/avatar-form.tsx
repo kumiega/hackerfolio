@@ -40,6 +40,7 @@ export function AvatarForm({ avatar_url, onChange, error, githubAvatarUrl }: Ava
       const response = await fetch("/api/v1/portfolios/avatar-upload", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const result = await response.json();

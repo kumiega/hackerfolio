@@ -246,6 +246,8 @@ export interface PreviewPortfolioDto {
   username: string;
   draft_data: PortfolioData;
   updated_at: string;
+  has_published: boolean;
+  last_published_at: string | null;
 }
 
 // Error intake

@@ -151,6 +151,7 @@ const useChangeUsername = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username }),
+        credentials: "include",
       });
 
       const json = await response.json();

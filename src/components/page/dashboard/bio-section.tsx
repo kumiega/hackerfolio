@@ -55,6 +55,7 @@ export function BioSection({ bio, onUpdateBio, validationErrors }: BioSectionPro
       const response = await fetch("/api/v1/portfolios/avatar-upload", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const result = await response.json();

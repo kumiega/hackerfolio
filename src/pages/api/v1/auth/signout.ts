@@ -2,10 +2,11 @@ import type { APIRoute } from "astro";
 import { createClientSSR } from "@/db/supabase.client";
 
 /**
- * POST /api/v1/auth/logout
+ * POST /api/v1/auth/signout
  *
  * Handles user logout by signing out the user session.
- * This endpoint requires user authentication and clears the user's session.
+ * This endpoint does not require authentication as users should be able to logout
+ * even if their session is expired or invalid.
  * After successful logout, redirects to the login page.
  *
  * @returns 302 - Redirect to login page after successful logout

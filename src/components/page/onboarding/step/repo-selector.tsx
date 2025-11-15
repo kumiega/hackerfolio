@@ -24,7 +24,9 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
   useEffect(() => {
     const loadExistingSelections = async () => {
       try {
-        const response = await fetch(`/api/v1/portfolios/user/${userId}`);
+        const response = await fetch(`/api/v1/portfolios/user/${userId}`, {
+          credentials: "include",
+        });
         if (response.ok) {
           const data = await response.json();
           const portfolio = data.data;
@@ -82,6 +84,7 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
       // Step 1: Generate description for the projects section
       console.log("Making request to generate-description API...");
       const descriptionResponse = await fetch("/api/v1/ai/generate-description", {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -118,6 +121,7 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
 
       // Step 3: Generate project cards for selected repositories
       const cardsResponse = await fetch("/api/v1/imports/github/cards", {
+        credentials: "include",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +182,9 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
 
   const updatePortfolioWithProjects = async (components: Component[]) => {
     // First, get the current portfolio
-    const portfolioResponse = await fetch("/api/v1/portfolios/me");
+    const portfolioResponse = await fetch("/api/v1/portfolios/me", {
+      credentials: "include",
+    });
     if (!portfolioResponse.ok) {
       throw new Error("Failed to fetch current portfolio");
     }
@@ -214,6 +220,7 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
     console.log("Portfolio draft_data:", JSON.stringify(currentPortfolio.draft_data, null, 2));
 
     const updateResponse = await fetch(`/api/v1/portfolios/${currentPortfolio.id}`, {
+      credentials: "include",
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

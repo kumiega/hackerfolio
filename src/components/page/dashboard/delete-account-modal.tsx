@@ -37,6 +37,7 @@ export function DeleteAccountModal({ isOpen, onClose, currentUsername }: DeleteA
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ confirmation: currentUsername }),
       });
 

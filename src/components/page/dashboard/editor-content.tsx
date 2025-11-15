@@ -81,7 +81,9 @@ const PortfolioApiClient = {
   },
 
   async getUserPortfolio(): Promise<{ id: string; draft_data: PortfolioData } | null> {
-    const response = await fetch("/api/v1/portfolios/me");
+    const response = await fetch("/api/v1/portfolios/me", {
+      credentials: "include",
+    });
     if (response.status === 404) return null;
     return this.handleResponse(response);
   },
@@ -96,6 +98,7 @@ const PortfolioApiClient = {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(command),
+      credentials: "include",
     });
     return this.handleResponse(response);
   },
@@ -109,6 +112,7 @@ const PortfolioApiClient = {
       body: JSON.stringify({
         draft_data: draftData,
       }),
+      credentials: "include",
     });
     return this.handleResponse(response);
   },
@@ -119,6 +123,7 @@ const PortfolioApiClient = {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
     });
     return this.handleResponse(response);
   },

@@ -224,7 +224,9 @@ export class PortfolioService {
         draft_data,
         updated_at,
         user_id,
-        user_profiles!inner(username)
+        user_profiles!inner(username),
+        last_published_at,
+        published_data
       `
       )
       .eq("user_profiles.username", username)
@@ -245,7 +247,7 @@ export class PortfolioService {
 
     // Step 3: Verify ownership
     if (data.user_id !== userId) {
-      throw new AppError(ERROR_CODES.FORBIDDEN, undefined, {
+      throw new AppError(ERROR_CODES.UNAUTHORIZED, undefined, {
         userId,
         details: "You can only preview your own portfolio",
       });
@@ -261,6 +263,8 @@ export class PortfolioService {
       username: profileUsername,
       draft_data: data.draft_data,
       updated_at: data.updated_at,
+      has_published: !!data.published_data,
+      last_published_at: data.last_published_at,
     };
   }
 }

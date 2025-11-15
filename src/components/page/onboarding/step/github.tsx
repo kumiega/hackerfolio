@@ -25,7 +25,9 @@ function GitHubImportStep() {
       setGenerationState("loading");
 
       // Make API call to fetch repositories
-      const response = await fetch("/api/v1/imports/github/repos");
+        const response = await fetch("/api/v1/imports/github/repos", {
+          credentials: "include",
+        });
 
       if (!response.ok) {
         const errorData = await response.json();

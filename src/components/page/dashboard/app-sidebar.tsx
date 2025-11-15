@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 import { Nav } from "@/components/page/dashboard/nav";
 import { usePortfolioChangeTracker } from "@/components/page/dashboard/portfolio-change-tracker";
+import { getPortfolioPublicUrl } from "@/lib/utils";
 import type { PortfolioData } from "@/types";
 
 interface PortfolioState {
@@ -87,7 +88,8 @@ export function AppSidebar({ user, currentPath, ...props }: AppSidebarProps) {
 
   const handlePreview = () => {
     if (user?.username) {
-      window.open(`/preview/${user.username}`, "_blank");
+      const previewUrl = getPortfolioPublicUrl(user.username);
+      window.open(previewUrl, "_blank");
     }
   };
 

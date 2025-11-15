@@ -14,18 +14,20 @@ const PUBLIC_PAGE_PATTERNS = [
   "/429",
   "/500",
   "/503",
+  "/public/**", // Public portfolio pages for development
 ];
 
 const PUBLIC_API_PATTERNS = [
   "/api/v1/auth/signin",
+  "/api/v1/auth/signout",
   "/api/v1/auth/callback/github",
   "/api/v1/health",
   "/api/v1/version",
+  "/api/v1/public/**", // All public API endpoints
 ];
 
 const PROTECTED_PATTERNS = [
   "/dashboard/**",
-  "/api/v1/**", // All API routes except public ones
   "/preview/**", // Preview routes (owner-only protection handled separately)
 ];
 
@@ -66,6 +68,26 @@ export const onRequest = defineMiddleware(async (context, next) => {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Check if this is a protected API route that requires authentication
+  if (url.pathname.startsWith("/api/") && !matchesPattern(url.pathname, PUBLIC_API_PATTERNS)) {
+    // All API routes require authentication except explicitly public ones
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: "UNAUTHORIZED",
+            message: "Authentication required",
+            requestId: locals.requestId,
+          },
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+  }
+
   // For protected routes, fetch user profile if authenticated
   if (user) {
     const profile = await repositories.userProfiles.findById(user.id);
@@ -93,22 +115,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Check if this is a protected route that requires authentication
   if (matchesPattern(url.pathname, PROTECTED_PATTERNS)) {
     if (!user || !locals.user) {
-      // For API routes, return JSON error
-      if (url.pathname.startsWith("/api")) {
-        return new Response(
-          JSON.stringify({
-            error: {
-              code: "UNAUTHORIZED",
-              message: "Authentication required",
-              requestId: locals.requestId,
-            },
-          }),
-          {
-            status: 401,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-      }
       // For pages, redirect to signin (unless it's an error page)
       if (!matchesPattern(url.pathname, PUBLIC_PAGE_PATTERNS)) {
         return redirect("/signin");

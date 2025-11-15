@@ -5,8 +5,11 @@ import SectionRenderer from "@/components/page/portfolio/section-renderer.astro"
 import Footer from "@/components/page/portfolio/footer.astro";
 import PixelBlast from "@/components/ui/pixel-blast";
 import { ModeToggle } from "@/components/ui/mode-toggle";
+import { ConstructionIcon, EyeIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import "@/styles/portfolio.css";
+import { getPortfolioPublicUrl } from "@/lib/utils";
 
 export const prerender = false;
 
@@ -38,10 +41,14 @@ if (!response.ok) {
 }
 
 const apiResponse = await response.json();
-const previewData = apiResponse.data;
+const portfolioData = apiResponse.data;
+const hasPublished = portfolioData.has_published;
+const lastPublishedAt = portfolioData.last_published_at;
 
-// Extract data from the API response
-const data = previewData.draft_data;
+// Extract data from the API response;
+const data = portfolioData.draft_data;
+
+const liveUrl = getPortfolioPublicUrl(portfolioData.username);
 
 const fullName = data.bio.full_name || "";
 const position = data.bio.position || null;
@@ -52,8 +59,36 @@ const socialLinks = data.bio.social_links || {};
 
 <Layout title="Portfolio - Hackerfolio">
   <!-- Theme toggle floating button -->
-  <div class="fixed top-4 right-4 z-50">
-    <ModeToggle client:load />
+  <div class="fixed top-0 right-0 z-50 w-full flex flex-col">
+    <div class="text-background bg-neutral-800 px-4 py-2 flex flex-wrap gap-8 justify-between">
+      <p class="text-sm font-mono text-current flex items-center gap-2">
+        <ConstructionIcon className="h-4 w-4" /> Draft preview
+      </p>
+
+      {
+        hasPublished && (
+          <div class="text-sm font-mono text-current flex items-center gap-2">
+            <p class="text-xs font-mono text-current flex items-center gap-2">
+              Last published on:{" "}
+              {lastPublishedAt
+                ? new Date(lastPublishedAt).toLocaleDateString(undefined, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })
+                : null}
+            </p>
+
+            <Button variant="link" size="sm" className="text-xs" href={liveUrl}>
+              <EyeIcon className="h-4 w-4" /> See live version
+            </Button>
+          </div>
+        )
+      }
+    </div>
+    <div class="ms-auto me-4 mt-4">
+      <ModeToggle client:load />
+    </div>
   </div>
 
   <div class="max-w-[480px] w-full mx-auto pt-24 px-5 relative z-[1] flex-1">
