@@ -7,7 +7,7 @@ export default async function globalSetup() {
   config({ path: ".env.test" });
 
   // Only run when test environment variables are present to prevent accidental production data modification
-  if (!process.env.PUBLIC_E2E_SUPABASE_URL && !process.env.E2E_SUPABASE_SERVICE_ROLE_KEY) {
+  if (!process.env.PUBLIC_SUPABASE_URL && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
     console.error("❌ E2E global setup should only run with test environment variables");
     throw new Error("E2E setup attempted without test environment");
   }

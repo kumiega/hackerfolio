@@ -25,11 +25,6 @@ const envSchema = z.object({
   // AI features
   OPENROUTER_API_KEY: z.string(),
 
-  // E2E specific (optional)
-  PUBLIC_E2E_SUPABASE_URL: z.string().optional(),
-  PUBLIC_E2E_SUPABASE_KEY: z.string().optional(),
-  E2E_SUPABASE_SERVICE_ROLE_KEY: z.string().optional(),
-
   // Node environment
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
 });
@@ -100,8 +95,6 @@ export const clientEnv = {
   PUBLIC_BASE_URL: import.meta.env.PUBLIC_BASE_URL,
   PUBLIC_SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
   PUBLIC_SUPABASE_KEY: import.meta.env.PUBLIC_SUPABASE_KEY,
-  PUBLIC_E2E_SUPABASE_URL: import.meta.env.PUBLIC_E2E_SUPABASE_URL,
-  PUBLIC_E2E_SUPABASE_KEY: import.meta.env.PUBLIC_E2E_SUPABASE_KEY,
   NODE_ENV: import.meta.env.DEV ? "development" : import.meta.env.PROD ? "production" : "development",
 } as const;
 
@@ -126,17 +119,7 @@ export function getSupabaseConfig() {
   const isServer = typeof process !== "undefined" && process.env;
   const envConfig = isServer ? getServerEnv() : clientEnv;
 
-  // Use E2E environment variables if in test mode and they exist
-  if (envConfig.NODE_ENV === "test" && envConfig.PUBLIC_E2E_SUPABASE_URL && envConfig.PUBLIC_E2E_SUPABASE_KEY) {
-    const serverEnv = isServer ? envConfig : getServerEnv();
-    return {
-      url: envConfig.PUBLIC_E2E_SUPABASE_URL,
-      anonKey: envConfig.PUBLIC_E2E_SUPABASE_KEY,
-      serviceRoleKey: serverEnv.E2E_SUPABASE_SERVICE_ROLE_KEY || serverEnv.SUPABASE_SERVICE_ROLE_KEY,
-    };
-  }
-
-  // Use regular Supabase config
+  // Use Supabase config
   return {
     url: envConfig.PUBLIC_SUPABASE_URL,
     anonKey: envConfig.PUBLIC_SUPABASE_KEY,
