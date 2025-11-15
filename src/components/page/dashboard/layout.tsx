@@ -40,7 +40,7 @@ function DashboardContent({ user, currentPath }: { user: User; currentPath?: str
         <SiteHeader currentPath={location.pathname} />
         <div className="flex flex-1">
           <AppSidebar user={user} currentPath={location.pathname} />
-          <SidebarInset className="p-12">
+          <SidebarInset className="p-4 lg:p-14">
             <Routes>
               <Route path="/dashboard/bio" element={<BioEditorPage user={user} />} />
               <Route path="/dashboard/editor" element={<SectionsEditorPage user={user} />} />

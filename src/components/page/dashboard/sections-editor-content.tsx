@@ -647,8 +647,8 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
   return (
     <div className="flex flex-1 flex-col gap-6">
       <div>
-        <div className="flex items-center justify-between">
-          <div>
+        <div className="lg:flex items-center justify-between">
+          <div className="mb-6 lg:mb-0">
             <h1 className="text-3xl font-bold tracking-tight mb-3">Sections</h1>
             <p className="text-muted-foreground">Create and organize the sections and components of your portfolio.</p>
           </div>
