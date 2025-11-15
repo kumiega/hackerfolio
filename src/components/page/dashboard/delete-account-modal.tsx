@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { AlertTriangle, Loader2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -82,17 +81,16 @@ export function DeleteAccountModal({ isOpen, onClose, currentUsername }: DeleteA
         </SheetHeader>
 
         <div className="space-y-6 py-6 px-4">
-          <Alert className="border-destructive/50 bg-destructive/10">
+          <Alert className="border-destructive/50 bg-destructive/10 text-destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>
+            <AlertDescription className="text-destructive/90">
               <strong>Warning:</strong> This action is irreversible. All your data including:
               <ul className="mt-2 ml-4 list-disc text-sm">
                 <li>Your user account</li>
                 <li>Your profile information</li>
                 <li>All portfolio sections and components</li>
-                <li>Published portfolio data</li>
+                <li>Published portfolio data will be permanently removed.</li>
               </ul>
-              will be permanently removed.
             </AlertDescription>
           </Alert>
 
