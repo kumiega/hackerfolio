@@ -53,7 +53,7 @@ function loadEnvironment(): z.infer<typeof envSchema> {
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    const errors = parsed.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+    const errors = parsed.error.errors.map((err) => `${err.path.join(".")}: ${err.message}`).join(", ");
     throw new Error(`Invalid environment configuration: ${errors}`);
   }
 
