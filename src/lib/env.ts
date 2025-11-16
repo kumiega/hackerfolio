@@ -90,10 +90,10 @@ export function getServerEnv(): z.infer<typeof envSchema> {
  * Safe to access on both server and client
  */
 export const clientEnv = {
-  PUBLIC_BASE_URL: import.meta.env.PUBLIC_BASE_URL,
-  PUBLIC_SUPABASE_URL: import.meta.env.PUBLIC_SUPABASE_URL,
-  PUBLIC_SUPABASE_KEY: import.meta.env.PUBLIC_SUPABASE_KEY,
-  NODE_ENV: import.meta.env.DEV ? "development" : import.meta.env.PROD ? "production" : "development",
+  PUBLIC_BASE_URL: import.meta.env?.PUBLIC_BASE_URL,
+  PUBLIC_SUPABASE_URL: import.meta.env?.PUBLIC_SUPABASE_URL,
+  PUBLIC_SUPABASE_KEY: import.meta.env?.PUBLIC_SUPABASE_KEY,
+  NODE_ENV: import.meta.env?.DEV ? "development" : import.meta.env?.PROD ? "production" : "development",
 } as const;
 
 /**
