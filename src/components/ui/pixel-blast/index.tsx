@@ -1,7 +1,8 @@
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import * as THREE from "three";
 import { EffectComposer, EffectPass, RenderPass, Effect, Pass } from "postprocessing";
 import "./index.css";
+import { useIsDarkMode, type Theme } from "@/hooks/use-theme";
 
 interface TouchPoint {
   x: number;
@@ -387,7 +388,6 @@ const MAX_CLICKS = 10;
 const PixelBlast = ({
   variant = "square",
   pixelSize = 2,
-  color = "#4c7dd9",
   className,
   style,
   antialias = true,
@@ -414,6 +414,8 @@ const PixelBlast = ({
 
   const threeRef = useRef<ThreeInstance | null>(null);
   const prevConfigRef = useRef<{ antialias: boolean; liquid: boolean; noiseAmount: number } | null>(null);
+
+  const color = useIsDarkMode() ? "#7086a6" : "#c6d1e2";
 
   useEffect(() => {
     const container = containerRef.current;

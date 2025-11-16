@@ -1,28 +1,16 @@
-import * as React from "react";
 import { Moon, Sun, Monitor } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-
-type Theme = "light" | "dark" | "system";
+import type { Theme } from "@/hooks/use-theme";
+import useTheme from "@/hooks/use-theme";
 
 export function ModeToggle() {
-  const [theme, setThemeState] = React.useState<Theme>("light");
-
-  React.useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setThemeState(isDarkMode ? "dark" : "light");
-  }, []);
-
-  React.useEffect(() => {
-    const isDark =
-      theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
-  }, [theme]);
+  const [theme, setTheme] = useTheme();
 
   const toggleTheme = () => {
     const themes: Theme[] = ["light", "dark", "system"];
     const nextIndex = (themes.indexOf(theme) + 1) % themes.length;
-    setThemeState(themes[nextIndex]);
+    setTheme(themes[nextIndex]);
   };
 
   return (
