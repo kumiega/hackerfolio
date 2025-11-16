@@ -1,4 +1,5 @@
 import { createBrowserClient, createServerClient, parseCookieHeader } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import type { AstroCookies } from "astro";
 import { getSupabaseConfig } from "@/lib/env";
 
@@ -38,7 +39,27 @@ export const createClientBrowser = () => {
   return createBrowserClient(url, anonKey);
 };
 
+/**
+ * Create service role client for server-side operations that need to bypass RLS
+ * This client has full access to all data and should only be used for specific server operations
+ */
+export const createClientService = () => {
+  const { url, serviceRoleKey } = getSupabaseConfig();
+  if (!serviceRoleKey) {
+    throw new Error("Service role key not available");
+  }
+  return createClient(url, serviceRoleKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
+
 // Pre-configured browser client instance for convenience
 export const supabaseClient = createClientBrowser();
 
-export type SupabaseClient = ReturnType<typeof createClientSSR> | ReturnType<typeof createClientBrowser>;
+export type SupabaseClient =
+  | ReturnType<typeof createClientSSR>
+  | ReturnType<typeof createClientBrowser>
+  | ReturnType<typeof createClientService>;

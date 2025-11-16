@@ -3,7 +3,7 @@ import type { ApiSuccessResponse, PortfolioDto, PublicPortfolioDto, UpdatePortfo
 import { z } from "zod";
 import { PortfolioService } from "@/lib/services/portfolio.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
-import { createClientSSR } from "@/db/supabase.client";
+import { createClientService } from "@/db/supabase.client";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -110,7 +110,7 @@ export const GET: APIRoute = async (context) => {
   const username = params.username;
 
   // Create service role client (bypasses RLS)
-  const supabaseService = createClientSSR({ request, cookies });
+  const supabaseService = createClientService();
 
   try {
     if (!username || typeof username !== "string") {
