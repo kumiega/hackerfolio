@@ -1,4 +1,3 @@
-import { config } from "dotenv";
 import { z } from "zod";
 
 /**
@@ -50,35 +49,12 @@ function loadEnvironment(): z.infer<typeof envSchema> {
     throw new Error("Environment loading is only available on the server side");
   }
 
-  const nodeEnv = process.env.NODE_ENV || "development";
-
-  // Load appropriate .env file based on environment (only if file exists)
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const fs = require("fs");
-  switch (nodeEnv) {
-    case "production":
-      if (fs.existsSync(".env.production")) {
-        config({ path: ".env.production" });
-      }
-      break;
-    case "test":
-      if (fs.existsSync(".env.test")) {
-        config({ path: ".env.test" });
-      }
-      break;
-    case "development":
-    default:
-      if (fs.existsSync(".env")) {
-        config({ path: ".env" });
-      }
-      break;
-  }
-
-  // Validate environment variables
+  // Validate environment variables from any source (GitHub Actions, deployment platform, system, etc.)
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    throw new Error("Invalid environment configuration");
+    const errors = parsed.error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+    throw new Error(`Invalid environment configuration: ${errors}`);
   }
 
   serverEnv = parsed.data;
