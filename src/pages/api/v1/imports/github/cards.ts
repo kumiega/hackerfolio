@@ -37,9 +37,11 @@ ${bioText.substring(0, 500)}`; // Limit text to avoid token limits
       return cleanLanguage;
     }
 
+    // eslint-disable-next-line no-console
     console.warn("AI language detection returned invalid response:", cleanLanguage);
     return "English";
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.warn("Failed to detect language using AI, falling back to English:", error);
     return "English";
   }
@@ -90,6 +92,7 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
     .single();
 
   if (tokenError) {
+    // eslint-disable-next-line no-console
     console.error("OAuth token query error:", {
       code: tokenError.code,
       message: tokenError.message,
@@ -104,6 +107,7 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
   }
 
   if (!tokenData?.access_token) {
+    // eslint-disable-next-line no-console
     console.error("No access token found in oauth_tokens:", {
       userId: user.id,
       tokenData: !!tokenData,
@@ -218,6 +222,7 @@ export const POST: APIRoute = async (context) => {
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.warn("Failed to fetch portfolio for language detection, using English as default:", error);
       // Continue with English as default
     }
@@ -256,6 +261,7 @@ export const POST: APIRoute = async (context) => {
 
           summary = await OpenRouterService.generateProjectSummary(formattedPrompt);
         } catch (summaryError) {
+          // eslint-disable-next-line no-console
           console.warn(`Failed to generate AI summary for ${repoUrl}, falling back to description:`, summaryError);
           // Fallback to repository description
           summary = repoInfo.description || "No description available.";

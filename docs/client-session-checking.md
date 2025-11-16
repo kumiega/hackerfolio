@@ -122,7 +122,6 @@ function MyComponent() {
 
   const fetchUserData = async () => {
     if (!userId) {
-      console.log("No user session");
       return;
     }
 

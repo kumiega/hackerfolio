@@ -48,14 +48,17 @@ const { title = "Hackerfolio - AI-powered portfolio builder for developers" } = 
   </head>
 
   <script is:inline>
+    // eslint-disable-next-line prettier/prettier
     const getThemePreference = () => {
       if (typeof localStorage !== "undefined" && localStorage.getItem("theme")) {
         return localStorage.getItem("theme");
       }
-      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      return prefersDark ? "dark" : "light";
     };
     const isDark = getThemePreference() === "dark";
-    document.documentElement.classList[isDark ? "add" : "remove"]("dark");
+    const method = isDark ? "add" : "remove";
+    document.documentElement.classList[method]("dark");
 
     if (typeof localStorage !== "undefined") {
       const observer = new MutationObserver(() => {

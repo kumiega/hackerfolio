@@ -32,7 +32,9 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
           const portfolio = data.data;
 
           // Check if there's already a projects section with selected repos
-          const projectsSection = portfolio.draft_data.sections?.find((section: Section) => section.slug === "projects");
+          const projectsSection = portfolio.draft_data.sections?.find(
+            (section: Section) => section.slug === "projects"
+          );
 
           if (projectsSection?.components?.length > 0) {
             // Extract repo URLs from existing project cards
@@ -57,6 +59,7 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
           }
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error("Failed to load existing portfolio data:", error);
       }
     };
@@ -85,7 +88,6 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
     setIsSaving(true);
     try {
       // Step 1: Generate description for the projects section
-      console.log("Making request to generate-description API...");
       const descriptionResponse = await fetch("/api/v1/ai/generate-description", {
         credentials: "include",
         method: "POST",
@@ -93,24 +95,17 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
           "Content-Type": "application/json",
         },
       });
-      console.log("API response status:", descriptionResponse.status);
-      console.log("API response ok:", descriptionResponse.ok);
 
       if (!descriptionResponse.ok) {
-        console.log("API response not ok, trying to parse error...");
         let errorMessage = `Description generation failed: HTTP ${descriptionResponse.status}`;
 
         try {
           const errorData = await descriptionResponse.json();
-          console.log("Error data:", errorData);
           if (errorData.error?.message) {
             errorMessage = `Description generation failed: ${errorData.error.message}`;
           }
-        } catch (parseError) {
-          console.log("Failed to parse error response as JSON:", parseError);
+        } catch {
           // Don't try to read the body again since it's already consumed
-          console.log("Response status:", descriptionResponse.status);
-          console.log("Response headers:", Object.fromEntries(descriptionResponse.headers.entries()));
         }
 
         throw new Error(errorMessage);
@@ -155,19 +150,11 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
       // Step 5: Update portfolio with the generated components
       await updatePortfolioWithProjects([textComponent, ...cardData.data.components]);
 
-      console.log("About to show success toast");
       toast.success(
         `Successfully added ${selectedRepos.size} project${selectedRepos.size > 1 ? "s" : ""} to your portfolio`
       );
-      console.log("Success toast shown");
-      console.log("About to call onSelectionComplete");
       onSelectionComplete();
-      console.log("onSelectionComplete called successfully");
     } catch (error) {
-      console.error("Failed to save project selection:", error);
-      console.error("Error type:", typeof error);
-      console.error("Error constructor:", error?.constructor?.name);
-
       let errorMessage = "An unexpected error occurred";
       if (error instanceof Error) {
         errorMessage = error.message;
@@ -219,8 +206,6 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
     projectsSection.components = components;
 
     // Update the portfolio
-    console.log("Updating portfolio with ID:", currentPortfolio.id);
-    console.log("Portfolio draft_data:", JSON.stringify(currentPortfolio.draft_data, null, 2));
 
     const updateResponse = await fetch(`/api/v1/portfolios/${currentPortfolio.id}`, {
       credentials: "include",
@@ -233,15 +218,10 @@ function RepoSelector({ repositories, onSelectionComplete, onSkip, userId }: Rep
       }),
     });
 
-    console.log("Portfolio update response status:", updateResponse.status);
-
     if (!updateResponse.ok) {
       const errorData = await updateResponse.json();
-      console.error("Portfolio update failed:", errorData);
       throw new Error(errorData.error?.message || "Failed to update portfolio");
     }
-
-    console.log("Portfolio update successful");
   };
 
   if (repositories.length === 0) {

@@ -63,8 +63,7 @@ function GitHubImportStep() {
 
       // Small delay to ensure toast is visible before navigation
       window.location.href = "/dashboard";
-    } catch (error) {
-      console.error("Error in handleComplete:", error);
+    } catch {
       toast.error("Failed to complete onboarding");
     }
   };

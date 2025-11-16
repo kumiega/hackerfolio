@@ -62,6 +62,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     });
 
     if (uploadError) {
+      // eslint-disable-next-line no-console
       console.error("Upload error:", uploadError);
       return new Response(
         JSON.stringify({
@@ -84,6 +85,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       .single();
 
     if (fetchError || !portfolio) {
+      // eslint-disable-next-line no-console
       console.error("Portfolio fetch error:", fetchError);
       await supabase.storage.from("avatars").remove([fileName]);
       return new Response(
@@ -114,6 +116,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       .eq("user_id", userId);
 
     if (updateError) {
+      // eslint-disable-next-line no-console
       console.error("Database update error:", updateError);
       // Try to clean up uploaded file
       await supabase.storage.from("avatars").remove([fileName]);
@@ -135,6 +138,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
       { status: 200 }
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Avatar upload error:", error);
     return new Response(
       JSON.stringify({

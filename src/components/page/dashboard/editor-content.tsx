@@ -158,9 +158,7 @@ export function EditorContent({ user }: EditorContentProps) {
         setIsLoading(true);
         setError(null);
 
-        console.log("Loading portfolio for user:", user.user_id);
         const portfolio = await PortfolioApiClient.getUserPortfolio();
-        console.log("Portfolio response:", portfolio);
 
         if (portfolio) {
           // Ensure the loaded data has the correct structure
@@ -206,13 +204,12 @@ export function EditorContent({ user }: EditorContentProps) {
           setIsDataLoaded(true);
         } else {
           // No portfolio exists yet, keep default empty portfolio
-          console.log("No portfolio found for user, using default empty portfolio");
           setPortfolioData(defaultPortfolioData);
           setIsDataLoaded(true);
         }
       } catch (err) {
-        console.error("Failed to load portfolio:", err);
-        console.error("Error details:", {
+        // eslint-disable-next-line no-console
+        console.error({
           message: err instanceof Error ? err.message : "Unknown error",
           name: err instanceof Error ? err.name : "Unknown",
           stack: err instanceof Error ? err.stack : "No stack",
@@ -536,7 +533,6 @@ export function EditorContent({ user }: EditorContentProps) {
       return null; // No validation errors
     };
     if (!portfolioData || !user?.user_id) {
-      console.warn("No portfolio data or user available");
       return;
     }
 
@@ -569,9 +565,7 @@ export function EditorContent({ user }: EditorContentProps) {
       }
 
       toast.success("Draft saved successfully!", { id: toastId });
-      console.log("Portfolio saved successfully");
     } catch (err) {
-      console.error("Failed to save portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to save portfolio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
@@ -633,9 +627,7 @@ export function EditorContent({ user }: EditorContentProps) {
       await PortfolioApiClient.publishPortfolio(portfolioId);
 
       toast.success("Portfolio published successfully!", { id: toastId });
-      console.log("Portfolio published successfully");
     } catch (err) {
-      console.error("Failed to publish portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to publish portfolio";
       toast.error(errorMessage, { id: toastId });
     } finally {

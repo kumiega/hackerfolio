@@ -22,19 +22,14 @@ export const POST: APIRoute = async (context) => {
   const requestId = locals.requestId || crypto.randomUUID();
 
   try {
-    console.log("Starting description generation...");
-
     // Step 1: Verify authentication (basic check)
     const {
       data: { user },
     } = await locals.supabase.auth.getUser();
 
     if (!user) {
-      console.log("No authenticated user found");
       return createErrorResponse("UNAUTHENTICATED", requestId);
     }
-
-    console.log("User authenticated, checking request body...");
 
     // Step 2: Validate request body (should be empty for this endpoint)
     if (request.method === "POST" && request.headers.get("content-type")?.includes("application/json")) {
@@ -52,19 +47,12 @@ export const POST: APIRoute = async (context) => {
       }
     }
 
-    console.log("Request body validated, generating description...");
-
     // Step 3: Generate description using OpenRouter
     let description: string;
     try {
-      console.log("Starting AI description generation...");
       description = await OpenRouterService.generateDescription(cardsDescriptionPrompt);
-      console.log("AI description generation completed successfully");
     } catch (error) {
-      console.log("AI description generation error:", error);
       if (error instanceof Error) {
-        console.log("Error message:", error.message);
-        console.log("Error stack:", error.stack);
         if (error.message.includes("rate limit")) {
           return createErrorResponse(
             "RATE_LIMIT_EXCEEDED",
@@ -83,6 +71,7 @@ export const POST: APIRoute = async (context) => {
         }
       }
       // For any other error, return a generic message but log the details
+      // eslint-disable-next-line no-console
       console.error("Unhandled error in AI generation:", error);
       return createErrorResponse("AI_ERROR", requestId, "AI service error. Please try again.");
     }
@@ -102,6 +91,7 @@ export const POST: APIRoute = async (context) => {
       }
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in generate-description API:", error);
 
     // For OpenRouter errors, return a more specific error response

@@ -66,7 +66,6 @@ export function BioSection({ bio, onUpdateBio, validationErrors }: BioSectionPro
       onUpdateBio({ avatar_url: result.data.avatar_url });
       toast.success("Avatar uploaded successfully!");
     } catch (error) {
-      console.error("Avatar upload error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to upload avatar");
     } finally {
       setIsUploading(false);

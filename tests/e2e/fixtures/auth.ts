@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseConfig } from "../../../src/lib/env";
-import type { User as SupabaseUser, Session } from "@supabase/supabase-js";
+import type { Session, EmailOtpType } from "@supabase/supabase-js";
 
 interface TestUser {
   id: string;
@@ -125,7 +125,6 @@ export async function ensureTestUserExists(userConfig: TestUserConfig, key?: str
       throw new Error(`Failed to create test user: ${(createError as Error).message}`);
     }
 
-    console.log(`✅ Created test user ${userConfig.email} with ID: ${newUser.user?.id}`);
     const createdUser = newUser.user;
     if (!createdUser) {
       throw new Error("Test user creation succeeded but user data is missing");
@@ -139,6 +138,7 @@ export async function ensureTestUserExists(userConfig: TestUserConfig, key?: str
 
     return createdUser;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`❌ Failed to ensure test user exists:`, error);
     throw error;
   }
@@ -177,9 +177,13 @@ export async function generateTestUserSession(userId: string) {
     const type = url.searchParams.get("type");
 
     if (!tokenHash || !type) {
+      // eslint-disable-next-line no-console
       console.error("❌ Could not extract token from magic link");
+      // eslint-disable-next-line no-console
       console.error("❌ Action link URL:", actionLink);
+      // eslint-disable-next-line no-console
       console.error("❌ URL search params:", Object.fromEntries(url.searchParams.entries()));
+      // eslint-disable-next-line no-console
       console.error("❌ Properties:", linkData.properties);
       throw new Error("Could not extract token from magic link");
     }
@@ -187,7 +191,7 @@ export async function generateTestUserSession(userId: string) {
     // Use the client to verify the OTP and get a real session
     const { data: verifyData, error: verifyError } = await supabaseClient.auth.verifyOtp({
       token_hash: tokenHash,
-      type: type as any,
+      type: type as EmailOtpType,
     });
 
     if (verifyError || !verifyData.session) {
@@ -196,6 +200,7 @@ export async function generateTestUserSession(userId: string) {
 
     return verifyData.session;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to generate test user session:", error);
     throw error;
   }
@@ -203,12 +208,6 @@ export async function generateTestUserSession(userId: string) {
 
 // Set up authentication state in Playwright page
 export async function setPageAuthentication(page: Page, session: Session) {
-  console.log("🔐 Setting page authentication with session:", {
-    access_token: session.access_token ? "present" : "missing",
-    refresh_token: session.refresh_token ? "present" : "missing",
-    user: session.user ? "present" : "missing",
-  });
-
   // Get Supabase URL and key
   const { url: supabaseUrl, anonKey: supabaseKey } = getSupabaseConfig();
 
@@ -226,7 +225,6 @@ export async function setPageAuthentication(page: Page, session: Session) {
   await page.evaluate(
     ({ sessionData, supabaseKeyName }) => {
       localStorage.setItem(supabaseKeyName, JSON.stringify(sessionData));
-      console.log("🔐 Set localStorage key:", supabaseKeyName);
     },
     {
       sessionData: session,
@@ -247,8 +245,6 @@ export async function setPageAuthentication(page: Page, session: Session) {
       secure: false,
     },
   ]);
-
-  console.log("🔐 Set HTTP cookie and localStorage for middleware compatibility");
 }
 
 // Sign in a test user by creating session and setting auth state
@@ -263,9 +259,9 @@ export async function signInTestUser(page: Page, user: TestUser) {
     // Set authentication state in page
     await setPageAuthentication(page, session);
 
-    console.log(`✅ Signed in test user: ${user.email}`);
     return session;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error(`❌ Failed to sign in test user ${user.email}:`, error);
     throw error;
   }
@@ -298,8 +294,6 @@ export async function setUserOnboardingState(userId: string, isOnboarded: boolea
       .single();
 
     if (existingProfile && !checkError) {
-      console.log(`🔍 Profile already exists for user ${userId}, updating...`);
-
       // Update existing profile
       const { error: updateError } = await supabaseAdmin
         .from("user_profiles")
@@ -310,15 +304,13 @@ export async function setUserOnboardingState(userId: string, isOnboarded: boolea
         .eq("id", userId);
 
       if (updateError) {
+        // eslint-disable-next-line no-console
         console.error("Failed to update existing profile:", updateError);
-      } else {
-        console.log(`✅ Updated existing profile for user ${userId}`);
       }
       return;
     }
 
     // Profile doesn't exist, create it
-    console.log(`🔧 Creating new user profile for ${userId}...`);
 
     const { error: insertError } = await supabaseAdmin.from("user_profiles").insert({
       id: userId,
@@ -327,13 +319,15 @@ export async function setUserOnboardingState(userId: string, isOnboarded: boolea
     });
 
     if (insertError) {
+      // eslint-disable-next-line no-console
       console.error("Failed to create profile:", insertError);
+      // eslint-disable-next-line no-console
       console.warn("⚠️  Continuing without user profile - this may cause authentication issues");
-    } else {
-      console.log(`✅ Created new profile for user ${userId}`);
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to set user onboarding state:", error);
+    // eslint-disable-next-line no-console
     console.warn("⚠️  Continuing without user profile - this may cause authentication issues");
   }
 }
@@ -352,6 +346,7 @@ export async function getUserOnboardingState(userId: string) {
 
     return data?.is_onboarded ?? false;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to get user onboarding state:", error);
     return false;
   }
@@ -365,12 +360,12 @@ export async function updateUserOnboardingState(userId: string, isOnboarded: boo
     const { error } = await supabaseAdmin.from("user_profiles").update({ is_onboarded: isOnboarded }).eq("id", userId);
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Failed to update user onboarding state:", error);
       throw error;
     }
-
-    console.log(`✅ Updated onboarding state for user ${userId}: is_onboarded = ${isOnboarded}`);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to update user onboarding state:", error);
     throw error;
   }
@@ -392,12 +387,13 @@ export async function cleanupTestUsers() {
       try {
         // Delete user via Admin API (this cascades to profiles and related data)
         await supabaseAdmin.auth.admin.deleteUser(user.id);
-        console.log(`✅ Cleaned up test user: ${user.email}`);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`⚠️  Could not delete test user ${user.email}:`, (error as Error).message);
       }
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Failed to cleanup test users:", error);
     // Don't throw - cleanup failures shouldn't break tests
   }

@@ -1,10 +1,5 @@
 import { Badge } from "@/components/ui/badge";
 
-interface WebsiteLink {
-  name: string;
-  url: string;
-}
-
 interface SocialLinksPreviewProps {
   data?: Record<string, unknown>;
 }
@@ -30,11 +25,11 @@ export function SocialLinksPreview({ data }: SocialLinksPreviewProps) {
       data.website.forEach((site) => {
         if (
           site &&
-          typeof site === 'object' &&
-          'name' in site &&
-          'url' in site &&
-          typeof site.name === 'string' &&
-          typeof site.url === 'string' &&
+          typeof site === "object" &&
+          "name" in site &&
+          "url" in site &&
+          typeof site.name === "string" &&
+          typeof site.url === "string" &&
           site.name.trim() &&
           site.url.trim()
         ) {

@@ -163,7 +163,6 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
         // Set initial state in change tracker
         setInitialState(initialData, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
       } catch (err) {
-        console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
 
         // If portfolio doesn't exist, create with default bio
@@ -228,7 +227,6 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
 
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
-      console.warn("No portfolio data or user available");
       return;
     }
 
@@ -265,14 +263,12 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
       }
 
       toast.success("Bio saved successfully!", { id: toastId });
-      console.log("Bio saved successfully");
 
       // Mark as saved with the current portfolio data
       if (portfolioData) {
         markAsSaved(portfolioData);
       }
     } catch (err) {
-      console.error("Failed to save bio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to save bio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
@@ -326,12 +322,10 @@ export function BioEditorContent({ user }: BioEditorContentProps) {
       }
 
       toast.success("Portfolio published successfully!", { id: toastId });
-      console.log("Portfolio published successfully");
 
       // Mark as published
       markAsPublished(new Date().toISOString());
     } catch (err) {
-      console.error("Failed to publish portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to publish portfolio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);

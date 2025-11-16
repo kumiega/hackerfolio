@@ -68,8 +68,6 @@ async function storeGitHubToken(
   refreshToken?: string
 ): Promise<void> {
   try {
-    console.log("Storing GitHub token for user:", userId);
-
     const tokenData = {
       user_id: userId,
       provider: "github",
@@ -86,12 +84,12 @@ async function storeGitHubToken(
     });
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("Failed to store GitHub token:", error);
       throw new AppError("DATABASE_ERROR", `Failed to store GitHub token: ${error.message}`);
     }
-
-    console.log("Successfully stored GitHub token for user:", userId);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error("Error in storeGitHubToken:", error);
     if (error instanceof AppError) {
       throw error;

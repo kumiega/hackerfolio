@@ -20,14 +20,9 @@ export const createClientSSR = ({ request, cookies }: { request: Request; cookie
         cookiesToSet.forEach(({ name, value, options }) => {
           try {
             cookies.set(name, value, options);
-          } catch (error) {
+          } catch {
             // Ignore errors when trying to set cookies after response is sent
             // This commonly happens during auth operations in middleware
-            if (error.message?.includes("response has already been sent")) {
-              console.debug("Cookie set attempted after response sent, ignoring:", name);
-            } else {
-              throw error;
-            }
           }
         });
       },

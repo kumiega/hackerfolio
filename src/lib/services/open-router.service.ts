@@ -65,8 +65,6 @@ export class OpenRouterService {
       const timeoutId = setTimeout(() => controller.abort(), this.AI_TIMEOUT_MS);
 
       try {
-        console.log(`OpenRouter API call - model: ${model}, maxTokens: ${maxTokens}, temperature: ${temperature}`);
-
         const response = await fetch(`${this.OPENROUTER_API_BASE}/chat/completions`, {
           method: "POST",
           headers: {
@@ -93,11 +91,8 @@ export class OpenRouterService {
         clearTimeout(timeoutId);
 
         if (!response.ok) {
-          console.error(`OpenRouter API error - model: ${model}, status: ${response.status}`);
-
           // If it's a 404 (model not found), try the next model
           if (response.status === 404) {
-            console.log(`Model ${model} not available, trying next fallback...`);
             continue;
           }
 
@@ -114,12 +109,10 @@ export class OpenRouterService {
         const data = await response.json();
 
         if (!data.choices?.[0]?.message?.content) {
-          console.error("Invalid AI response format:", data);
           throw new Error("Invalid AI response format");
         }
 
         const content = data.choices[0].message.content.trim();
-        console.log(`OpenRouter API call successful with model: ${model}`);
         return content;
       } catch (error) {
         clearTimeout(timeoutId);
@@ -130,12 +123,10 @@ export class OpenRouterService {
 
         // If this was a 404 error, continue to the next model
         if (error instanceof Error && error.message.includes("404")) {
-          console.log(`Model ${model} failed with 404, trying next fallback...`);
           continue;
         }
 
         // For other errors, don't retry
-        console.error(`OpenRouter API call failed with model ${model}:`, error);
         throw error;
       }
     }
@@ -177,10 +168,6 @@ export class OpenRouterService {
    * @returns PortfolioData - Complete portfolio data with default values
    */
   private static transformAIResponseToPortfolioData(aiResponse: AIPortfolioResponse): PortfolioData {
-    console.log("Transforming AI response to PortfolioData...");
-    console.log("AI response bio:", aiResponse.bio);
-    console.log("AI response sections count:", aiResponse.sections.length);
-
     const portfolioData = {
       bio: {
         full_name: aiResponse.bio.full_name,
@@ -199,7 +186,6 @@ export class OpenRouterService {
       sections: aiResponse.sections,
     };
 
-    console.log("Transformation completed successfully");
     return portfolioData;
   }
 
@@ -207,10 +193,9 @@ export class OpenRouterService {
    * Generates portfolio data using AI with structured JSON schema
    *
    * @param prompt - The AI prompt to send
-   * @param schema - JSON schema for structured response (optional, defaults to AI response schema)
    * @returns Promise<PortfolioData> - Generated portfolio structure
    */
-  static async generatePortfolioWithSchema(prompt: string, schema?: Record<string, unknown>): Promise<PortfolioData> {
+  static async generatePortfolioWithSchema(prompt: string): Promise<PortfolioData> {
     // Prepare API options with schema if provided
     const options: Record<string, unknown> = {};
 
@@ -231,7 +216,6 @@ export class OpenRouterService {
       TOKENS_LIMIT,
       PORTFOLIO_GENERATION_PROMPT_TEMPERATURE
     );
-    console.log("aiResponse", aiResponse);
 
     // Parse and validate the response
     try {
@@ -264,7 +248,6 @@ export class OpenRouterService {
     summary: string;
     experience: string;
   }): Promise<PortfolioData> {
-    console.log("Sanitizing LinkedIn form data...");
     // Sanitize all input data to prevent prompt injection
     const sanitizedData = {
       full_name: sanitizeInput(formData.fullName),
@@ -272,17 +255,12 @@ export class OpenRouterService {
       summary: sanitizeInput(formData.summary),
       experience: sanitizeInput(formData.experience),
     };
-    console.log("Sanitized data keys:", Object.keys(sanitizedData));
 
-    console.log("Generating prompt...");
     // Replace placeholders in the prompt
     const prompt = replacePlaceholders(portfolioGenerationPrompt, sanitizedData);
-    console.log("Prompt length:", prompt.length);
 
-    console.log("Calling generatePortfolioWithSchema...");
     // Generate portfolio using AI response schema (will be transformed to full PortfolioData)
     const result = await this.generatePortfolioWithSchema(prompt);
-    console.log("LinkedIn portfolio generation completed");
     return result;
   }
 
@@ -293,7 +271,6 @@ export class OpenRouterService {
    * @returns Promise<string> - Generated description text
    */
   static async generateDescription(prompt: string): Promise<string> {
-    console.log("Generating description with prompt length:", prompt.length);
     // Use same parameters as portfolio generation for consistency
     return this.callOpenRouterAPI(prompt, {}, TOKENS_LIMIT, PORTFOLIO_GENERATION_PROMPT_TEMPERATURE);
   }
@@ -305,7 +282,6 @@ export class OpenRouterService {
    * @returns Promise<string> - Generated project summary text
    */
   static async generateProjectSummary(prompt: string): Promise<string> {
-    console.log("Generating project summary with prompt length:", prompt.length);
     return this.callOpenRouterAPI(prompt, {}, TOKENS_LIMIT, PORTFOLIO_GENERATION_PROMPT_TEMPERATURE); // Lower temperature for consistency
   }
 }

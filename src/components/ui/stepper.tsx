@@ -1,9 +1,9 @@
 import { createContext, useState, useContext, useCallback, useMemo, useEffect, useRef } from "react";
 
-export interface IStep<S extends string> {
+export interface IStep<T, S extends string> {
   label: S;
   content: React.ReactNode;
-  isValid?: (data: any) => boolean;
+  isValid?: (data: T) => boolean;
   preventBack?: boolean;
 }
 
@@ -16,20 +16,20 @@ interface IStepperContext<T, S extends string> {
   handleSetData: (partial: Partial<T>) => void;
   resetData: () => void;
   data: T;
-  steps: IStep<S>[];
+  steps: IStep<T, S>[];
   isFirstStep: boolean;
   isLastStep: boolean;
   canGoToNext: boolean;
-  currentStep: IStep<S>;
+  currentStep: IStep<T, S>;
 }
 
 interface IStepperProviderProps<T, S extends string> {
   children: React.ReactNode;
   initialData: T;
-  steps: IStep<S>[];
+  steps: IStep<T, S>[];
 }
 
-const StepperContext = createContext<IStepperContext<any, any> | undefined>(undefined);
+const StepperContext = createContext<IStepperContext<unknown, string> | undefined>(undefined);
 
 const StepperProvider = <T, S extends string>({ children, initialData, steps }: IStepperProviderProps<T, S>) => {
   const [activeStep, setActiveStep] = useState<number>(() => {
@@ -116,7 +116,6 @@ const StepperProvider = <T, S extends string>({ children, initialData, steps }: 
     (id: S, replace = false) => {
       const index = steps.findIndex((step) => step.label === id);
       if (index === -1) {
-        console.warn(`Step with label "${id}" not found`);
         return;
       }
 

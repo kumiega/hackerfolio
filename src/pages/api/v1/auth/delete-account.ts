@@ -36,8 +36,6 @@ export const DELETE: APIRoute = async (context) => {
   const supabase = locals.supabase;
   const requestId = locals.requestId || crypto.randomUUID();
 
-  console.log("🗑️ Delete account request started", { requestId, url: request.url });
-
   try {
     let requestBody: { confirmation: string };
 
@@ -56,32 +54,20 @@ export const DELETE: APIRoute = async (context) => {
       return createErrorResponse("VALIDATION_ERROR", requestId, "Request body must be valid JSON");
     }
 
-    console.log("🔍 Checking user authentication...");
-
     let user;
     const {
       data: { user: authUser },
       error: authError,
     } = await supabase.auth.getUser();
 
-    console.log("Auth user result:", { hasUser: !!authUser, hasError: !!authError, userId: authUser?.id });
-
     if (authError || !authUser || !authUser.email) {
-      console.log("Primary auth check failed, trying session fallback...");
       // If getUser() fails, try getSession() as fallback
       const {
         data: { session },
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      console.log("Session result:", {
-        hasSession: !!session,
-        hasError: !!sessionError,
-        sessionUserId: session?.user?.id,
-      });
-
       if (sessionError || !session?.user || !session.user.email) {
-        console.log("❌ Authentication failed");
         return createErrorResponse("UNAUTHENTICATED", requestId, "User not authenticated");
       }
 
@@ -90,11 +76,7 @@ export const DELETE: APIRoute = async (context) => {
       user = authUser;
     }
 
-    console.log("✅ User authenticated:", { userId: user.id, email: user.email });
-
-    console.log("🔍 Finding user profile...");
     const profile = await repositories.userProfiles.findById(user.id);
-    console.log("Profile result:", { hasProfile: !!profile, username: profile?.username });
 
     if (!profile) {
       return createErrorResponse("PROFILE_NOT_FOUND", requestId, "User profile not found");
@@ -108,40 +90,30 @@ export const DELETE: APIRoute = async (context) => {
       );
     }
 
-    console.log("🗑️ Starting deletion process...");
-
     // Note: OAuth tokens and app errors will be automatically cleaned up
     // when the user profile is deleted due to foreign key constraints
 
     // Delete portfolio
-    console.log("🗂️ Deleting portfolio...");
     try {
       const portfolio = await repositories.portfolios.findByUserId(user.id);
-      console.log("Portfolio found:", { hasPortfolio: !!portfolio, portfolioId: portfolio?.id });
       if (portfolio) {
         await repositories.portfolios.delete(portfolio.id);
-        console.log("✅ Portfolio deleted successfully");
       }
     } catch (portfolioError) {
       // Log but don't fail the entire deletion if portfolio deletion fails
+      // eslint-disable-next-line no-console
       console.error("❌ Failed to delete portfolio:", portfolioError);
     }
 
     // Finally delete the user profile
-    console.log("👤 Deleting user profile...");
     await repositories.userProfiles.delete(user.id);
-    console.log("✅ User profile deleted successfully");
 
-    console.log("🔐 Deleting auth user...");
     const { error: deleteAuthError } = await supabaseServiceClient.auth.admin.deleteUser(user.id);
     if (deleteAuthError) {
+      // eslint-disable-next-line no-console
       console.error("❌ Failed to delete auth user:", deleteAuthError);
       // This is critical, but we'll proceed since profile is already deleted
-    } else {
-      console.log("✅ Auth user deleted successfully");
     }
-
-    console.log("🎉 Account deletion completed successfully!");
 
     // Step 8: Build and return success response
     const response: ApiSuccessResponse<{ deleted: boolean }> = {

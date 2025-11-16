@@ -239,7 +239,6 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
 
   // Step 2: Retrieve GitHub access token from oauth_tokens table
   // This table is populated by OAuth webhooks or callback handlers
-  console.log("Looking for GitHub token for user:", user.id);
   const { data: tokenData, error: tokenError } = await supabase
     .from("oauth_tokens")
     .select("access_token, expires_at, refresh_token")
@@ -247,9 +246,8 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
     .eq("provider", "github")
     .single();
 
-  console.log("Token query result:", { tokenData: !!tokenData, error: tokenError });
-
   if (tokenError) {
+    // eslint-disable-next-line no-console
     console.error("OAuth token query error:", {
       code: tokenError.code,
       message: tokenError.message,
@@ -264,6 +262,7 @@ async function getGitHubAccessToken(supabase: SupabaseClient): Promise<string> {
   }
 
   if (!tokenData?.access_token) {
+    // eslint-disable-next-line no-console
     console.error("No access token found in oauth_tokens:", {
       userId: user.id,
       tokenData: !!tokenData,

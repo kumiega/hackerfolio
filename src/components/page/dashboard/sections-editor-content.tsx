@@ -175,7 +175,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
         // Set initial state in change tracker
         setInitialState(processedData, portfolio.updated_at || undefined, portfolio.last_published_at || undefined);
       } catch (err) {
-        console.error("Failed to load portfolio:", err);
         const errorMessage = err instanceof Error ? err.message : "Failed to load portfolio";
 
         // If portfolio doesn't exist, use default empty structure
@@ -308,7 +307,6 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
 
   const handleSavePortfolio = useCallback(async () => {
     if (!portfolioData || !user?.user_id) {
-      console.warn("No portfolio data or user available");
       return;
     }
 
@@ -339,12 +337,10 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       }
 
       toast.success("Sections saved successfully!", { id: toastId });
-      console.log("Sections saved successfully");
 
       // Mark as saved with the current portfolio data
       markAsSaved(portfolioData);
     } catch (err) {
-      console.error("Failed to save sections:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to save sections";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);
@@ -394,12 +390,10 @@ export function SectionsEditorContent({ user }: SectionsEditorContentProps) {
       }
 
       toast.success("Portfolio published successfully!", { id: toastId });
-      console.log("Portfolio published successfully");
 
       // Mark as published
       markAsPublished(new Date().toISOString());
     } catch (err) {
-      console.error("Failed to publish portfolio:", err);
       const errorMessage = err instanceof Error ? err.message : "Failed to publish portfolio";
       toast.error(errorMessage, { id: toastId });
       setError(errorMessage);

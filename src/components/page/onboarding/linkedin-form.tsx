@@ -55,10 +55,9 @@ function LinkedInForm() {
       toast.success("Portfolio content generated successfully");
 
       navigateTo("github-import");
-    } catch (error) {
+    } catch {
       setGenerationState("error");
       toast.error("Failed to generate portfolio");
-      console.error("Failed to generate portfolio:", error);
     }
   };
   return (

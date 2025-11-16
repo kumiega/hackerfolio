@@ -14,7 +14,7 @@ export const prerender = false;
  * Generates complete portfolio data from manually entered LinkedIn data using AI.
  * Creates a full portfolio structure and saves it as draft_data for the user.
  *
- * The endpoint requires user authentication and saves the generated portfolio as draft data.
+ * The endpoint requires user authentication and saves the generated portfol  io as draft data.
  * It returns the generated portfolio data.
  *
  * @param body - LinkedIn form data (fullName, position, summary, experience)
@@ -56,14 +56,9 @@ export const POST: APIRoute = async (context) => {
     // Step 4: Generate portfolio data using AI
     let portfolioData: PortfolioData;
     try {
-      console.log("Starting AI portfolio generation...");
       portfolioData = await OpenRouterService.generatePortfolioFromLinkedIn(formData);
-      console.log("AI portfolio generation completed successfully");
     } catch (error) {
-      console.log("AI portfolio generation error:", error);
       if (error instanceof Error) {
-        console.log("Error message:", error.message);
-        console.log("Error name:", error.name);
         if (error.message.includes("rate limit")) {
           return createErrorResponse(
             "RATE_LIMIT_EXCEEDED",
@@ -83,28 +78,22 @@ export const POST: APIRoute = async (context) => {
 
     // Step 5: Save generated portfolio data as draft data
     try {
-      console.log("Starting portfolio save operation...");
       // Check if user already has a portfolio
       const existingPortfolio = await PortfolioService.getUserPortfolio(locals.user.user_id);
-      console.log("Existing portfolio check result:", !!existingPortfolio);
 
       if (existingPortfolio) {
         // Update existing portfolio
-        console.log("Updating existing portfolio:", existingPortfolio.id);
         await PortfolioService.updatePortfolio(existingPortfolio.id, locals.user.user_id, {
           draft_data: portfolioData,
         });
-        console.log("Portfolio updated successfully");
       } else {
         // Create new portfolio
-        console.log("Creating new portfolio");
         await PortfolioService.createPortfolio(locals.user.user_id, {
           draft_data: portfolioData,
         });
-        console.log("Portfolio created successfully");
       }
-    } catch (error) {
-      console.log("Database save error:", error);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
       return createErrorResponse("DATABASE_ERROR", requestId, "Failed to save portfolio data");
     }
 

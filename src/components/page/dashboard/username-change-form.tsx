@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { z } from "zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckCircle, CircleQuestionMark, CircleX, Loader2 } from "lucide-react";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "@/components/ui/input-group";
@@ -235,7 +235,13 @@ export function UsernameChangeForm({ currentUsername }: UsernameChangeFormProps)
   const isLoading = changeState === "loading" || (state === "loading" && changeState !== "success");
   const currentError = changeError || availabilityError;
   const displayState = changeState === "loading" || changeState === "error" ? changeState : state;
-  const isCurrentUsername = form.watch("username") === currentUsername;
+
+  // Watch the username field value
+  const watchedUsername = useWatch({
+    control: form.control,
+    name: "username",
+  });
+  const isCurrentUsername = watchedUsername === currentUsername;
 
   return (
     <form className="space-y-4" onSubmit={handleFormSubmit}>

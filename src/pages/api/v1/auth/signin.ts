@@ -10,16 +10,6 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const requestUrl = new URL(request.url);
   const redirectTo = `${requestUrl.origin}/api/v1/auth/callback/github`;
 
-  console.log("GitHub signin initiated", {
-    provider,
-    origin: requestUrl.origin,
-    redirectTo,
-    host: requestUrl.host,
-    protocol: requestUrl.protocol,
-    userAgent: request.headers.get("user-agent"),
-    fullUrl: request.url,
-  });
-
   const supabase = createClientSSR({
     request: request,
     cookies: cookies,
@@ -41,6 +31,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
     });
 
     if (error) {
+      // eslint-disable-next-line no-console
       console.error("❌ OAuth signin error:", {
         message: error.message,
         status: error.status,
@@ -50,10 +41,10 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
       return redirect(`/signin?error=${errorParam}`);
     }
 
-    console.log("✅ Redirecting to GitHub OAuth:", data.url);
     return redirect(data.url);
   }
 
+  // eslint-disable-next-line no-console
   console.error("❌ Invalid OAuth provider:", provider);
   return redirect("/signin?error=Invalid%20OAuth%20provider");
 };

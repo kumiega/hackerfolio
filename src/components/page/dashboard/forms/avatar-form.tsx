@@ -51,7 +51,6 @@ export function AvatarForm({ avatar_url, onChange, githubAvatarUrl }: AvatarForm
       // Update the avatar URL in the form
       onChange("avatar_url", result.data.avatar_url);
     } catch (error) {
-      console.error("Upload error:", error);
       setUploadError(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsUploading(false);
@@ -68,8 +67,7 @@ export function AvatarForm({ avatar_url, onChange, githubAvatarUrl }: AvatarForm
       // For GitHub avatars, we'll still just set the URL directly since it's already hosted
       // We could potentially download and re-upload to our storage, but for now we'll keep it simple
       onChange("avatar_url", githubAvatarUrl);
-    } catch (_error) {
-      console.error("GitHub avatar error:", _error);
+    } catch {
       setUploadError("Failed to set GitHub avatar");
     } finally {
       setIsUploading(false);

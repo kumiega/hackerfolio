@@ -70,8 +70,6 @@ function loadEnvironment(): z.infer<typeof envSchema> {
   const parsed = envSchema.safeParse(process.env);
 
   if (!parsed.success) {
-    console.error("❌ Environment validation failed:");
-    console.error(parsed.error.format());
     throw new Error("Invalid environment configuration");
   }
 

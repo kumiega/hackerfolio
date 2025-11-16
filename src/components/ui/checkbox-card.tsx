@@ -25,7 +25,7 @@ function CheckboxCard({ repo, checked, onCheckedChange, className }: CheckboxCar
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Trigger on Enter or Space
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onCheckedChange(!checked);
     }

@@ -67,7 +67,7 @@ function InputGroupAddon({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       e.currentTarget.parentElement?.querySelector("input")?.focus();
     }
@@ -75,7 +75,7 @@ function InputGroupAddon({
 
   return (
     <div
-      role="group"
+      role="button"
       data-slot="input-group-addon"
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
