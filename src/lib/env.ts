@@ -52,18 +52,33 @@ function loadEnvironment(): z.infer<typeof envSchema> {
 
   const nodeEnv = process.env.NODE_ENV || "development";
 
-  // Load appropriate .env file based on environment
-  switch (nodeEnv) {
-    case "production":
-      config({ path: ".env.production" });
-      break;
-    case "test":
-      config({ path: ".env.test" });
-      break;
-    case "development":
-    default:
-      config({ path: ".env" });
-      break;
+  // Load appropriate .env file based on environment (only if file exists)
+  // Use dynamic import to avoid bundling fs in client
+  if (typeof require !== "undefined") {
+    try {
+      const fs = require("fs");
+      switch (nodeEnv) {
+        case "production":
+          if (fs.existsSync(".env.production")) {
+            config({ path: ".env.production" });
+          }
+          break;
+        case "test":
+          if (fs.existsSync(".env.test")) {
+            config({ path: ".env.test" });
+          }
+          break;
+        case "development":
+        default:
+          if (fs.existsSync(".env")) {
+            config({ path: ".env" });
+          }
+          break;
+      }
+    } catch {
+      // If fs is not available, skip loading .env files
+      // This can happen in some build environments
+    }
   }
 
   // Validate environment variables
@@ -103,7 +118,9 @@ export const clientEnv = {
 export const env = (() => {
   // Only load on server side
   if (typeof process !== "undefined" && process.env) {
-    return loadEnvironment();
+    // Note: This synchronous export cannot handle async loading
+    // Use getServerEnv() instead for new code
+    throw new Error("Use getServerEnv() instead of the deprecated env export");
   }
   // Return empty object for client side (will be tree-shaken in production)
   return {} as z.infer<typeof envSchema>;

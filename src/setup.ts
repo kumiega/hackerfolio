@@ -1,7 +1,4 @@
 /**
  * Global application setup
- * This file is imported first to ensure environment variables are loaded
+ * Environment variables are loaded on-demand when needed
  */
-
-// Load environment variables
-import "./lib/env";
