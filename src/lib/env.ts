@@ -53,32 +53,25 @@ function loadEnvironment(): z.infer<typeof envSchema> {
   const nodeEnv = process.env.NODE_ENV || "development";
 
   // Load appropriate .env file based on environment (only if file exists)
-  // Use dynamic import to avoid bundling fs in client
-  if (typeof require !== "undefined") {
-    try {
-      const fs = require("fs");
-      switch (nodeEnv) {
-        case "production":
-          if (fs.existsSync(".env.production")) {
-            config({ path: ".env.production" });
-          }
-          break;
-        case "test":
-          if (fs.existsSync(".env.test")) {
-            config({ path: ".env.test" });
-          }
-          break;
-        case "development":
-        default:
-          if (fs.existsSync(".env")) {
-            config({ path: ".env" });
-          }
-          break;
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const fs = require("fs");
+  switch (nodeEnv) {
+    case "production":
+      if (fs.existsSync(".env.production")) {
+        config({ path: ".env.production" });
       }
-    } catch {
-      // If fs is not available, skip loading .env files
-      // This can happen in some build environments
-    }
+      break;
+    case "test":
+      if (fs.existsSync(".env.test")) {
+        config({ path: ".env.test" });
+      }
+      break;
+    case "development":
+    default:
+      if (fs.existsSync(".env")) {
+        config({ path: ".env" });
+      }
+      break;
   }
 
   // Validate environment variables
