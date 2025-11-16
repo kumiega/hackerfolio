@@ -22,7 +22,7 @@ export const prerender = false;
  * @returns 500 - Internal server error
  */
 export const GET: APIRoute = async (context) => {
-  const { params, request, cookies } = context;
+  const { params, request } = context;
   const requestId = crypto.randomUUID();
   const username = params.username;
 

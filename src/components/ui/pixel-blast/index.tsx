@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, type CSSProperties } from "react";
 import * as THREE from "three";
 import { EffectComposer, EffectPass, RenderPass, Effect, Pass } from "postprocessing";
 import "./index.css";
-import { useIsDarkMode, type Theme } from "@/hooks/use-theme";
+import { useIsDarkMode } from "@/hooks/use-theme";
 
 interface TouchPoint {
   x: number;
