@@ -698,6 +698,8 @@ describe("PortfolioService", () => {
         username,
         draft_data: mockPortfolio.draft_data,
         updated_at: mockPortfolio.updated_at,
+        has_published: false,
+        last_published_at: undefined,
       });
     });
 
@@ -726,7 +728,7 @@ describe("PortfolioService", () => {
 
       // Act & Assert
       await expect(PortfolioService.getPreviewPortfolioByUsername(mockSupabase, username, userId)).rejects.toThrow(
-        new AppError(undefined, undefined, {
+        new AppError(ERROR_CODES.UNAUTHORIZED, undefined, {
           userId,
           details: "You can only preview your own portfolio",
         })
