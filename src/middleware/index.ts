@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { getActionContext } from "astro:actions";
-import { createClientSSR, createClientService } from "@/db/supabase.client";
+import { createClientSSR } from "@/db/supabase.client";
 import { repositories } from "@/lib/repositories";
 
 // Route patterns using glob matching

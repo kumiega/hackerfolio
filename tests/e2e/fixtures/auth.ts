@@ -3,7 +3,6 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import type { AstroCookies } from "astro";
 import { config } from "dotenv";
-import { STORAGE_STATE_PATH } from "@/lib/const";
 
 config({ path: ".env.test" });
 

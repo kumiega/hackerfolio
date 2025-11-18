@@ -1,5 +1,4 @@
 import { defineConfig, devices } from "@playwright/test";
-import { STORAGE_STATE_PATH } from "./src/lib/const";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -18,7 +17,6 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        // storageState: STORAGE_STATE_PATH,
       },
     },
   ],
