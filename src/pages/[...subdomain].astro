@@ -7,7 +7,6 @@ import PixelBlast from "@/components/ui/pixel-blast";
 import { ModeToggle } from "@/components/ui/mode-toggle";
 
 import "@/styles/portfolio.css";
-import { getServerEnv } from "@/lib/env";
 
 export const prerender = false;
 
@@ -47,8 +46,7 @@ const url = new URL(request.url);
 const hostname = request.headers.get("host") || url.hostname;
 
 // Get subdomain
-const serverEnv = getServerEnv();
-const username = getSubdomain(hostname, serverEnv.PUBLIC_BASE_URL);
+const username = getSubdomain(hostname, import.meta.env.PUBLIC_BASE_URL);
 
 // If no subdomain, this is the main domain - redirect to homepage
 if (!username) {

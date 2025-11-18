@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { PUBLIC_SUPABASE_URL } from "astro:env/client";
-import { SUPABASE_SERVICE_ROLE_KEY } from "astro:env/server";
+
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 import type { Database } from "./database.types.ts";
 

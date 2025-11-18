@@ -13,7 +13,7 @@ if (user && !user.is_onboarded) {
 }
 ---
 
-<Layout title="Dashboard - Hackerfolio">
+<Layout title="Dashboard | Hackerfolio">
   <!-- Loading skeleton shown during server-side rendering -->
   <div id="dashboard-skeleton" class="[--header-height:calc(--spacing(14))]">
     <div class="flex flex-col">
@@ -115,5 +115,5 @@ if (user && !user.is_onboarded) {
     </div>
   </div>
 
-  <DashboardLayout user={user} client:only="react" />
+  <DashboardLayout user={user} client:only="react" data-testid="dashboard-page" />
 </Layout>

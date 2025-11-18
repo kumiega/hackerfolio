@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 import { getActionContext } from "astro:actions";
-import { createClientSSR } from "@/db/supabase.client";
+import { createClientSSR, createClientService } from "@/db/supabase.client";
 import { repositories } from "@/lib/repositories";
 
 // Route patterns using glob matching
@@ -54,11 +54,6 @@ export const onRequest = defineMiddleware(async (context, next) => {
   locals.supabase = supabase;
   locals.requestId = crypto.randomUUID();
 
-  // Check if this is a completely public route (no auth needed)
-  if (matchesPattern(url.pathname, PUBLIC_PAGE_PATTERNS) || matchesPattern(url.pathname, PUBLIC_API_PATTERNS)) {
-    return next();
-  }
-
   /**
    * Do not run code between createServerClient and supabase.auth.getUser(). A simple mistake could make it very hard to debug issues with users being randomly logged out.
    *
@@ -67,6 +62,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  if (matchesPattern(url.pathname, PUBLIC_PAGE_PATTERNS) || matchesPattern(url.pathname, PUBLIC_API_PATTERNS)) {
+    return next();
+  }
 
   // Check if this is a protected API route that requires authentication
   if (url.pathname.startsWith("/api/") && !matchesPattern(url.pathname, PUBLIC_API_PATTERNS)) {

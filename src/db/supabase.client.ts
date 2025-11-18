@@ -1,18 +1,26 @@
 import { createBrowserClient, createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import type { AstroCookies } from "astro";
-import { getSupabaseConfig } from "@/lib/env";
+import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY } from "astro:env/client";
+
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("Missing Supabase credentials");
+}
 
 /**
  * Create SSR client that uses cookies for session storage
  * This ensures client-side and server-side (SSR) can share the same session
  */
 export const createClientSSR = ({ request, cookies }: { request: Request; cookies: AstroCookies }) => {
-  const { url, anonKey } = getSupabaseConfig();
-  return createServerClient(url, anonKey, {
+  return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
     cookies: {
       getAll() {
-        return parseCookieHeader(request.headers.get("Cookie") ?? "").map((cookie) => ({
+        const cookieHeader = request.headers.get("Cookie") ?? "";
+
+        const parsed = parseCookieHeader(cookieHeader);
+        return parsed.map((cookie) => ({
           name: cookie.name,
           value: cookie.value ?? "",
         }));
@@ -35,8 +43,7 @@ export const createClientSSR = ({ request, cookies }: { request: Request; cookie
  * Create browser client for client-side operations
  */
 export const createClientBrowser = () => {
-  const { url, anonKey } = getSupabaseConfig();
-  return createBrowserClient(url, anonKey);
+  return createBrowserClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY);
 };
 
 /**
@@ -44,11 +51,7 @@ export const createClientBrowser = () => {
  * This client has full access to all data and should only be used for specific server operations
  */
 export const createClientService = () => {
-  const { url, serviceRoleKey } = getSupabaseConfig();
-  if (!serviceRoleKey) {
-    throw new Error("Service role key not available");
-  }
-  return createClient(url, serviceRoleKey, {
+  return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,

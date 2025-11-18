@@ -1,4 +1,5 @@
-import { Page, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect } from "@playwright/test";
 
 // Common e2e test utilities
 
@@ -70,17 +71,4 @@ export async function completeOnboarding(page: Page, username = "testuser") {
 
   // Should be redirected to dashboard after onboarding
   await expectToBeOnPage(page, /\/dashboard/);
-}
-
-// Database state helpers
-export async function ensureUserIsNotOnboarded(page: Page) {
-  // This would typically call a database reset function
-  // For now, we'll handle this in the test setup
-  await page.reload();
-}
-
-export async function ensureUserIsOnboarded(page: Page) {
-  // This would typically call a database setup function
-  // For now, we'll handle this in the test setup
-  await page.reload();
 }

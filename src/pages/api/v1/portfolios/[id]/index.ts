@@ -3,7 +3,10 @@ import type { ApiSuccessResponse, PortfolioDto, PublicPortfolioDto, UpdatePortfo
 import { z } from "zod";
 import { PortfolioService } from "@/lib/services/portfolio.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
-import { createClientService } from "@/db/supabase.client";
+import { createClient } from "@supabase/supabase-js";
+import { PUBLIC_SUPABASE_URL } from "astro:env/client";
+
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -89,6 +92,19 @@ const updatePortfolioSchema = z.object({
     sections: z.array(sectionSchema).max(10, "Maximum 10 sections allowed").optional(),
   }),
 });
+
+/**
+ * Create service role client for server-side operations that need to bypass RLS
+ * This client has full access to all data and should only be used for specific server operations
+ */
+const createClientService = () => {
+  return createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
+  });
+};
 
 /**
  * GET /api/v1/portfolios/:username

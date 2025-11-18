@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { STORAGE_STATE_PATH } from "./src/lib/const";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -15,11 +16,14 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // storageState: STORAGE_STATE_PATH,
+      },
     },
   ],
   webServer: {
-    command: "NODE_ENV=test npx astro dev --port 4321 --host 0.0.0.0",
+    command: "NODE_ENV=test npx astro dev --port 4321",
     url: "http://localhost:4321",
     reuseExistingServer: !process.env.CI,
     env: {
@@ -31,6 +35,4 @@ export default defineConfig({
     stdout: "pipe", // See server logs
     stderr: "pipe",
   },
-  globalSetup: "./tests/e2e/global-setup.ts",
-  globalTeardown: "./tests/e2e/global-teardown.ts",
 });

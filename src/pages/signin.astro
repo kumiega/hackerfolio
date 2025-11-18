@@ -8,8 +8,8 @@ const url = new URL(Astro.request.url);
 const error = url.searchParams.get("error");
 ---
 
-<Layout>
-  <div class="min-h-screen flex items-center justify-center bg-background">
+<Layout title="Sign in | Hackerfolio">
+  <div class="min-h-screen flex items-center justify-center bg-background" data-testid="signin-page">
     <div class="w-full max-w-md p-6">
       <div class="text-center mb-8">
         <h1 class="text-3xl font-bold text-foreground mb-5"><Logo className="text-2xl sm:text-5xl" /></h1>

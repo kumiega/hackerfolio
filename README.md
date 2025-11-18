@@ -56,6 +56,10 @@ cp .env.example .env
 # SUPABASE_ANON_KEY=...
 # OPENROUTER_API_KEY=...
 
+# For e2e testing, create a test environment file
+cp .env.test.example .env.test
+# Edit .env.test with your test Supabase credentials
+
 # Start development server
 npm run dev
 ```
@@ -76,6 +80,20 @@ npm run dev
 | `npm run test:integration` | Run integration tests     |
 | `npm run test:e2e`| Run end-to-end tests with Playwright |
 | `npm run test:coverage` | Run tests with coverage report |
+
+## Testing
+
+### E2E Testing Setup
+
+End-to-end tests require a separate Supabase project for testing:
+
+1. Create a new Supabase project for testing
+2. Copy `.env.test.example` to `.env.test`
+3. Fill in the test Supabase credentials in `.env.test`
+4. Configure GitHub OAuth in your test Supabase project
+5. Run `npm run test:e2e`
+
+**Note:** E2E tests will run without test environment setup, but authentication tests will be skipped.
 
 ## Project Scope
 

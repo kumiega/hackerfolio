@@ -17,9 +17,17 @@ import { ThemePage } from "@/components/page/dashboard/theme-page";
 interface DashboardLayoutProps {
   user: User;
   currentPath?: string;
+  "data-testid"?: string;
 }
 
-function DashboardContent({ user }: { user: User; currentPath?: string }) {
+function DashboardContent({
+  user,
+  "data-testid": dataTestId,
+}: {
+  user: User;
+  currentPath?: string;
+  "data-testid"?: string;
+}) {
   const location = useLocation();
 
   // Hide the loading skeleton once React mounts
@@ -31,7 +39,7 @@ function DashboardContent({ user }: { user: User; currentPath?: string }) {
   }, []);
 
   return (
-    <div className="[--header-height:calc(--spacing(14))]">
+    <div className="[--header-height:calc(--spacing(14))]" data-testid={dataTestId}>
       <SidebarProvider className="flex flex-col">
         <SiteHeader currentPath={location.pathname} />
         <div className="flex flex-1">
@@ -52,11 +60,11 @@ function DashboardContent({ user }: { user: User; currentPath?: string }) {
   );
 }
 
-export function DashboardLayout({ user, currentPath }: DashboardLayoutProps) {
+export function DashboardLayout({ user, currentPath, "data-testid": dataTestId }: DashboardLayoutProps) {
   return (
     <PortfolioChangeTrackerProvider>
       <BrowserRouter>
-        <DashboardContent user={user} currentPath={currentPath} />
+        <DashboardContent user={user} currentPath={currentPath} data-testid={dataTestId} />
       </BrowserRouter>
     </PortfolioChangeTrackerProvider>
   );

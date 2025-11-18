@@ -26,6 +26,7 @@ pnpm-debug.log*
 
 test-results/
 playwright-report/
+playwright/.auth/
 
 supabase/.temp/
 supabase/.branches

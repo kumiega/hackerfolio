@@ -1,400 +1,163 @@
-import type { Page } from "@playwright/test";
+import type { Page, APIRequestContext, Cookie } from "@playwright/test";
+import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
-import { getSupabaseConfig } from "../../../src/lib/env";
-import type { Session, EmailOtpType } from "@supabase/supabase-js";
+import type { AstroCookies } from "astro";
+import { config } from "dotenv";
+import { STORAGE_STATE_PATH } from "@/lib/const";
 
-interface TestUser {
+config({ path: ".env.test" });
+
+const PUBLIC_SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL ?? "";
+const PUBLIC_SUPABASE_KEY = process.env.PUBLIC_SUPABASE_KEY ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+
+if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+  throw new Error("Missing Supabase credentials");
+}
+
+export interface TestUser {
   id: string;
   email: string;
-  user_metadata?: Record<string, unknown>;
+  password: string;
 }
 
-// Test user credentials
-export const TEST_USER = {
-  id: "550e8400-e29b-41d4-a716-446655440001",
-  email: "e2e-test-user-2025-unique@example.com",
-  password: "secure-test-password-123!",
-  username: "e2e-test-user",
-  name: "E2E Test User",
-};
-
-// Test user configurations (templates for creating users)
-export const TEST_USER_CONFIGS = {
-  NEW_USER: {
-    email: "e2e-test-user-2025-unique@example.com",
-    password: "secure-test-password-123!",
-    username: "e2e-test-user",
-    name: "E2E Test User",
+export const supabaseAdmin = createClient(PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
   },
-  ONBOARDED_USER: {
-    email: "e2e-onboarded-user-2025-unique@example.com",
-    password: "secure-test-password-123!",
-    username: "e2e-onboarded-user",
-    name: "E2E Onboarded User",
-  },
-};
+});
 
-type TestUserConfig = (typeof TEST_USER_CONFIGS)[keyof typeof TEST_USER_CONFIGS];
+export function createAnonClient({
+  request, // eslint-disable-line @typescript-eslint/no-unused-vars
+  cookies,
+  page,
+}: {
+  request: Request | APIRequestContext;
+  cookies: AstroCookies | Cookie[];
+  page?: Page;
+}): ReturnType<typeof createServerClient> {
+  // Handle Playwright types (cookies is an array)
+  if (Array.isArray(cookies)) {
+    const playwrightCookies = cookies as Cookie[];
+    const cookieStore: Cookie[] = [...playwrightCookies];
 
-interface EnsureTestUserOptions {
-  isOnboarded?: boolean;
-}
+    return createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY, {
+      cookies: {
+        getAll() {
+          return cookieStore.map((cookie) => ({
+            name: cookie.name,
+            value: cookie.value,
+          }));
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Update our in-memory cookie store
+            const existingIndex = cookieStore.findIndex((c) => c.name === name);
+            const cookie: Cookie = {
+              name,
+              value,
+              domain: options?.domain || "localhost",
+              path: options?.path || "/",
+              expires: options?.expires ? Math.floor(new Date(options.expires).getTime() / 1000) : -1,
+              httpOnly: options?.httpOnly || false,
+              secure: options?.secure || false,
+              sameSite: (options?.sameSite as "Strict" | "Lax" | "None") || "Lax",
+            };
 
-// Storage for created test users (will be populated during setup)
-const createdUsers: Record<string, TestUser> = {};
+            if (existingIndex >= 0) {
+              cookieStore[existingIndex] = cookie;
+            } else {
+              cookieStore.push(cookie);
+            }
 
-// Create Supabase admin client for managing test users
-export function createSupabaseAdminClient() {
-  const { url, serviceRoleKey } = getSupabaseConfig();
-
-  if (!url || !serviceRoleKey) {
-    throw new Error("Missing Supabase admin credentials");
-  }
-
-  return createClient(url, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
-
-// Create Supabase client for regular operations
-export function createSupabaseClient() {
-  const { url, anonKey } = getSupabaseConfig();
-
-  if (!url || !anonKey) {
-    throw new Error("Missing Supabase credentials");
-  }
-
-  return createClient(url, anonKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
-  });
-}
-
-// Store a created user for later retrieval
-export function storeCreatedUser(key: string, user: TestUser) {
-  createdUsers[key] = user;
-}
-
-// Get a created user by key
-export function getCreatedUser(key: string) {
-  const user = createdUsers[key];
-  if (!user) {
-    throw new Error(`Test user ${key} not found. Make sure it was created during setup.`);
-  }
-  return user;
-}
-
-// Create or ensure test user exists using admin API
-export async function ensureTestUserExists(userConfig: TestUserConfig, key?: string, options?: EnsureTestUserOptions) {
-  const supabaseAdmin = createSupabaseAdminClient();
-  const isOnboarded = options?.isOnboarded ?? false;
-
-  try {
-    // First, check if user already exists and delete them to start fresh
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-    const existingUser = users.users.find((u) => u.email === userConfig.email);
-
-    if (existingUser) {
-      await setUserOnboardingState(existingUser.id, isOnboarded, userConfig.username);
-      if (key) {
-        storeCreatedUser(key, existingUser);
-      }
-      return existingUser;
-    }
-
-    // Now create the user fresh
-    const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-      email: userConfig.email,
-      password: userConfig.password,
-      email_confirm: true, // Auto-confirm for testing
-      user_metadata: {
-        full_name: userConfig.name,
-        avatar_url: "https://github.com/images/error/testuser_happy.gif",
-        preferred_username: userConfig.username,
-        provider: "github",
-        providers: ["github"],
+            // If we have a page context, also add to browser
+            if (page) {
+              page.context().addCookies([
+                {
+                  name,
+                  value,
+                  domain: options?.domain || "localhost",
+                  path: options?.path || "/",
+                  expires: options?.expires ? new Date(options.expires).getTime() / 1000 : undefined,
+                  httpOnly: options?.httpOnly || false,
+                  secure: options?.secure || false,
+                  sameSite: (options?.sameSite?.toLowerCase() === "strict"
+                    ? "Strict"
+                    : options?.sameSite?.toLowerCase() === "none"
+                      ? "None"
+                      : "Lax") as "Strict" | "Lax" | "None",
+                },
+              ]);
+            }
+          });
+        },
       },
     });
-
-    if (createError) {
-      throw new Error(`Failed to create test user: ${(createError as Error).message}`);
-    }
-
-    const createdUser = newUser.user;
-    if (!createdUser) {
-      throw new Error("Test user creation succeeded but user data is missing");
-    }
-    await setUserOnboardingState(createdUser.id, isOnboarded, userConfig.username);
-
-    // Store the created user for later use
-    if (key) {
-      storeCreatedUser(key, createdUser);
-    }
-
-    return createdUser;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(`❌ Failed to ensure test user exists:`, error);
-    throw error;
   }
 }
 
-// Generate a session token for a test user
-export async function generateTestUserSession(userId: string) {
-  const supabaseAdmin = createSupabaseAdminClient();
-  const supabaseClient = createSupabaseClient();
+export async function createTestUser(user: TestUser): Promise<string> {
+  const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
+  const existing = existingUser?.users.find((u) => u.email === user.email);
 
-  try {
-    // Get user details
-    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId);
+  if (existing) return existing.id;
 
-    if (userError || !userData.user) {
-      throw new Error(`Test user not found: ${userId}`);
-    }
-
-    // Generate a magic link
-    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-      type: "magiclink",
-      email: userData.user.email,
-    });
-
-    if (linkError || !linkData.properties) {
-      throw new Error(`Failed to generate magic link: ${(linkError as Error)?.message}`);
-    }
-
-    // Extract the token hash from the action link URL or properties
-    const actionLink = linkData.properties.action_link;
-    const url = new URL(actionLink);
-
-    // The admin API returns 'token' in URL params, but verifyOtp expects 'token_hash'
-    // We can use either the 'token' from URL or 'hashed_token' from properties
-    const tokenHash = url.searchParams.get("token") || linkData.properties.hashed_token;
-    const type = url.searchParams.get("type");
-
-    if (!tokenHash || !type) {
-      // eslint-disable-next-line no-console
-      console.error("❌ Could not extract token from magic link");
-      // eslint-disable-next-line no-console
-      console.error("❌ Action link URL:", actionLink);
-      // eslint-disable-next-line no-console
-      console.error("❌ URL search params:", Object.fromEntries(url.searchParams.entries()));
-      // eslint-disable-next-line no-console
-      console.error("❌ Properties:", linkData.properties);
-      throw new Error("Could not extract token from magic link");
-    }
-
-    // Use the client to verify the OTP and get a real session
-    const { data: verifyData, error: verifyError } = await supabaseClient.auth.verifyOtp({
-      token_hash: tokenHash,
-      type: type as EmailOtpType,
-    });
-
-    if (verifyError || !verifyData.session) {
-      throw new Error(`Failed to verify OTP: ${(verifyError as Error)?.message}`);
-    }
-
-    return verifyData.session;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to generate test user session:", error);
-    throw error;
-  }
-}
-
-// Set up authentication state in Playwright page
-export async function setPageAuthentication(page: Page, session: Session) {
-  // Get Supabase URL and key
-  const { url: supabaseUrl, anonKey: supabaseKey } = getSupabaseConfig();
-
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error("Missing Supabase credentials");
-  }
-
-  // Navigate to a page first to establish the browsing context
-  await page.goto("/");
-
-  // Create Supabase localStorage key
-  const supabaseKeyName = `sb-${new URL(supabaseUrl).hostname.split(".")[0]}-auth-token`;
-
-  // Set the session in localStorage for client-side Supabase client
-  await page.evaluate(
-    ({ sessionData, supabaseKeyName }) => {
-      localStorage.setItem(supabaseKeyName, JSON.stringify(sessionData));
-    },
-    {
-      sessionData: session,
-      supabaseKeyName,
-    }
-  );
-
-  // Set HTTP cookies that Playwright will send with requests to the Astro dev server
-  // The middleware reads cookies via parseCookieHeader
-  const sessionString = JSON.stringify(session);
-  await page.context().addCookies([
-    {
-      name: supabaseKeyName,
-      value: sessionString,
-      domain: "localhost",
-      path: "/",
-      httpOnly: false,
-      secure: false,
-    },
-  ]);
-}
-
-// Sign in a test user by creating session and setting auth state
-export async function signInTestUser(page: Page, user: TestUser) {
-  try {
-    // Generate session using the actual user ID
-    const session = await generateTestUserSession(user.id);
-
-    // Profile should already exist from global setup
-    // No need to create/update profile here
-
-    // Set authentication state in page
-    await setPageAuthentication(page, session);
-
-    return session;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error(`❌ Failed to sign in test user ${user.email}:`, error);
-    throw error;
-  }
-}
-
-// Clear authentication state
-export async function clearAuthentication(page: Page) {
-  await page.context().clearCookies();
-  await page.evaluate(() => {
-    // Clear all localStorage keys that might contain auth tokens
-    const keys = Object.keys(localStorage);
-    keys.forEach((key) => {
-      if (key.includes("auth-token") || key.includes("supabase")) {
-        localStorage.removeItem(key);
-      }
-    });
+  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+    email: user.email,
+    password: user.password,
+    email_confirm: true,
   });
+
+  if (error) throw error;
+
+  return data.user.id;
 }
 
-// Update user onboarding state in database
-export async function setUserOnboardingState(userId: string, isOnboarded: boolean, username?: string) {
-  const supabaseAdmin = createSupabaseAdminClient();
-
-  try {
-    // First, check if profile already exists
-    const { data: existingProfile, error: checkError } = await supabaseAdmin
-      .from("user_profiles")
-      .select("id, is_onboarded, username")
-      .eq("id", userId)
-      .single();
-
-    if (existingProfile && !checkError) {
-      // Update existing profile
-      const { error: updateError } = await supabaseAdmin
-        .from("user_profiles")
-        .update({
-          is_onboarded: isOnboarded,
-          ...(username && { username }),
-        })
-        .eq("id", userId);
-
-      if (updateError) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to update existing profile:", updateError);
-      }
-      return;
-    }
-
-    // Profile doesn't exist, create it
-
-    const { error: insertError } = await supabaseAdmin.from("user_profiles").insert({
-      id: userId,
-      is_onboarded: isOnboarded,
-      ...(username && { username }),
-    });
-
-    if (insertError) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to create profile:", insertError);
-      // eslint-disable-next-line no-console
-      console.warn("⚠️  Continuing without user profile - this may cause authentication issues");
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to set user onboarding state:", error);
-    // eslint-disable-next-line no-console
-    console.warn("⚠️  Continuing without user profile - this may cause authentication issues");
-  }
+export async function deleteTestUser(userId: string): Promise<void> {
+  const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+  if (error) throw error;
 }
 
-// Get user onboarding state
-export async function getUserOnboardingState(userId: string) {
-  const supabaseAdmin = createSupabaseAdminClient();
+export async function loginUser(page: Page, user: TestUser): Promise<void> {
+  const client = createAnonClient({
+    request: page.context().request,
+    cookies: await page.context().cookies(),
+    page,
+  });
 
-  try {
-    const { data, error } = await supabaseAdmin.from("user_profiles").select("is_onboarded").eq("id", userId).single();
+  const { data, error } = await client.auth.signInWithPassword({
+    email: user.email,
+    password: user.password,
+  });
 
-    if (error) {
-      // If profile doesn't exist, user is not onboarded
-      return false;
-    }
+  if (error) throw error;
+  if (!data.session) throw new Error("Missing Supabase session");
 
-    return data?.is_onboarded ?? false;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to get user onboarding state:", error);
-    return false;
-  }
+  // Navigate to a page that will set the cookies properly
+  await page.goto("/signin");
+
+  // Inject the session directly via browser context
+  await page.evaluate((session) => {
+    // This will be picked up by your Supabase client
+    localStorage.setItem("supabase.auth.token", JSON.stringify(session));
+  }, data.session);
+
+  // Reload to pick up the session
+  await page.reload();
+  await page.waitForLoadState("networkidle");
+
+  // Now navigate to dashboard
+  await page.goto("/dashboard");
+  // await page.context().storageState({ path: STORAGE_STATE_PATH });
 }
 
-// Update onboarding state for existing profile (for test scenarios)
-export async function updateUserOnboardingState(userId: string, isOnboarded: boolean) {
-  const supabaseAdmin = createSupabaseAdminClient();
-
-  try {
-    const { error } = await supabaseAdmin.from("user_profiles").update({ is_onboarded: isOnboarded }).eq("id", userId);
-
-    if (error) {
-      // eslint-disable-next-line no-console
-      console.error("Failed to update user onboarding state:", error);
-      throw error;
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to update user onboarding state:", error);
-    throw error;
-  }
+export async function logoutUser(page: Page): Promise<void> {
+  await page.context().clearCookies();
 }
 
-// Clean up test users (used in teardown)
-export async function cleanupTestUsers() {
-  const supabaseAdmin = createSupabaseAdminClient();
+export async function setUserOnboardingState(userId: string, isOnboarded: boolean): Promise<void> {
+  const { error } = await supabaseAdmin.from("user_profiles").update({ is_onboarded: isOnboarded }).eq("id", userId);
 
-  try {
-    // Get all users and find test users by email pattern
-    const { data: users } = await supabaseAdmin.auth.admin.listUsers();
-
-    const testUsers = users.users.filter(
-      (u) => u.email?.includes("e2e-test-user") || u.email?.includes("e2e-onboarded-user")
-    );
-
-    for (const user of testUsers) {
-      try {
-        // Delete user via Admin API (this cascades to profiles and related data)
-        await supabaseAdmin.auth.admin.deleteUser(user.id);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.warn(`⚠️  Could not delete test user ${user.email}:`, (error as Error).message);
-      }
-    }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Failed to cleanup test users:", error);
-    // Don't throw - cleanup failures shouldn't break tests
-  }
+  if (error) throw error;
 }
