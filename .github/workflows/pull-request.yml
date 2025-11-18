@@ -43,12 +43,59 @@ jobs:
         with:
           name: coverage-unit-tests
           path: coverage
+  
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    environment: test
+    permissions:
+      contents: read
+
+    env:
+      NODE_ENV: test
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL || 'https://hackerfolio.dev' }}
+      PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
+      PUBLIC_SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      GOTRUE_DISABLE_SIGNUP: ${{ vars.GOTRUE_DISABLE_SIGNUP || 'false' }}
+      GOTRUE_EXTERNAL_HOSTS: ${{ vars.GOTRUE_EXTERNAL_HOSTS || 'hackerfolio.dev' }}
+      GOTRUE_URI_ALLOW_LIST: ${{ vars.GOTRUE_URI_ALLOW_LIST || 'https://hackerfolio.dev' }}
+      GOTRUE_EXTERNAL_GITHUB_ENABLED: ${{ vars.GOTRUE_EXTERNAL_GITHUB_ENABLED || 'true' }}
+      GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_CLIENT_ID }}
+      GOTRUE_EXTERNAL_GITHUB_SECRET: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_SECRET }}
+      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ vars.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'https://hackerfolio.dev/auth/callback' }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        run: pnpm run test:e2e
+
+      - name: Upload e2e test results
+        uses: actions/upload-artifact@v5
+        if: always()
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 30
+
 
   build:
     environment: production
     name: Build Project
     runs-on: ubuntu-latest
-    needs: [unit-test]
+    needs: [unit-test, e2e-test]
     permissions:
       contents: read
 
@@ -87,7 +134,7 @@ jobs:
   status-report:
     name: Status Report
     runs-on: ubuntu-latest
-    needs: [lint, unit-test, build]
+    needs: [lint, unit-test, build, e2e-test]
     if: always()
     permissions:
       contents: read
@@ -98,7 +145,8 @@ jobs:
         run: |
           if [ "${{ needs.lint.result }}" = "failure" ] || \
              [ "${{ needs.unit-test.result }}" = "failure" ] || \
-             [ "${{ needs.build.result }}" = "failure" ]; then
+             [ "${{ needs.build.result }}" = "failure" ] || \
+             [ "${{ needs.e2e-test.result }}" = "failure" ]; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "symbol=❌" >> $GITHUB_OUTPUT
           else
@@ -120,5 +168,6 @@ jobs:
           echo "- **Linting**: ${{ needs.lint.result == 'success' && '✅ Passed' || '❌ Failed' }}"
           echo "- **Unit Tests**: ${{ needs.unit-test.result == 'success' && '✅ Passed' || '❌ Failed' }}"
           echo "- **Build**: ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }}"
+          echo "- **E2E Tests**: ${{ needs.e2e-test.result == 'success' && '✅ Passed' || '❌ Failed' }}"
           echo ""
           echo "### Overall Status: ${{ steps.check.outputs.status }}"
