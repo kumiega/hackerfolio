@@ -81,9 +81,9 @@ export function createAnonClient({
                   expires: options?.expires ? new Date(options.expires).getTime() / 1000 : undefined,
                   httpOnly: options?.httpOnly || false,
                   secure: options?.secure || false,
-                  sameSite: (options?.sameSite?.toLowerCase() === "strict"
+                  sameSite: (typeof options?.sameSite === "string" && options.sameSite.toLowerCase() === "strict"
                     ? "Strict"
-                    : options?.sameSite?.toLowerCase() === "none"
+                    : typeof options?.sameSite === "string" && options.sameSite.toLowerCase() === "none"
                       ? "None"
                       : "Lax") as "Strict" | "Lax" | "None",
                 },
