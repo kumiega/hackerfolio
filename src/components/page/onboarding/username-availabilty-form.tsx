@@ -18,7 +18,7 @@ type UsernameFormData = z.infer<typeof usernameSchema>;
 const USERNAME_MIN_LENGTH = 3;
 const USERNAME_MAX_LENGTH = 30;
 const DEBOUNCE_DELAY = 500;
-const DOMAIN_SUFFIX = ".hackerfolio.com";
+const DOMAIN_SUFFIX = `.${import.meta.env.PUBLIC_BASE_DOMAIN}`;
 const AVAILABILITY_API_URL = "/api/v1/profiles/username-availability";
 const CLAIM_API_URL = "/api/v1/profiles/claim-username";
 

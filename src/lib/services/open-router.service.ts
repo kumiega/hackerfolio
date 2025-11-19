@@ -70,7 +70,7 @@ export class OpenRouterService {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${apiKey}`,
-            "HTTP-Referer": "https://hackerfolio.com",
+            "HTTP-Referer": import.meta.env.PUBLIC_BASE_URL,
             "X-Title": "Hackerfolio Profile Generation",
           },
           body: JSON.stringify({

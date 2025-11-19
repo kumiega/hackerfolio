@@ -27,7 +27,7 @@ export function getPortfolioPublicUrl(username: string): string {
   if (isProduction) {
     // Get base domain from PUBLIC_BASE_URL environment variable
     const baseUrl = import.meta.env.PUBLIC_BASE_URL;
-    let baseDomain = "hackerfolio.com"; // fallback default
+    let baseDomain = import.meta.env.PUBLIC_BASE_DOMAIN;
 
     if (baseUrl) {
       try {

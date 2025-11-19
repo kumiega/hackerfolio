@@ -16,7 +16,7 @@ function getSubdomain(hostname: string, baseUrl?: string): string | null {
   const cleanHostname = hostname.split(":")[0];
 
   // If baseUrl is provided, extract domain from it
-  let baseDomain = "hackerfolio.com"; // default
+  let baseDomain = import.meta.env.PUBLIC_BASE_DOMAIN;
   if (baseUrl) {
     try {
       const url = new URL(baseUrl);
