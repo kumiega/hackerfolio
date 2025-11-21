@@ -54,17 +54,17 @@ jobs:
 
     env:
       NODE_ENV: test
-      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL || 'https://hackerfolio.dev' }}
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL || 'https://hackerfolio.com' }}
       PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
       PUBLIC_SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       GOTRUE_DISABLE_SIGNUP: ${{ vars.GOTRUE_DISABLE_SIGNUP || 'false' }}
-      GOTRUE_EXTERNAL_HOSTS: ${{ vars.GOTRUE_EXTERNAL_HOSTS || 'hackerfolio.dev' }}
-      GOTRUE_URI_ALLOW_LIST: ${{ vars.GOTRUE_URI_ALLOW_LIST || 'https://hackerfolio.dev' }}
+      GOTRUE_EXTERNAL_HOSTS: ${{ vars.GOTRUE_EXTERNAL_HOSTS || 'hackerfolio.com' }}
+      GOTRUE_URI_ALLOW_LIST: ${{ vars.GOTRUE_URI_ALLOW_LIST || 'https://hackerfolio.com' }}
       GOTRUE_EXTERNAL_GITHUB_ENABLED: ${{ vars.GOTRUE_EXTERNAL_GITHUB_ENABLED || 'true' }}
       GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_CLIENT_ID }}
       GOTRUE_EXTERNAL_GITHUB_SECRET: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_SECRET }}
-      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ vars.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'https://hackerfolio.dev/auth/callback' }}
+      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ vars.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'https://api.hackerfolio.com/auth/v1/callback' }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
     steps:
@@ -90,7 +90,6 @@ jobs:
             playwright-report/
           retention-days: 30
 
-
   build:
     environment: production
     name: Build Project
@@ -101,17 +100,17 @@ jobs:
 
     env:
       NODE_ENV: production
-      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL || 'https://hackerfolio.dev' }}
+      PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL || 'https://hackerfolio.com' }}
       PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL }}
       PUBLIC_SUPABASE_KEY: ${{ vars.PUBLIC_SUPABASE_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       GOTRUE_DISABLE_SIGNUP: ${{ vars.GOTRUE_DISABLE_SIGNUP || 'false' }}
-      GOTRUE_EXTERNAL_HOSTS: ${{ vars.GOTRUE_EXTERNAL_HOSTS || 'hackerfolio.dev' }}
-      GOTRUE_URI_ALLOW_LIST: ${{ vars.GOTRUE_URI_ALLOW_LIST || 'https://hackerfolio.dev' }}
+      GOTRUE_EXTERNAL_HOSTS: ${{ vars.GOTRUE_EXTERNAL_HOSTS || 'hackerfolio.com' }}
+      GOTRUE_URI_ALLOW_LIST: ${{ vars.GOTRUE_URI_ALLOW_LIST || 'https://hackerfolio.com' }}
       GOTRUE_EXTERNAL_GITHUB_ENABLED: ${{ vars.GOTRUE_EXTERNAL_GITHUB_ENABLED || 'true' }}
       GOTRUE_EXTERNAL_GITHUB_CLIENT_ID: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_CLIENT_ID }}
       GOTRUE_EXTERNAL_GITHUB_SECRET: ${{ secrets.GOTRUE_EXTERNAL_GITHUB_SECRET }}
-      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ vars.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'https://hackerfolio.dev/auth/callback' }}
+      GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI: ${{ vars.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI || 'https://hackerfolio.com/api/v1/auth/callback' }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
     steps:
