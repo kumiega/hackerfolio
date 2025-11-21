@@ -6,8 +6,7 @@ import sitemap from "@astrojs/sitemap";
 import tailwindcss from "@tailwindcss/vite";
 import node from "@astrojs/node";
 
-// Load environment setup early
-import "./src/setup";
+const BASE_DOMAIN = import.meta.env.PUBLIC_BASE_DOMAIN;
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,7 +16,7 @@ export default defineConfig({
   vite: {
     plugins: [tailwindcss()],
     server: {
-      allowedHosts: ["heroic-pony-exact.ngrok-free.app", ".hackerfolio.com", "hackerfolio.com"],
+      allowedHosts: [`.${BASE_DOMAIN}`, BASE_DOMAIN],
     },
   },
   adapter: node({

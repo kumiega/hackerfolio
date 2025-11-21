@@ -5,8 +5,8 @@ import { PortfolioService } from "@/lib/services/portfolio.service";
 import { handleApiError, createErrorResponse } from "@/lib/error-handler";
 import { createClient } from "@supabase/supabase-js";
 
-const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const SUPABASE_INTERNAL_URL = import.meta.env.SUPABASE_INTERNAL_URL ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 // Disable prerendering for this API route
 export const prerender = false;

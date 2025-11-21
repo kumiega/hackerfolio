@@ -6,9 +6,9 @@ import { config } from "dotenv";
 
 config({ path: ".env.test" });
 
-const PUBLIC_SUPABASE_URL = process.env.PUBLIC_SUPABASE_URL ?? "";
-const PUBLIC_SUPABASE_KEY = process.env.PUBLIC_SUPABASE_KEY ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const PUBLIC_SUPABASE_URL = import.meta.env.PUBLIC_SUPABASE_URL ?? "";
+const PUBLIC_SUPABASE_KEY = import.meta.env.PUBLIC_SUPABASE_KEY ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing Supabase credentials");

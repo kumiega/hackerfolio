@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import type { AstroCookies } from "astro";
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY } from "astro:env/client";
 
-const SUPABASE_INTERNAL_URL = process.env.SUPABASE_INTERNAL_URL ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+const SUPABASE_INTERNAL_URL = import.meta.env.SUPABASE_INTERNAL_URL ?? "";
+const SUPABASE_SERVICE_ROLE_KEY = import.meta.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 
 if (!PUBLIC_SUPABASE_URL || !PUBLIC_SUPABASE_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error("Missing Supabase credentials");
