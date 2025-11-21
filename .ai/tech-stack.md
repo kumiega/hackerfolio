@@ -17,4 +17,4 @@ Komunikacja z modelami AI:
 CI/CD i hosting:
 
 - Github Actions
-- DigitalOcean
+- Mikr.us (VPS)

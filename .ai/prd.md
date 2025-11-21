@@ -18,7 +18,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
    - GitHub OAuth
    - Email/hasło z Supabase Auth
 2. Onboarding
-   - Wybór unikalnego username (subdomena username.hackerfolio.test)
+   - Wybór unikalnego username (subdomena {username}.hackerfolio.com)
    - Opcjonalny quick start wizard: import z GitHub lub start od zera
 3. Zarządzanie sekcjami i komponentami
    - Sekcje zawierają komponenty w strukturze JSONB
@@ -37,7 +37,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
    - System draft/publish: użytkownik edytuje wersję roboczą (draft_data)
    - Publikacja kopiuje draft_data → published_data
    - Draft widoczny tylko dla właściciela w /preview/{username}
-   - Opublikowane portfolio widoczne publicznie na {username}.hackerfolio.test
+   - Opublikowane portfolio widoczne publicznie na {username}.hackerfolio.com
    - Walidacja min. 1 sekcja i 1 komponent przed publikacją
    - Możliwość publikacji nowych zmian (nadpisanie published_data)
 8. Dashboard
@@ -139,7 +139,7 @@ Programiści aktywnie poszukujący pracy często nie mają czasu ani kompetencji
 
   - System waliduje minimum jednej sekcji z co najmniej jednym komponentem w draft_data
   - Publikacja kopiuje draft_data → published_data i ustawia last_published_at
-  - Portfolio staje się publicznie dostępne na {username}.hackerfolio.test
+  - Portfolio staje się publicznie dostępne na {username}.hackerfolio.com
   - Użytkownik może publikować kolejne zmiany (published_data zostaje nadpisane)
 
 - ID: US-009  
