@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import { AuthService } from "@/lib/services/auth.service";
 import { logError } from "@/lib/error-utils";
 import type { ApiSuccessResponse, ApiErrorResponse, UsernameAvailabilityDto } from "@/types";
+import { RESERVED_USERNAMES } from "@/lib/const";
 
 // Disable prerendering for this API route
 export const prerender = false;
@@ -19,6 +20,16 @@ const USERNAME_REGEX = /^[a-z0-9-]{3,30}$/;
  */
 function isValidUsername(username: string): boolean {
   return USERNAME_REGEX.test(username);
+}
+
+/**
+ * Checks if a username is reserved
+ *
+ * @param username - Username string to check
+ * @returns true if reserved, false otherwise
+ */
+function isReservedUsername(username: string): boolean {
+  return RESERVED_USERNAMES.has(username.toLowerCase());
 }
 
 /**
@@ -65,6 +76,21 @@ export const GET: APIRoute = async (context) => {
           requestId,
         },
       };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    if (isReservedUsername(usernameParam)) {
+      const errorResponse: ApiErrorResponse = {
+        error: {
+          code: "RESERVED_USERNAME",
+          message: "Username is invalid",
+          requestId,
+        },
+      };
+
       return new Response(JSON.stringify(errorResponse), {
         status: 400,
         headers: { "Content-Type": "application/json" },
