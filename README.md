@@ -40,7 +40,7 @@ Hackerfolio is an MVP application that enables developers to generate a professi
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/hackerfolio.git
+git clone https://github.com/kumiega/hackerfolio.git
 cd hackerfolio
 
 # Use the correct Node version
