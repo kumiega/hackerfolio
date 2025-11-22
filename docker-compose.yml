@@ -1,0 +1,203 @@
+version: '3.8'
+
+services:
+  astro-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PUBLIC_BASE_URL: ${PUBLIC_BASE_URL}
+        PUBLIC_BASE_DOMAIN: ${PUBLIC_BASE_DOMAIN}
+        PUBLIC_SUPABASE_URL: ${PUBLIC_SUPABASE_URL}
+        PUBLIC_SUPABASE_KEY: ${ANON_KEY}
+    container_name: astro-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:4321:4321"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=4321
+      - SUPABASE_INTERNAL_URL=http://kong:8000 
+    depends_on:
+      kong:
+        condition: service_started
+    networks:
+      - app-network
+
+  # --- SUPABASE SERVICES ---
+  
+  studio:
+    image: supabase/studio:2025.11.10-sha-5291fe3
+    container_name: supabase-studio
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      analytics:
+        condition: service_healthy
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_HOST: db
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_public_URL: ${PUBLIC_SUPABASE_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      LOGFLARE_URL: http://analytics:4000
+    networks:
+      - app-network
+
+  kong:
+    image: kong:2.8.1
+    container_name: supabase-kong
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000" # API dostępne dla Nginx
+    volumes:
+      # Upewnij się, że ten plik istnieje w repo w ./supabase/volumes/api/kong.yml
+      - ./supabase/volumes/api/kong.yml:/home/kong/temp.yml:ro
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth,request-termination,ip-restriction
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+    entrypoint: bash -c 'eval "echo \"$(cat ~/temp.yml)\"" > ~/kong.yml && /docker-entrypoint.sh kong docker-start'
+    networks:
+      - app-network
+
+  auth:
+    image: supabase/gotrue:v2.182.1
+    container_name: supabase-auth
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: https://api.hackerfolio.com
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      GOTRUE_SITE_URL: ${PUBLIC_BASE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${GOTRUE_URI_ALLOW_LIST}
+      GOTRUE_Jwt_SECRET: ${JWT_SECRET}
+    networks:
+      - app-network
+
+  rest:
+    image: postgrest/postgrest:v13.0.7
+    container_name: supabase-rest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_SCHEMAS: public,storage,graphql_public
+    networks:
+      - app-network
+
+  realtime:
+    image: supabase/realtime:v2.63.0
+    container_name: supabase-realtime
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: supabase_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      API_JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY_BASE: ${JWT_SECRET} 
+    networks:
+      - app-network
+
+  storage:
+    image: supabase/storage-api:v1.29.0
+    container_name: supabase-storage
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+    volumes:
+      - supabase-storage:/var/lib/storage:rw
+    networks:
+      - app-network
+
+  imgproxy:
+    image: darthsim/imgproxy:v3.8.0
+    container_name: supabase-imgproxy
+    restart: unless-stopped
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+    volumes:
+      - supabase-storage:/var/lib/storage:ro
+    networks:
+      - app-network
+
+  meta:
+    image: supabase/postgres-meta:v0.93.1
+    container_name: supabase-meta
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - app-network
+
+  analytics:
+    image: supabase/logflare:1.22.6
+    container_name: supabase-analytics
+    restart: unless-stopped
+    environment:
+      DB_HOSTNAME: db
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - app-network
+
+  db:
+    image: supabase/postgres:15.8.1.085
+    container_name: supabase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - ./supabase/volumes/db/init/init.sql:/docker-entrypoint-initdb.d/init-scripts/00-init.sql:Z
+      - ./supabase/volumes/db/realtime.sql:/docker-entrypoint-initdb.d/migrations/99-realtime.sql:Z
+      - ./supabase/volumes/db/webhooks.sql:/docker-entrypoint-initdb.d/init-scripts/98-webhooks.sql:Z
+      - ./supabase/volumes/db/roles.sql:/docker-entrypoint-initdb.d/init-scripts/99-roles.sql:Z
+      - ./supabase/volumes/db/jwt.sql:/docker-entrypoint-initdb.d/init-scripts/99-jwt.sql:Z
+      - supabase-db-data:/var/lib/postgresql/data 
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  supabase-db-data:
+  supabase-storage:

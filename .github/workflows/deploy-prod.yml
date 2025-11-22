@@ -1,0 +1,94 @@
+name: Deploy to VPS
+
+on:
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy:
+    environment: production
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          # App
+          PUBLIC_BASE_URL=${{ secrets.PUBLIC_BASE_URL }}
+          PUBLIC_BASE_DOMAIN=${{ secrets.PUBLIC_BASE_DOMAIN }}
+          
+          # Supabase
+          PUBLIC_SUPABASE_URL=${{ secrets.PUBLIC_SUPABASE_URL }}
+          PUBLIC_SUPABASE_KEY=${{ secrets.PUBLIC_SUPABASE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SUPABASE_INTERNAL_URL=${{ secrets.SUPABASE_INTERNAL_URL }}
+          
+          # Database
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          
+          # Studio
+          STUDIO_DEFAULT_ORGANIZATION=${{ secrets.STUDIO_DEFAULT_ORGANIZATION }}
+          STUDIO_DEFAULT_PROJECT=${{ secrets.STUDIO_DEFAULT_PROJECT }}
+          
+          # Auth
+          GOTRUE_DISABLE_SIGNUP=${{ secrets.GOTRUE_DISABLE_SIGNUP }}
+          GOTRUE_EXTERNAL_HOSTS=${{ secrets.GOTRUE_EXTERNAL_HOSTS }}
+          GOTRUE_URI_ALLOW_LIST=${{ secrets.GOTRUE_URI_ALLOW_LIST }}
+          GOTRUE_EXTERNAL_GITHUB_ENABLED=${{ secrets.GOTRUE_EXTERNAL_GITHUB_ENABLED }}
+          GOTRUE_EXTERNAL_GITHUB_CLIENT_ID=${{ secrets.GOTRUE_EXTERNAL_GITHUB_CLIENT_ID }}
+          GOTRUE_EXTERNAL_GITHUB_SECRET=${{ secrets.GOTRUE_EXTERNAL_GITHUB_SECRET }}
+          GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI=${{ secrets.GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI }}
+          
+          # AI
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          OPENROUTER_DEFAULT_MODEL=${{ secrets.OPENROUTER_DEFAULT_MODEL }}
+          OPENROUTER_FALLBACK_MODELS=${{ secrets.OPENROUTER_FALLBACK_MODELS }}
+          EOF
+
+      - name: Deploy to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: ".,!node_modules,!.git,!dist,!.astro"
+          target: "~/apps/hackerfolio"
+          strip_components: 0
+          rm: true
+
+      - name: Build and start containers
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/apps/hackerfolio
+            
+            # Stop and remove existing containers
+            docker-compose down
+            
+            # Build and start containers
+            docker-compose up -d --build
+            
+            # Wait for containers to be healthy
+            echo "Waiting for containers to start..."
+            sleep 30
+            
+            # Show status
+            docker-compose ps
+            
+            # Show logs
+            echo "=== Astro App Logs ==="
+            docker-compose logs --tail=50 astro-app
+            
+            echo "Deployment completed!"
